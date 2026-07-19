@@ -4,8 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v61 (Rx na časovej osi)</title>
+<title>Hilbi Cockpit — v62 (IQ modal mobile fix)</title>
 <!-- CHANGELOG
+v62 (2026-07-19): M-16 — IQ modal na mobile + fix zoomu pri písaní.
+  IQ modal mal pevných 380px + right:34px — na užších displejoch pretekal cez ľavý
+  okraj. Na mobile je teraz full-screen (100dvh, safe-area, bez radiusu).
+  Zoom pri písaní: iOS Safari automaticky zoomuje pri fokuse na input s písmom
+  <16px — na mobile majú všetky input/textarea/select vynútených 16px, zoom zmizne.
 v61 (2026-07-19): K-14 — preskripcia sa zapisuje na časovú os pacienta.
   Po podpísaní receptu sa do sekcie DNES vloží karta „Preskripcia — …" s reálnym
   časom, stavom Ukončené a chipmi liekov vo farbách ATC skupín (drugAcc). Funguje
@@ -696,6 +701,10 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
   .tabs .tabsmenu{display:none}
   .dock .mnav{display:flex}
   .dockwrap{left:50%;right:auto;transform:translateX(-50%);align-items:center;bottom:calc(14px + env(safe-area-inset-bottom))}
+  /* IQ modal — full-screen (fix: 380px + right:34 pretekal vľavo) */
+  .iqmodal{top:0;left:0;right:0;bottom:0;width:auto;height:100dvh;border-radius:0;padding-top:env(safe-area-inset-top)}
+  /* iOS auto-zoom pri fokusu: input <16px sa zoomuje — vynútiť 16px */
+  input,textarea,select{font-size:16px!important}
   /* PHR — na mobile existuje LEN ako full-screen sheet (phr-open) */
   .phr,.phrmin{display:none!important}
   body.phr-open .phr{display:flex!important;position:fixed;top:0;left:0;right:0;bottom:0;width:auto;z-index:70;border-radius:0;padding-top:env(safe-area-inset-top)}
