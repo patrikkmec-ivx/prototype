@@ -4,8 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v58 (jednotný dock)</title>
+<title>Hilbi Cockpit — v59 (dock centrovaný)</title>
 <!-- CHANGELOG
+v59 (2026-07-19): M-14 — dock na stred, avatar vo veľkosti IQ.
+  Avatar lekára zmenšený na veľkosť IQ značky (22px + ring). Celý dock je na mobile
+  horizontálne centrovaný (left:50%, translateX(-50%)), bottom rešpektuje safe-area.
+  Desktop bez zmeny (vpravo dole).
 v58 (2026-07-19): M-13 — menu a avatar zlúčené do hlavného docku (mobil).
   Samostatný ľavý komponent zrušený. Dock: ☰ | + dekurz lupa IQ | foto lekára —
   globálne prvky na krajoch, kontextové akcie v strede; hamburger aj avatar otvárajú
@@ -617,7 +621,7 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
 .dockmenu .sep{height:1px;background:var(--border-default);margin:6px 4px}
 .dock{background:linear-gradient(90deg,#1C93AC 0%,#1B2340 55%);border-radius:999px;display:flex;align-items:center;padding:6px 10px;gap:2px;box-shadow:0 10px 28px rgba(27,35,64,.28)}
 .dock .mnav,.dock .mprof{display:none}
-.dock .mprof .dava{width:32px;height:32px;border-radius:50%;background-size:cover;background-position:center;box-shadow:0 0 0 2px rgba(255,255,255,.35);display:block}
+.dock .mprof .dava{width:22px;height:22px;border-radius:50%;background-size:cover;background-position:center;box-shadow:0 0 0 1.5px rgba(255,255,255,.4);display:block}
 .dock button{width:40px;height:40px;border:none;background:transparent;color:#fff;display:flex;align-items:center;justify-content:center;position:relative}.dock button::before{content:'';position:absolute;inset:-4px};cursor:pointer;border-radius:999px;position:relative}
 .dock .plus{background:rgba(255,255,255,.16)}
 .dock .iq svg{width:22px;height:22px}
@@ -682,6 +686,7 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
   .tabs .tab.tabphr .tlb{display:inline;font-weight:700}
   .tabs .tabsmenu{display:none}
   .dock .mnav,.dock .mprof{display:flex}
+  .dockwrap{left:50%;right:auto;transform:translateX(-50%);align-items:center;bottom:calc(14px + env(safe-area-inset-bottom))}
   /* PHR — na mobile existuje LEN ako full-screen sheet (phr-open) */
   .phr,.phrmin{display:none!important}
   body.phr-open .phr{display:flex!important;position:fixed;top:0;left:0;right:0;bottom:0;width:auto;z-index:70;border-radius:0;padding-top:env(safe-area-inset-top)}
