@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v62 (IQ modal mobile fix)</title>
+<title>Hilbi Cockpit — v63 (tele ikony preč)</title>
 <!-- CHANGELOG
+v63 (2026-07-19): K-15 — ikony telefónu a videohovoru odstránené z karty pacienta
+  (hlavička). Komunikačné kanály ostávajú v tabe Communication.
 v62 (2026-07-19): M-16 — IQ modal na mobile + fix zoomu pri písaní.
   IQ modal mal pevných 380px + right:34px — na užších displejoch pretekal cez ľavý
   okraj. Na mobile je teraz full-screen (100dvh, safe-area, bez radiusu).
@@ -791,8 +793,7 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
       <div class="who">
         <div class="nrow">
           <h1>Jane Carter</h1>
-          <div class="tele"><button aria-label="Zavolať pacientovi"><svg class="ico s14" aria-hidden="true"><use href="#i-phone"/></svg></button><button aria-label="Videohovor"><svg class="ico s14" aria-hidden="true"><use href="#i-video"/></svg></button></div>
-        </div>
+                  </div>
         <div class="ident"><span>Žena · 38 r · nar. 12. 03. 1988</span><span class="idsep"> · </span><span class="idnum">ID 76157 8787</span></div>
       </div>
       <div class="chips">
