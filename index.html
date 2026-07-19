@@ -4,8 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v55 (PHR refaktor + fix)</title>
+<title>Hilbi Cockpit — v57 (foto lekára)</title>
 <!-- CHANGELOG
+v57 (2026-07-19): M-12 — foto lekára namiesto iniciálok.
+  Avatar v ľavom spodnom komponente používa reálnu fotku (existujúca .pav.doc1,
+  Dr. E. Rodriguez), cover/center, jemný biely ring pre kontrast na navy podklade.
+v56 (2026-07-19): M-11 — „+" vrátené do mobilného docku.
+  Tlačidlo + aj jeho menu akcií (Odfotiť dokument / Generovať správu / Termín) sú
+  opäť dostupné na mobile; menu má poistku max-width na šírku obrazovky.
 v55 (2026-07-19): M-10 — oprava rozbitého PHR + refaktor mobilu.
   FIX: v53 edit omylom prepísal selektor zbaleného stavu — pbody sa zobrazoval aj
   v 46px raile (zvislý pásik „No PHR records"). Obnovené: body[data-phr=min] skrýva
@@ -608,7 +614,7 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
 .dock{background:linear-gradient(90deg,#1C93AC 0%,#1B2340 55%);border-radius:999px;display:flex;align-items:center;padding:6px 10px;gap:2px;box-shadow:0 10px 28px rgba(27,35,64,.28)}
 .docprof{display:none;position:fixed;left:0;bottom:26px;z-index:50;background:linear-gradient(90deg,#1B2340,#22346E);border-radius:0 999px 999px 0;padding:6px 12px 6px 6px;box-shadow:0 10px 28px rgba(27,35,64,.28)}
 .docprof button{width:40px;height:40px;border:none;background:transparent;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:999px;position:relative;padding:0}
-.docprof .dava{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#7BC6D6,#2E5FB5);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff}
+.docprof .dava{width:34px;height:34px;border-radius:50%;background-size:cover;background-position:center;box-shadow:0 0 0 2px rgba(255,255,255,.35)}
 .docprof button:hover::after{content:attr(data-tip);position:absolute;bottom:52px;left:50%;transform:translateX(-50%);background:var(--surface-navy);color:#fff;font-size:12px;font-weight:600;padding:5px 10px;border-radius:6px;white-space:nowrap}
 .dock button{width:40px;height:40px;border:none;background:transparent;color:#fff;display:flex;align-items:center;justify-content:center;position:relative}.dock button::before{content:'';position:absolute;inset:-4px};cursor:pointer;border-radius:999px;position:relative}
 .dock .plus{background:rgba(255,255,255,.16)}
@@ -681,8 +687,7 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
   body.phr-open .phr .tabs{display:flex!important}
   body.phr-open .phr .pbody{display:flex!important}
   body.phr-open .phrclose{display:flex}
-  /* + menu iba na desktope */
-  .dock .plus,.dockmenu{display:none!important}
+  .dockmenu{max-width:calc(100vw - 24px)}
   .center{flex:1;min-width:0;border-radius:0}
 }
 </style>
@@ -1134,7 +1139,7 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
   </div>
   <div class="docprof">
     <button data-tip="Menu" aria-label="Menu" onclick="document.body.classList.toggle('drawer-open')"><svg class="ico s18" aria-hidden="true"><use href="#i-menu"/></svg></button>
-    <button data-tip="Dr. E. Rodriguez" aria-label="Dr. E. Rodriguez — menu" onclick="document.body.classList.toggle('drawer-open')"><span class="dava">ER</span></button>
+    <button data-tip="Dr. E. Rodriguez" aria-label="Dr. E. Rodriguez — menu" onclick="document.body.classList.toggle('drawer-open')"><span class="dava pav doc1"></span></button>
   </div>
   <div class="dock">
     <button class="plus" data-tip="Akcie" onclick="document.getElementById('dockmenu').classList.toggle('open')"><svg class="ico s18" aria-hidden="true"><use href="#i-plus"/></svg></button>
