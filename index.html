@@ -4,8 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v60 (avatar von)</title>
+<title>Hilbi Cockpit — v61 (Rx na časovej osi)</title>
 <!-- CHANGELOG
+v61 (2026-07-19): K-14 — preskripcia sa zapisuje na časovú os pacienta.
+  Po podpísaní receptu sa do sekcie DNES vloží karta „Preskripcia — …" s reálnym
+  časom, stavom Ukončené a chipmi liekov vo farbách ATC skupín (drugAcc). Funguje
+  pre každý ďalší recept (zrušený one-shot guard). Po zavretí Rx modalu (Hotovo)
+  os automaticky scrollne na novú kartu a karta sa krátko zvýrazní (flash 1.8s).
 v60 (2026-07-19): M-15 — avatar lekára odstránený z docku.
   Dock (mobil): ☰ | + · dekurz · lupa · IQ. Drawer sa otvára hamburgerom; profil
   lekára je dostupný v drawer menu (org sekcia hore).
@@ -526,6 +531,8 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
 .chipset .cs button.pmed svg{width:12px;height:12px;stroke:var(--a4);flex:none}
 .chipset .cs button.pmed .live{width:7px;height:7px;border-radius:50%;background:var(--success);flex:none;box-shadow:0 0 0 2px #fff}
 .chipset label em{font-style:normal;font-weight:500;letter-spacing:0;text-transform:none;color:var(--text-subtle);margin-left:8px}
+.card.flash{animation:cardflash 1.8s ease}
+@keyframes cardflash{0%{box-shadow:0 0 0 3px var(--brand-cyan,#1C93AC);background:#EAF7FA}60%{box-shadow:0 0 0 3px rgba(28,147,172,.35)}100%{box-shadow:none}}
 .rxdock{position:sticky;bottom:-18px;z-index:6;background:#fff;margin:8px -24px -18px;padding:10px 24px 16px}
 .rxdock::before{content:"";position:absolute;left:0;right:0;top:-30px;height:30px;background:linear-gradient(to top,#fff 15%,rgba(255,255,255,0));pointer-events:none}
 .rxsearch{display:flex;gap:10px;align-items:center;border:1.5px solid var(--border-default);border-radius:10px;padding:11px 14px;margin:0;background:#fff;transition:border-color .12s,box-shadow .12s}
@@ -1209,7 +1216,9 @@ let RX={cart:[],edit:-1,done:false};
 function rxT(sk){return tt(sk)}
 function openRx(){RX={cart:[],edit:-1,done:false};document.getElementById('rxwrap').classList.add('open');document.getElementById('dockmenu').classList.remove('open');rxRender();setTimeout(()=>document.getElementById('rxq').focus(),50)}
 function openRxRepeat(){openRx();const d=DRUGS.find(x=>x.b==="Tecfidera 240");const it={d,sig:d.sig,dur:d.dur,warn:gateWarn(d),ack:false,recEdited:false};it.rec=iqRec(it);RX.cart=[it];rxRender()}
-function closeRx(){document.getElementById('rxwrap').classList.remove('open')}
+function closeRx(){document.getElementById('rxwrap').classList.remove('open');
+ if(lastRxCard){const c=lastRxCard.querySelector('.card');lastRxCard.scrollIntoView({behavior:'smooth',block:'center'});
+  c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),1900);lastRxCard=null;}}
 function gateWarn(d){return PATIENT_ON.includes("warfarin")&&(d.fl.includes("nsaid")||d.fl.includes("antiplatelet"))}
 function qty(sig,dur){if(sig==="SOS")return dur;const p=String(sig).split('-').map(Number);const per=p.length&&p.every(n=>!isNaN(n))?p.reduce((a,b)=>a+b,0):1;return Math.max(1,per)*dur}
 /* K-02 — stabilná farba lieku podľa ATC skupiny (accent paleta DS).
@@ -1327,19 +1336,21 @@ function doSign(){
  if(RX.cart.some(it=>it.warn&&!it.ack)){rxRender();return}
  RX.done=true;rxRender();insertRxCard();
 }
-let rxInserted=false;
+let lastRxCard=null;
 function insertRxCard(){
- if(rxInserted)return;rxInserted=true;
  const names=RX.cart.map(i=>i.d.b);
  const title=names.length>1?rxT('Preskripcia')+' — '+names.length+' '+rxT('liekov'):rxT('Preskripcia')+' — '+names[0];
+ const now=new Date();const tm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+ const chips=RX.cart.map(it=>`<span class="tag clin t-${drugAcc(it.d)}">${escT(it.d.b)}</span>`).join('');
  const row=document.createElement('div');row.className='trow';row.dataset.type='visit';
  row.innerHTML=`<div class="spine"><button class="tico" data-f="visit"><svg class="ico s14"><use href="#i-syr"/></svg></button><div class="line"></div></div>
  <div class="card"><div class="body"><div class="pav ph doc1">N<span class="vb">＋</span></div><div class="cmain">
- <div class="l1"><b>${title}</b><span class="dt"><span class="sdot d-ok"></span><svg class="ico sok"><use href="#i-sok"/></svg>18.07 · 11:02</span></div>
- <div class="l2">${names.join(' · ')} — ${rxT('vydaný eRecept · kód pacientovi')}</div>
- <div class="crow"><span class="tag">${rxT('Ukončené')}</span><span class="tag clin t-a4">${rxT('Recept')}</span></div>
+ <div class="l1"><b>${title}</b><span class="dt"><span class="sdot d-ok"></span><svg class="ico sok"><use href="#i-sok"/></svg>17.07 · ${tm}</span></div>
+ <div class="l2">${rxT('vydaný eRecept · kód pacientovi')}</div>
+ <div class="crow"><span class="tag">${rxT('Ukončené')}</span>${chips}</div>
  </div></div></div>`;
  const t=document.querySelector('.today');t.parentNode.insertBefore(row,t.nextSibling);
+ lastRxCard=row;
  if(LANG==='en')swapText(SK2EN);
 }
 document.getElementById('rxq').addEventListener('input',renderRes);
