@@ -4,8 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v74 (K-23 reverzný flow P→A)</title>
+<title>Hilbi Cockpit — v75 (biometria pri podpise Rx)</title>
 <!-- CHANGELOG
+v75 (2026-07-20): Simulácia biometrického overenia pri Sign eReceptu. doSign →
+  Face ID overlay (blur pozadie, rámik s tvárou + bežiaci scan line ~1.3 s) →
+  úspech (zelený check v rámiku, "Overené · kvalifikovaný podpis pripojený" ~0.65 s)
+  → pokračuje pôvodný podpis (doSignCore → QR obrazovka so SOAP pokračovaním).
+  Guard proti dvojkliku, ikona sa po zavretí resetuje pre ďalší podpis. Zodpovedá
+  poznámke v pätke Rx modalu "signature: certificate (desktop) · biometrics (mobile)"
+  — simulácia beží na oboch, produkčne desktop = certifikát, mobil = biometria.
+  NEW do Figmy: biowrap/biobox, bioface + scan animácia.
 v74 (2026-07-20): K-23 — SOAP pokračovanie na QR obrazovke (reverzný flow P→A;
   nové pravidlo SOAP-10: reverzný návrh A z P len ako explicitne potvrdzovaný návrh).
   Jeden core, vstup z ktorejkoľvek strany: EU S→O→A→P aj IN P→A skladajú ten istý
@@ -788,6 +796,18 @@ body[data-tab="comm"] .timeline{display:none}
 .emrow input{accent-color:var(--brand-teal)}
 .emjust{font-size:11.5px;color:var(--text-subtle);margin-top:4px}
 .billfoot{display:flex;gap:10px;margin-top:10px;justify-content:flex-end}
+/* v75 · biometrické overenie pri podpise Rx (simulácia) — NEW, doplniť do Figmy */
+.biowrap{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;background:rgba(27,35,64,.45);backdrop-filter:blur(4px)}
+.biowrap.open{display:flex}
+.biobox{background:#fff;border-radius:20px;padding:28px 36px;text-align:center;box-shadow:0 24px 60px rgba(27,35,64,.35);min-width:220px}
+.bioface{width:76px;height:76px;margin:0 auto 14px;position:relative;color:var(--brand-teal)}
+.bioface svg{width:76px;height:76px;stroke:currentColor}
+.bioface .scanline{position:absolute;left:14px;right:14px;height:2px;border-radius:2px;background:var(--brand-teal);opacity:.85;top:12px;animation:bioscan 1.1s ease-in-out infinite alternate}
+@keyframes bioscan{from{top:14px}to{top:60px}}
+.biobox.ok .bioface{color:var(--success)}
+.biobox.ok .scanline{display:none}
+.biotxt{font-size:14px;font-weight:700;color:var(--text-heading)}
+.biosub{font-size:11.5px;color:var(--text-muted);margin-top:3px}
 /* K-21 · case vrstva (EpisodeOfCare) — NEW, doplniť do Figmy */
 .epband{flex:1;border:1px solid var(--accent-3-strong);background:var(--accent-3-soft);border-radius:12px;padding:11px 14px;cursor:pointer}
 .epband .eph{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
@@ -1418,6 +1438,20 @@ body[data-tab="comm"] .timeline{display:none}
   </div>
 </div>
 
+<div class="biowrap" id="biowrap">
+  <div class="biobox" id="biobox">
+    <div class="bioface" id="bioface">
+      <svg viewBox="0 0 76 76" fill="none" stroke-width="4" stroke-linecap="round" id="biofsvg">
+        <path d="M10 24V16a6 6 0 0 1 6-6h8M52 10h8a6 6 0 0 1 6 6v8M66 52v8a6 6 0 0 1-6 6h-8M24 66h-8a6 6 0 0 1-6-6v-8"/>
+        <path d="M28 32v6M48 32v6M38 34v10h-3M28 52c2.8 3 6.2 4.5 10 4.5s7.2-1.5 10-4.5" stroke-width="3.5"/>
+      </svg>
+      <div class="scanline"></div>
+    </div>
+    <div class="biotxt" id="biotxt">Overenie tvárou…</div>
+    <div class="biosub" id="biosub">pozrite sa do kamery</div>
+  </div>
+</div>
+
 <div class="sheetwrap" id="casewrap"><div class="scrim" onclick="mClose('casewrap')"></div>
   <div class="sheet">
     <div class="sh-h"><span class="hic"><svg class="ico s14"><use href="#i-layers"/></svg></span><b>Prípad — Hypertenzná kríza</b>
@@ -1765,9 +1799,27 @@ function renderRes(){
 }
 function ackW(i){RX.cart[i].ack=true;rxRender()}
 function rmCart(i){RX.cart.splice(i,1);rxRender()}
+let bioBusy=false;
 function doSign(){
  if(!RX.cart.length)return;
  if(RX.cart.some(it=>it.warn&&!it.ack)){rxRender();return}
+ if(bioBusy)return;bioBusy=true;
+ const w=document.getElementById('biowrap'),b=document.getElementById('biobox');
+ b.classList.remove('ok');
+ document.getElementById('biotxt').textContent=tt('Overenie tvárou…');
+ document.getElementById('biosub').textContent=tt('pozrite sa do kamery');
+ w.classList.add('open');
+ setTimeout(()=>{
+   b.classList.add('ok');
+   const f=document.getElementById('biofsvg');f.innerHTML='<path d="M10 24V16a6 6 0 0 1 6-6h8M52 10h8a6 6 0 0 1 6 6v8M66 52v8a6 6 0 0 1-6 6h-8M24 66h-8a6 6 0 0 1-6-6v-8"/><path d="m26 39 8 8 16-16" stroke-width="5"/>';
+   document.getElementById('biotxt').textContent=tt('Overené');
+   document.getElementById('biosub').textContent=tt('kvalifikovaný podpis pripojený');
+   setTimeout(()=>{w.classList.remove('open');bioBusy=false;doSignCore();
+     const f2=document.getElementById('biofsvg');f2.innerHTML='<path d="M10 24V16a6 6 0 0 1 6-6h8M52 10h8a6 6 0 0 1 6 6v8M66 52v8a6 6 0 0 1-6 6h-8M24 66h-8a6 6 0 0 1-6-6v-8"/><path d="M28 32v6M48 32v6M38 34v10h-3M28 52c2.8 3 6.2 4.5 10 4.5s7.2-1.5 10-4.5" stroke-width="3.5"/>';
+   },650);
+ },1300);
+}
+function doSignCore(){
  RX.done=true;rxRender();insertRxCard();renderRxSoap();
 }
 let lastRxCard=null;
@@ -2272,6 +2324,7 @@ const I18N=[
 ["Artériová hypertenzia","Arterial hypertension"],["Sclerosis multiplex — pokračovanie liečby","Multiple sclerosis — continued therapy"],
 ["Antikoagulačná liečba — kontrola","Anticoagulation — monitoring"],["KV prevencia — antiagregácia","CV prevention — antiplatelet"],
 ["Zapísané: Rx (P) + diagnóza (A)","Recorded: Rx (P) + diagnosis (A)"],["DIAGNÓZA / POPIS (A)","DIAGNOSIS / DESCRIPTION (A)"],
+["Overenie tvárou…","Face verification…"],["pozrite sa do kamery","look at the camera"],["Overené","Verified"],["kvalifikovaný podpis pripojený","qualified signature attached"],
 ["Prípad — Hypertenzná kríza","Case — Hypertensive crisis"],["EpisodeOfCare · 3 encountery:","EpisodeOfCare · 3 encounters:"],
 ["EpisodeOfCare · uzavretý 24.06","EpisodeOfCare · closed 24 Jun"],["Handoffy (2)","Handoffs (2)"],["Účet prípadu · 9 položiek","Case bill · 9 items"],
 ["Prehľad","Overview"],["Handoffy","Handoffs"],["Účet","Bill"],
