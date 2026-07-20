@@ -4,8 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v65 (K-16 SOAP jadro)</title>
+<title>Hilbi Cockpit — v66 (K-17 dekurz v2)</title>
 <!-- CHANGELOG
+v66 (2026-07-20): K-17 — dekurz v2 (cp-15: SOAP-03/06, príprava Flow B).
+  Dekurz "Dnes": completeness indikátor S/O/A/P (bodky, farby podľa slotov — informuje,
+  NIKDY neblokuje; východzí stav S●O●A○P● zámerne nabáda na jednu vetu do A), evrows
+  so SOAP chipmi namiesto ikon + data-soap. Kompilácia: každá akcia (Record, eRecept,
+  chat→S) zapisuje udalosť aj do dekurzu — dekAddEv() + živý update completeness.
+  Tab Communication funkčný: minimálny chat (2 správy pacienta + odpoveď), na pacientskej
+  bubline tlačidlo "S → do dekurzu" — 1 klik zapíše výňatok ako S udalosť, tlačidlo
+  prejde na ✓, toast. Prepínanie tabov Pathway/Communication (cTab, body[data-tab]).
+  Mobil: scomp wrap, chat na M-17 tokenoch. NEW do Figmy: scomp, cbub, s2dek.
 v65 (2026-07-20): K-16 — SOAP jadro (podľa cp-15, pravidlá SOAP-01/02/04/05).
   SOAP chipy (S/O/A/P, farebné podľa accent tokenov, NEW — doplniť do Figmy) na kartách
   osi s jednoznačným mapovaním: odber krvi → O, prepúšťacia správa → O, PRO dotazník → S,
@@ -645,6 +654,26 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
 .soapseg button.on[data-s="P"]{background:var(--accent-1-soft);color:var(--accent-1-strong)}
 .recline{width:100%;box-sizing:border-box;border:1.5px solid var(--border-default);border-radius:10px;padding:11px 13px;font-family:inherit;font-size:14px;color:var(--text-heading);outline:none}
 .recline:focus{border-color:var(--brand-teal)}
+/* K-17 · dekurz kompilácia + completeness + chat→S — NEW, doplniť do Figmy */
+.scomp{display:flex;gap:14px;align-items:center;margin:2px 0 12px;padding:10px 13px;background:var(--surface-1);border-radius:10px}
+.scomp .si{display:inline-flex;gap:6px;align-items:center;font-size:12px;font-weight:800;color:var(--text-subtle)}
+.scomp .sd{width:9px;height:9px;border-radius:50%;background:var(--border-strong);flex:none}
+.scomp .si.full .sd{background:currentColor}
+.scomp .si.full[data-s="S"]{color:var(--accent-2-strong)}
+.scomp .si.full[data-s="O"]{color:var(--accent-8-strong)}
+.scomp .si.full[data-s="A"]{color:var(--accent-7-strong)}
+.scomp .si.full[data-s="P"]{color:var(--accent-1-strong)}
+.scomp .lbl{margin-left:auto;font-size:11.5px;font-weight:600;color:var(--text-subtle)}
+.commpane{display:none;flex-direction:column;gap:10px;padding:6px 2px;max-width:640px}
+body[data-tab="comm"] .commpane{display:flex}
+body[data-tab="comm"] .timeline{display:none}
+.cbub{max-width:78%;padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:19px;color:var(--text-body)}
+.cbub.pt{align-self:flex-start;background:var(--surface-white);border:1px solid var(--border-default);border-bottom-left-radius:4px}
+.cbub.dr{align-self:flex-end;background:var(--brand-cyan-soft);border-bottom-right-radius:4px}
+.cbub .cwho{display:block;font-size:11px;font-weight:700;color:var(--text-subtle);margin-bottom:3px}
+.s2dek{margin-top:8px;display:inline-flex;gap:6px;align-items:center;border:1.5px solid var(--accent-2-strong);color:var(--accent-2-strong);background:#fff;border-radius:999px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer}
+.s2dek b{font-size:12px}
+.s2dek.done{border-color:var(--success);color:var(--success);pointer-events:none}
 .typechips button.on{background:var(--brand-cyan-soft);border:2px solid var(--brand-cyan);padding:7.5px 13.5px;color:#0E7D92}
 .vbox input{border:none;outline:none;font-family:inherit;font-size:14px;font-weight:700;color:var(--text-heading);width:100%;background:none}
 .drop{border:1.5px dashed var(--border-strong);border-radius:12px;padding:26px;text-align:center;color:var(--text-muted);font-size:13px;margin-bottom:12px}
@@ -805,6 +834,13 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
   .soap{width:22px;height:22px;font-size:var(--t-label)}
   .soapseg button{font-size:var(--t-title);min-height:44px}
   .recline{font-size:16px} /* iOS zoom fix */
+  /* K-17: dekurz + chat na mobilnej škále */
+  .scomp{flex-wrap:wrap;gap:10px}
+  .scomp .si{font-size:var(--t-label)}
+  .scomp .lbl{width:100%;margin-left:0;font-size:var(--t-label)}
+  .cbub{font-size:var(--t-body);line-height:21px;max-width:88%}
+  .cbub .cwho{font-size:var(--t-label)}
+  .s2dek{min-height:36px;font-size:var(--t-meta)}
 }
 </style>
 </head>
@@ -901,10 +937,10 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
     </header>
 
     <div class="tabs">
-      <button class="tab active"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-route"/></svg><span class="tlb">Patient pathway</span></button>
+      <button class="tab active" onclick="cTab('path',this)"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-route"/></svg><span class="tlb">Patient pathway</span></button>
       <button class="tab"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-cliplist"/></svg><span class="tlb">Care plans</span> <span class="chev">▾</span></button>
       <button class="tab"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-folder2"/></svg><span class="tlb">Records</span></button>
-      <button class="tab"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-msgc"/></svg><span class="tlb">Communication</span></button>
+      <button class="tab" onclick="cTab('comm',this)"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-msgc"/></svg><span class="tlb">Communication</span></button>
       <button class="tab"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-users2"/></svg><span class="tlb">Multidisciplinárny panel</span></button>
       <button class="tab tabphr" id="lifeidBtn" title="PHR" aria-label="PHR"><span class="tlb">PHR</span></button>
       <button class="menu tabsmenu" aria-label="Menu" onclick="document.getElementById('hmenu').classList.toggle('open')"><svg class="ico s18" aria-hidden="true"><use href="#i-menu"/></svg></button>
@@ -1070,6 +1106,11 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
       </div>
 
       </div><!-- /timeline -->
+      <div class="commpane">
+        <div class="cbub pt"><span class="cwho">Jane Carter · 08:41</span><span class="ctext">Od rána mám tŕpnutie ľavej ruky a väčšiu únavu ako obvykle.</span><br><button class="s2dek" onclick="chat2S(this)"><b>S</b><span>→ do dekurzu</span></button></div>
+        <div class="cbub dr"><span class="cwho">Dr. Novak · 08:52</span><span class="ctext">Ďakujem za info. Prosím, zmerajte si dnes tlak a uvidíme sa na kontrole o 10:00.</span></div>
+        <div class="cbub pt"><span class="cwho">Jane Carter · 08:55</span><span class="ctext">Dobre, TK doplním. Ďakujem.</span><br><button class="s2dek" onclick="chat2S(this)"><b>S</b><span>→ do dekurzu</span></button></div>
+      </div>
     </div>
   </main>
 
@@ -1219,10 +1260,17 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
       <button onclick="dTab(2,this)">Generovať</button>
     </div>
     <div class="dsec on" id="dsec0">
-      <div class="evrow"><span class="tm">08:12</span><svg class="ico s14"><use href="#i-act"/></svg><span>TK 138/88 mmHg · pulz 72</span><span class="who">systém · Omron</span></div>
-      <div class="evrow"><span class="tm">09:05</span><svg class="ico s14"><use href="#i-steth"/></svg><span>Krok plánu: kontrola DM — splnený</span><span class="who">lekár</span></div>
-      <div class="evrow"><span class="tm">09:20</span><svg class="ico s14"><use href="#i-file"/></svg><span>PRO dotazník — vyhodnotený</span><span class="who iq" title="Hilbi IQ"><svg class="iqmk" aria-hidden="true"><use href="#i-iqmark"/></svg></span></div>
-      <div class="evrow"><span class="tm">11:02</span><svg class="ico s14"><use href="#i-syr"/></svg><span>eRecept Tecfidera 240 mg — vydaný</span><span class="who">lekár</span></div>
+      <div class="scomp" title="Kompletnosť SOAP — informuje, neblokuje">
+        <span class="si" data-s="S"><span class="sd"></span>S</span>
+        <span class="si" data-s="O"><span class="sd"></span>O</span>
+        <span class="si" data-s="A"><span class="sd"></span>A</span>
+        <span class="si" data-s="P"><span class="sd"></span>P</span>
+        <span class="lbl">kompletnosť SOAP · informatívne</span>
+      </div>
+      <div class="evrow" data-soap="O"><span class="tm">08:12</span><span class="soap sO" title="SOAP · Objektívne">O</span><span>TK 138/88 mmHg · pulz 72</span><span class="who">systém · Omron</span></div>
+      <div class="evrow" data-soap="P"><span class="tm">09:05</span><span class="soap sP" title="SOAP · Plán">P</span><span>Krok plánu: kontrola DM — splnený</span><span class="who">lekár</span></div>
+      <div class="evrow" data-soap="S"><span class="tm">09:20</span><span class="soap sS" title="SOAP · Subjektívne">S</span><span>PRO dotazník — vyhodnotený</span><span class="who iq" title="Hilbi IQ"><svg class="iqmk" aria-hidden="true"><use href="#i-iqmark"/></svg></span></div>
+      <div class="evrow" data-soap="P"><span class="tm">11:02</span><span class="soap sP" title="SOAP · Plán">P</span><span>eRecept Tecfidera 240 mg — vydaný</span><span class="who">lekár</span></div>
       <div class="narr">
         <label>NARATÍV LEKÁRA</label>
         <textarea>Pacientka bez akútnych ťažkostí. Glykémia v rozmedzí normy, TK na hornej hranici cieľa — pokračovať v monitoringu. Medikácia bez zmeny okrem pokračovania Tecfidery.</textarea>
@@ -1453,6 +1501,7 @@ function insertRxCard(){
  </div></div></div>`;
  const t=document.querySelector('.today');t.parentNode.insertBefore(row,t.nextSibling);
  lastRxCard=row;
+ dekAddEv('P',rxT('eRecept vydaný')+' — '+names.join(', '),rxT('lekár'));
  if(LANG==='en')swapText(SK2EN);
 }
 document.getElementById('rxq').addEventListener('input',renderRes);
@@ -1499,8 +1548,33 @@ function saveRec(){mClose('recwrap');showToast();
   const t=document.querySelector('.today');t.parentNode.insertBefore(r,t.nextSibling);
   const c=r.querySelector('.card');c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),1900);
   r.scrollIntoView({behavior:'smooth',block:'center'});
+  dekAddEv(recSlot,isVit?'TK 138/88 · pulz 72 · 82 kg':(note||'Poznámka'),'lekár');
   document.getElementById('recnote').value='';
   if(LANG==='en')swapText(SK2EN);}
+/* K-17: kompilácia akcií do dekurzu + completeness (SOAP-03/06) */
+function dekAddEv(slot,text,who){
+  const now=new Date();const tm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const d=document.getElementById('dsec0');
+  const row=document.createElement('div');row.className='evrow';row.dataset.soap=slot;
+  row.innerHTML=`<span class="tm">${tm}</span><span class="soap s${slot}" title="${SOAPTITLE[slot]}">${slot}</span><span>${escT(text)}</span><span class="who">${escT(who)}</span>`;
+  d.insertBefore(row,d.querySelector('.narr'));
+  updComp();
+}
+function updComp(){
+  const have=new Set(Array.from(document.querySelectorAll('#dsec0 .evrow')).map(r=>r.dataset.soap).filter(Boolean));
+  document.querySelectorAll('.scomp .si').forEach(i=>i.classList.toggle('full',have.has(i.dataset.s)));
+}
+function cTab(t,btn){
+  btn.closest('.tabs').querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');document.body.dataset.tab=t;
+}
+function chat2S(btn){
+  const txt=btn.closest('.cbub').querySelector('.ctext').textContent.trim();
+  dekAddEv('S',tt('Chat výňatok')+': '+txt,tt('pacient · chat'));
+  btn.classList.add('done');btn.innerHTML='✓ '+tt('v dekurze');
+  showToast('Zapísané do dekurzu · S');
+}
+updComp();
 function saveApt(){mClose('aptwrap');showToast('Termín vytvorený');
   if(aptIns)return;aptIns=true;
   const r=mkRow(`<div class="spine"><button class="tico t-plan" data-f="visit"><svg class="ico s14"><use href="#i-steth"/></svg></button><div class="line"></div></div>
@@ -1651,6 +1725,12 @@ const I18N=[
 ["SOAP · Subjektívne","SOAP · Subjective"],["SOAP · Objektívne","SOAP · Objective"],["SOAP · Zhodnotenie","SOAP · Assessment"],["SOAP · Plán","SOAP · Plan"],
 ["Jedna veta stačí — dg., zhodnotenie…","One line is enough — dg., assessment…"],["zápis do dekurzu","written to progress note"],
 ["Zapíše sa do dekurzu do zvoleného SOAP slotu.","Written to the progress note under the selected SOAP slot."],
+["kompletnosť SOAP · informatívne","SOAP completeness · informative"],["Kompletnosť SOAP — informuje, neblokuje","SOAP completeness — informs, never blocks"],
+["Od rána mám tŕpnutie ľavej ruky a väčšiu únavu ako obvykle.","Since morning I have tingling in my left hand and more fatigue than usual."],
+["Ďakujem za info. Prosím, zmerajte si dnes tlak a uvidíme sa na kontrole o 10:00.","Thanks for letting me know. Please measure your blood pressure today — see you at the 10:00 check-up."],
+["Dobre, TK doplním. Ďakujem.","Alright, I'll add the BP reading. Thank you."],
+["→ do dekurzu","→ to progress note"],["v dekurze","in progress note"],["Chat výňatok","Chat excerpt"],["pacient · chat","patient · chat"],
+["Zapísané do dekurzu · S","Written to progress note · S"],["eRecept vydaný","ePrescription issued"],
 ["Kontrola","Follow-up"],["Odber","Blood draw"],["Dátum","Date"],["Čas","Time"],["Miesto","Place"],["Ambulancia","Clinic"],
 ["Zapíše sa do sekcie PLÁNOVANÉ na osi a pacientovi do aplikácie.","Will appear in the PLANNED section of the pathway and in the patient app."],
 ["Vytvoriť termín","Create appointment"],["Termín vytvorený","Appointment created"],
