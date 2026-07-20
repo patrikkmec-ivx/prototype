@@ -4,8 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v64 (M-17 mobilná typografia)</title>
+<title>Hilbi Cockpit — v65 (K-16 SOAP jadro)</title>
 <!-- CHANGELOG
+v65 (2026-07-20): K-16 — SOAP jadro (podľa cp-15, pravidlá SOAP-01/02/04/05).
+  SOAP chipy (S/O/A/P, farebné podľa accent tokenov, NEW — doplniť do Figmy) na kartách
+  osi s jednoznačným mapovaním: odber krvi → O, prepúšťacia správa → O, PRO dotazník → S,
+  vakcinácia → P, eRecept (v61 karta) → P. Návštevy = encounter, chip nemajú.
+  Record modal prerobený: typechips preč, SOAP segment S/O/A/P s defaultom A,
+  jednoriadkové pole "Jedna veta stačí…", vitály grid len pri O, Enter = uložiť,
+  opakované zápisy povolené, nová karta s flash + scroll (vzor v61). Mobil: SOAP prvky
+  na M-17 tokenoch (chip 22px/12px, segment ≥44pt, input 16px iOS fix).
 v64 (2026-07-20): M-17 — mobilná typografická škála + väčší dock. NORMATÍVNE PRAVIDLO:
   na mobile (≤744px) všetok text VÝHRADNE cez 5 tokenov --t-display 22 / --t-title 17 /
   --t-body 15 / --t-meta 13 / --t-label 12; podlaha 12px, nič menšie. Platí pre všetky
@@ -622,6 +630,21 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
 .typechips{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .typechips button{border:1.5px solid var(--border-default);background:#fff;border-radius:999px;padding:8px 14px;min-height:36px;font-size:14px;font-weight:600;color:var(--text-heading);cursor:pointer}
 .typechips button:hover{background:var(--surface-1)}
+/* K-16 · SOAP chip + segment — NEW, doplniť do Figmy */
+.soap{flex:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:6px;font-size:11px;font-weight:800}
+.soap.sS{background:var(--accent-2-soft);color:var(--accent-2-strong)}
+.soap.sO{background:var(--accent-8-soft);color:var(--accent-8-strong)}
+.soap.sA{background:var(--accent-7-soft);color:var(--accent-7-strong)}
+.soap.sP{background:var(--accent-1-soft);color:var(--accent-1-strong)}
+.soapseg{display:flex;gap:6px;margin-bottom:12px}
+.soapseg button{flex:1;border:1.5px solid var(--border-default);background:#fff;border-radius:10px;padding:9px 0;font-size:14px;font-weight:800;color:var(--text-muted);cursor:pointer}
+.soapseg button.on{border-color:transparent}
+.soapseg button.on[data-s="S"]{background:var(--accent-2-soft);color:var(--accent-2-strong)}
+.soapseg button.on[data-s="O"]{background:var(--accent-8-soft);color:var(--accent-8-strong)}
+.soapseg button.on[data-s="A"]{background:var(--accent-7-soft);color:var(--accent-7-strong)}
+.soapseg button.on[data-s="P"]{background:var(--accent-1-soft);color:var(--accent-1-strong)}
+.recline{width:100%;box-sizing:border-box;border:1.5px solid var(--border-default);border-radius:10px;padding:11px 13px;font-family:inherit;font-size:14px;color:var(--text-heading);outline:none}
+.recline:focus{border-color:var(--brand-teal)}
 .typechips button.on{background:var(--brand-cyan-soft);border:2px solid var(--brand-cyan);padding:7.5px 13.5px;color:#0E7D92}
 .vbox input{border:none;outline:none;font-family:inherit;font-size:14px;font-weight:700;color:var(--text-heading);width:100%;background:none}
 .drop{border:1.5px dashed var(--border-strong);border-radius:12px;padding:26px;text-align:center;color:var(--text-muted);font-size:13px;margin-bottom:12px}
@@ -778,6 +801,10 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
   .dock button .ico{width:24px;height:24px}
   .dock .plus{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.24)}
   .dock .plus .ico{width:27px;height:27px}
+  /* K-16: SOAP prvky na mobilnej škále */
+  .soap{width:22px;height:22px;font-size:var(--t-label)}
+  .soapseg button{font-size:var(--t-title);min-height:44px}
+  .recline{font-size:16px} /* iOS zoom fix */
 }
 </style>
 </head>
@@ -951,7 +978,7 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
           <div class="cmain">
             <div class="l1"><b>Odber krvi — kompletný</b><span class="dt"><span class="sdot d-ok"></span><svg class="ico sok" aria-hidden="true"><use href="#i-sok"/></svg>30.06</span></div>
             <div class="l2">Laboratórium Alpha <span class="srcbadge">Externý zdroj · overené</span></div>
-            <div class="crow"><span class="tag">Ukončené</span><span class="tag clin t-a2">HbA1c</span><span class="tag clin t-a2">LDL</span></div>
+            <div class="crow"><span class="soap sO" title="SOAP · Objektívne">O</span><span class="tag">Ukončené</span><span class="tag clin t-a2">HbA1c</span><span class="tag clin t-a2">LDL</span></div>
           </div>
         </div></div>
       </div>
@@ -963,7 +990,7 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
           <div class="cmain">
             <div class="l1"><b>Prepúšťacia správa — Interné odd.</b><span class="dt"><span class="sdot d-ver"></span><svg class="ico sok" aria-hidden="true"><use href="#i-sok"/></svg><span class="sword d-ver">na overenie ·</span> 24.06 · OCR</span></div>
             <div class="l2">Nemocnica sv. Michala <span class="srcbadge">Foto → OCR prepis</span></div>
-            <div class="crow"><span class="tag st-ver"><svg class="ico" aria-hidden="true" style="width:11px;height:11px;vertical-align:-1px"><use href="#i-tri"/></svg> Na overenie</span><span class="tag clin t-a2">Interné</span><button class="verify-btn" title="Otvorí porovnanie originál vs. prepis · počíta sa do inboxu Na potvrdenie">Overiť teraz</button></div>
+            <div class="crow"><span class="soap sO" title="SOAP · Objektívne">O</span><span class="tag st-ver"><svg class="ico" aria-hidden="true" style="width:11px;height:11px;vertical-align:-1px"><use href="#i-tri"/></svg> Na overenie</span><span class="tag clin t-a2">Interné</span><button class="verify-btn" title="Otvorí porovnanie originál vs. prepis · počíta sa do inboxu Na potvrdenie">Overiť teraz</button></div>
           </div>
         </div></div>
       </div>
@@ -975,7 +1002,7 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
           <div class="cmain">
             <div class="l1"><b>PRO - dotazník bolesti</b><span class="dt"><span class="sdot d-ok"></span><svg class="ico sok" aria-hidden="true"><use href="#i-sok"/></svg>22.06</span></div>
             <div class="l2">Vyplnil pacient</div>
-            <div class="crow"><span class="tag">Ukončené</span><span class="tag clin t-a5">PRO</span><span class="tag clin t-a5">Bolesť</span></div>
+            <div class="crow"><span class="soap sS" title="SOAP · Subjektívne">S</span><span class="tag">Ukončené</span><span class="tag clin t-a5">PRO</span><span class="tag clin t-a5">Bolesť</span></div>
           </div>
         </div></div>
       </div>
@@ -1011,7 +1038,7 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
           <div class="cmain">
             <div class="l1"><b>Vakcinácia — Chrípka 2026</b><span class="dt"><span class="sdot d-ok"></span><svg class="ico sok" aria-hidden="true"><use href="#i-sok"/></svg>18.01</span></div>
             <div class="l2">Všeobecná ambulancia · MUDr. Novák</div>
-            <div class="crow"><span class="tag">Ukončené</span><span class="tag clin t-a8">Vakcína</span></div>
+            <div class="crow"><span class="soap sP" title="SOAP · Plán">P</span><span class="tag">Ukončené</span><span class="tag clin t-a8">Vakcína</span></div>
           </div>
         </div></div>
       </div>
@@ -1139,13 +1166,16 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
   <div class="sheet">
     <div class="sh-h"><span class="hic"><svg class="ico s14"><use href="#i-pen"/></svg></span><b>Zaznamenať</b><button class="x" onclick="mClose('recwrap')" title="Zavrieť">✕</button></div>
     <div class="sh-b">
-      <div class="typechips"><button class="on">Vitály</button><button>Nález</button><button>Výkon</button><button>Krok plánu</button><button>Poznámka</button></div>
-      <div class="vgrid">
+      <div class="soapseg" id="soapseg">
+        <button data-s="S" title="SOAP · Subjektívne">S</button><button data-s="O" title="SOAP · Objektívne">O</button><button class="on" data-s="A" title="SOAP · Zhodnotenie">A</button><button data-s="P" title="SOAP · Plán">P</button>
+      </div>
+      <input id="recnote" class="recline" placeholder="Jedna veta stačí — dg., zhodnotenie…">
+      <div class="vgrid" id="recvit" style="display:none;margin-top:10px">
         <div class="vbox"><label>TK</label><input value="138/88"></div>
         <div class="vbox"><label>Pulz</label><input value="72"></div>
         <div class="vbox"><label>Hmotnosť</label><input value="82 kg"></div>
       </div>
-      <div class="narr" style="margin-top:4px"><textarea placeholder="Poznámka (voliteľné)…"></textarea></div>
+      <div class="gaterow" style="background:var(--surface-1);color:var(--text-muted);margin-top:10px"><svg class="ico s14" style="flex:none"><use href="#i-pen"/></svg><span>Zapíše sa do dekurzu do zvoleného SOAP slotu.</span></div>
     </div>
     <div class="sh-f"><button class="btn" onclick="mClose('recwrap')">Zrušiť</button><button class="btn primary" onclick="saveRec()">Uložiť<span class="kb2">⏎</span></button></div>
   </div>
@@ -1419,7 +1449,7 @@ function insertRxCard(){
  <div class="card"><div class="body"><div class="pav ph doc1">N<span class="vb">＋</span></div><div class="cmain">
  <div class="l1"><b>${title}</b><span class="dt"><span class="sdot d-ok"></span><svg class="ico sok"><use href="#i-sok"/></svg>17.07 · ${tm}</span></div>
  <div class="l2">${rxT('vydaný eRecept · kód pacientovi')}</div>
- <div class="crow"><span class="tag">${rxT('Ukončené')}</span>${chips}</div>
+ <div class="crow"><span class="soap sP" title="SOAP · Plán">P</span><span class="tag">${rxT('Ukončené')}</span>${chips}</div>
  </div></div></div>`;
  const t=document.querySelector('.today');t.parentNode.insertBefore(row,t.nextSibling);
  lastRxCard=row;
@@ -1445,14 +1475,31 @@ function dTab(i,btn){document.querySelectorAll('.dtabs button').forEach(b=>b.cla
   [0,1,2].forEach(n=>document.getElementById('dsec'+n).classList.toggle('on',n===i));}
 let recIns=false,aptIns=false,fotIns=false;
 function mkRow(html,type){const r=document.createElement('div');r.className='trow';r.dataset.type=type;r.innerHTML=html;return r}
+/* K-16: SOAP segment — default A; vitály viditeľné len pri O */
+let recSlot='A';
+const SOAPTITLE={S:'SOAP · Subjektívne',O:'SOAP · Objektívne',A:'SOAP · Zhodnotenie',P:'SOAP · Plán'};
+document.querySelectorAll('#soapseg button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#soapseg button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');recSlot=b.dataset.s;
+  document.getElementById('recvit').style.display=recSlot==='O'?'':'none';
+}));
+document.getElementById('recnote').addEventListener('keydown',e=>{if(e.key==='Enter'){saveRec();e.preventDefault()}});
 function saveRec(){mClose('recwrap');showToast();
-  if(recIns)return;recIns=true;
-  const r=mkRow(`<div class="spine"><button class="tico" data-f="mon"><svg class="ico s14"><use href="#i-act"/></svg></button><div class="line"></div></div>
+  const note=(document.getElementById('recnote').value||'').trim();
+  const now=new Date();const tm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const isVit=recSlot==='O'&&!note;
+  const title=isVit?'Záznam — vitálne funkcie':(note?escT(note):'Poznámka');
+  const l2=isVit?'TK 138/88 · pulz 72 · 82 kg':'zápis do dekurzu';
+  const icon=recSlot==='O'?'i-act':'i-pen';
+  const r=mkRow(`<div class="spine"><button class="tico" data-f="mon"><svg class="ico s14"><use href="#${icon}"/></svg></button><div class="line"></div></div>
   <div class="card"><div class="body"><div class="pav ph doc1">N<span class="vb">＋</span></div><div class="cmain">
-  <div class="l1"><b>Záznam — vitálne funkcie</b><span class="dt"><span class="sdot d-ok"></span><svg class="ico sok"><use href="#i-sok"/></svg>18.07 · 11:06</span></div>
-  <div class="l2">TK 138/88 · pulz 72 · 82 kg</div>
-  <div class="crow"><span class="tag">Ukončené</span><span class="tag clin t-a6">TK</span></div></div></div></div>`,'mon');
+  <div class="l1"><b>${title}</b><span class="dt"><span class="sdot d-ok"></span><svg class="ico sok"><use href="#i-sok"/></svg>17.07 · ${tm}</span></div>
+  <div class="l2">${l2}</div>
+  <div class="crow"><span class="soap s${recSlot}" title="${SOAPTITLE[recSlot]}">${recSlot}</span><span class="tag">Ukončené</span></div></div></div></div>`,'mon');
   const t=document.querySelector('.today');t.parentNode.insertBefore(r,t.nextSibling);
+  const c=r.querySelector('.card');c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),1900);
+  r.scrollIntoView({behavior:'smooth',block:'center'});
+  document.getElementById('recnote').value='';
   if(LANG==='en')swapText(SK2EN);}
 function saveApt(){mClose('aptwrap');showToast('Termín vytvorený');
   if(aptIns)return;aptIns=true;
@@ -1601,6 +1648,9 @@ const I18N=[
 ["zelená = užíva teraz","green = currently taking"],["mes","mo"],["vydaný eRecept · kód pacientovi","ePrescription issued · code sent to patient"],
 ["Vitály","Vitals"],["Nález","Finding"],["Výkon","Procedure"],["Krok plánu","Care plan step"],["Poznámka","Note"],
 ["Pulz","Pulse"],["Hmotnosť","Weight"],["Poznámka (voliteľné)…","Note (optional)…"],["Uložiť","Save"],
+["SOAP · Subjektívne","SOAP · Subjective"],["SOAP · Objektívne","SOAP · Objective"],["SOAP · Zhodnotenie","SOAP · Assessment"],["SOAP · Plán","SOAP · Plan"],
+["Jedna veta stačí — dg., zhodnotenie…","One line is enough — dg., assessment…"],["zápis do dekurzu","written to progress note"],
+["Zapíše sa do dekurzu do zvoleného SOAP slotu.","Written to the progress note under the selected SOAP slot."],
 ["Kontrola","Follow-up"],["Odber","Blood draw"],["Dátum","Date"],["Čas","Time"],["Miesto","Place"],["Ambulancia","Clinic"],
 ["Zapíše sa do sekcie PLÁNOVANÉ na osi a pacientovi do aplikácie.","Will appear in the PLANNED section of the pathway and in the patient app."],
 ["Vytvoriť termín","Create appointment"],["Termín vytvorený","Appointment created"],
