@@ -4,8 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v72 (hotfix Rx flow)</title>
+<title>Hilbi Cockpit — v73 (Rx položky otvorené)</title>
 <!-- CHANGELOG
+v73 (2026-07-20): K-22 — položky liekov v Rx košíku sú po pridaní OTVORENÉ (per-item
+  open flag namiesto RX.edit indexu): dávkovanie, dĺžka aj pole ODPORÚČANIE PRE
+  PACIENTA viditeľné hneď, bez klikania. Chevron zbalí/rozbalí jednotlivo; Escape
+  najprv zbalí všetky, druhý Escape zavrie modal. Viac liekov = viac otvorených
+  kariet pod sebou (vedomé rozhodnutie — poznámky majú byť na očiach).
 v72 (2026-07-20): HOTFIX regresie z v67/v68 — top-level volania ordRender() a updComp()
   (cez updSignVal → tt()) siahali na `let LANG` pred jej deklaráciou (TDZ ReferenceError),
   skript spadol v strede a NIČ za tým sa neinicializovalo — vrátane Rx modalu
@@ -1643,7 +1648,7 @@ function iqRec(it){const d=it.d,en=LANG==='en';
  else t+=en?'Take regularly at the same time.':'Užívajte pravidelne v rovnakom čase.';
  return t}
 function escT(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
-function addDefault(d){const it={d,sig:d.sig,dur:d.dur,warn:gateWarn(d),ack:false,recEdited:false};it.rec=iqRec(it);RX.cart.push(it);RX.edit=-1;const q=document.getElementById('rxq');q.value='';rxRender();setTimeout(()=>q.focus(),40)}
+function addDefault(d){const it={d,sig:d.sig,dur:d.dur,warn:gateWarn(d),ack:false,recEdited:false,open:true};it.rec=iqRec(it);RX.cart.push(it);const q=document.getElementById('rxq');q.value='';rxRender();setTimeout(()=>q.focus(),40)}
 
 function rxRender(){
  document.getElementById('rxs1').style.display=RX.done?'none':'block';
@@ -1675,7 +1680,7 @@ function renderS1Cart(){
   const a=drugAcc(it.d);
   div.style.cssText='border-left:4px solid var(--accent-'+a+'-strong);background:var(--accent-'+a+'-soft)';
   let ed='';
-  if(RX.edit===i){
+  if(it.open!==false){
     const sigCustom=!SIGS.includes(it.sig);
     const durCustom=!DURS.includes(it.dur);
     ed='<div class="sigrow" style="margin:8px 0 2px">'+SIGS.map(x=>'<button class="'+(x===it.sig?'on':'')+'" onclick="setSig('+i+',\''+x+'\')">'+x+'</button>').join('')
@@ -1688,12 +1693,12 @@ function renderS1Cart(){
   }
   div.innerHTML='<div class="t"><svg class="ico s14" style="stroke:var(--success);flex:none"><use href="#i-sok"/></svg><b style="color:var(--accent-'+a+'-strong)">'+it.d.b+'</b>'
    +'<button style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--brand-teal);font-weight:700" onclick="tglEdit('+i+')">'+it.sig+' × '+it.dur+' '+rxT('dní')+' · ≈ '+qty(it.sig,it.dur)+' '+it.d.f+'</button>'
-   +'<button class="cv'+(RX.edit===i?' open':'')+'" onclick="tglEdit('+i+')" title="'+rxT('Upraviť')+'"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>'
+   +'<button class="cv'+(it.open!==false?' open':'')+'" onclick="tglEdit('+i+')" title="'+rxT('Upraviť')+'"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>'
    +'<button class="rm" onclick="rmCart('+i+')">✕</button></div>'+ed+g;
   sc.appendChild(div);
  });
 }
-function tglEdit(i){RX.edit=RX.edit===i?-1:i;rxRender()}
+function tglEdit(i){const it=RX.cart[i];it.open=it.open===false;rxRender()}
 function regenRec(it){if(!it.recEdited)it.rec=iqRec(it)}
 function setSig(i,x){const it=RX.cart[i];it.sig=x;regenRec(it);rxRender()}
 function setDur(i,x){const it=RX.cart[i];it.dur=x;regenRec(it);rxRender()}
@@ -1761,7 +1766,7 @@ document.getElementById('rxq').addEventListener('keydown',e=>{
 document.addEventListener('keydown',e=>{
  const w=document.getElementById('rxwrap');
  if(!w.classList.contains('open'))return;
- if(e.key==='Escape'){if(RX.edit>=0){RX.edit=-1;rxRender()}else closeRx();return}
+ if(e.key==='Escape'){if(RX.cart.some(it=>it.open!==false)){RX.cart.forEach(it=>it.open=false);rxRender()}else closeRx();return}
  if(e.key==='Enter'&&!e.target.matches('input,textarea')){doSign();e.preventDefault()}
 });
 
