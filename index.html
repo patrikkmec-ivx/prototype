@@ -4,8 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v69 (K-20 billing derivation)</title>
+<title>Hilbi Cockpit — v70 (K-21 case vrstva)</title>
 <!-- CHANGELOG
+v70 (2026-07-20): K-21 — case vrstva pre DPU scenár (cp-15: CASE-01..04, BILL-03/05).
+  Na osi nový epband "Prípad — Hypertenzná kríza · EpisodeOfCare · 3 encountery
+  (ER/Kardiológia/Interné) · 22.–24.06" nad nemocničnými kartami — klik otvorí case
+  modal, tlačidlá Handoffy(2) a Účet skáču priamo na sekciu. Case modal, 3 taby:
+  Prehľad = encountery s oddelením, lekárom, časmi, počtom udalostí a položiek výkazu
+  + poučka CASE-02 (presun = nový encounter, pacient sa nekopíruje); Handoffy = 2 ISBAR
+  zhrnutia (ER→Kardio, Kardio→Interné), každé "IQ draft zo SOAP prípadu · potvrdil
+  lekár" (CASE-03); Účet = agregácia 3+2+4 → 9 položiek per epizóda → DRG dávka /
+  jeden účet + atribúcia per oddelenie (BILL-03/05). Nový symbol i-layers, tico t-case.
+  Escape zatvára aj casewrap. NEW do Figmy: epband, encrow, isbar, aggrow. Mobil: M-17.
 v69 (2026-07-20): K-20 — billing derivation (cp-15: BILL-01..04, uzatvára gap H31 v UI).
   Podpis je teraz dvojkrokový: 1. klik "Podpísať deň" → billbox "Výkaz — návrh
   z udalostí dňa": ChargeItem kandidáti DERIVOVANÍ z dekurzu (konzultácia; vitály ak O
@@ -750,6 +760,26 @@ body[data-tab="comm"] .timeline{display:none}
 .emrow input{accent-color:var(--brand-teal)}
 .emjust{font-size:11.5px;color:var(--text-subtle);margin-top:4px}
 .billfoot{display:flex;gap:10px;margin-top:10px;justify-content:flex-end}
+/* K-21 · case vrstva (EpisodeOfCare) — NEW, doplniť do Figmy */
+.epband{flex:1;border:1px solid var(--accent-3-strong);background:var(--accent-3-soft);border-radius:12px;padding:11px 14px;cursor:pointer}
+.epband .eph{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.epband .eph b{font-size:14px;color:var(--text-heading)}
+.epband .epm{font-size:12px;color:var(--text-muted);margin-top:3px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.epband .epa{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+.epbtn{border:1px solid var(--accent-3-strong);color:var(--accent-3-strong);background:#fff;border-radius:999px;padding:4px 11px;font-size:11.5px;font-weight:700}
+.tico.t-case{background:var(--accent-3-soft)}
+.tico.t-case .ico{stroke:var(--accent-3-strong)}
+.encrow{display:flex;gap:10px;align-items:center;border:1px solid var(--border-default);border-radius:10px;padding:10px 13px;margin-bottom:8px;font-size:12.5px;color:var(--text-body)}
+.encrow b{color:var(--text-heading)}
+.encrow .meta2{margin-left:auto;font-size:11.5px;color:var(--text-muted);text-align:right;line-height:15px}
+.isbar{border:1px solid var(--border-default);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:#fff}
+.isbar h6{margin:0 0 6px;font-size:12.5px;color:var(--text-heading);display:flex;gap:8px;align-items:center}
+.isbar .il{font-size:12px;color:var(--text-body);margin:3px 0;line-height:17px}
+.isbar .il b{color:var(--text-heading);display:inline-block;width:16px}
+.isbar .ift{margin-top:7px;font-size:11px;color:var(--text-subtle);display:flex;gap:6px;align-items:center}
+.aggrow{display:flex;gap:10px;padding:8px 2px;font-size:12.5px;color:var(--text-body);border-bottom:1px dashed var(--border-default)}
+.aggrow b{margin-left:auto;color:var(--text-heading)}
+.aggrow.tot{border-bottom:none;font-weight:800;color:var(--text-heading)}
 .typechips button.on{background:var(--brand-cyan-soft);border:2px solid var(--brand-cyan);padding:7.5px 13.5px;color:#0E7D92}
 .vbox input{border:none;outline:none;font-family:inherit;font-size:14px;font-weight:700;color:var(--text-heading);width:100%;background:none}
 .drop{border:1.5px dashed var(--border-strong);border-radius:12px;padding:26px;text-align:center;color:var(--text-muted);font-size:13px;margin-bottom:12px}
@@ -935,6 +965,16 @@ body[data-tab="comm"] .timeline{display:none}
   .billbox h5{font-size:var(--t-meta)}
   .billbox .bnote,.emjust{font-size:var(--t-label)}
   .emrow{font-size:var(--t-meta)}
+  /* K-21: case vrstva na mobilnej škále */
+  .epband .eph b{font-size:var(--t-title)}
+  .epband .epm{font-size:var(--t-meta)}
+  .epbtn{min-height:36px;display:inline-flex;align-items:center;font-size:var(--t-meta)}
+  .encrow{font-size:var(--t-meta)}
+  .encrow .meta2{font-size:var(--t-label)}
+  .isbar .il{font-size:var(--t-meta);line-height:20px}
+  .isbar h6{font-size:var(--t-meta)}
+  .isbar .ift{font-size:var(--t-label)}
+  .aggrow{font-size:var(--t-meta)}
 }
 </style>
 </head>
@@ -957,6 +997,7 @@ body[data-tab="comm"] .timeline{display:none}
 <symbol id="i-syr" viewBox="0 0 24 24"><path d="m18 2 4 4"/><path d="m17 7 3-3"/><path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"/><path d="m9 11 4 4"/><path d="m5 19-3 3"/><path d="m14 4 6 6"/></symbol>
 <symbol id="i-act" viewBox="0 0 24 24"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></symbol>
 <symbol id="i-flask" viewBox="0 0 24 24"><path d="M10 2v6.3L4.6 18a2 2 0 0 0 1.8 3h11.2a2 2 0 0 0 1.8-3L14 8.3V2M8.5 2h7M7 15h10"/></symbol>
+<symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7l10-5ZM2 12l10 5 10-5M2 17l10 5 10-5"/></symbol>
 <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
 <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
 <symbol id="i-clip" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></symbol>
@@ -1114,6 +1155,14 @@ body[data-tab="comm"] .timeline{display:none}
         </div></div>
       </div>
 
+      <div class="trow" data-type="case">
+        <div class="spine"><button class="tico t-case" data-f="doc"><svg class="ico s14" aria-hidden="true"><use href="#i-layers"/></svg></button><div class="line"></div></div>
+        <div class="epband" onclick="openCase(0)">
+          <div class="eph"><b>Prípad — Hypertenzná kríza</b><span class="dt">22.06 – 24.06</span></div>
+          <div class="epm"><span>EpisodeOfCare · 3 encountery:</span><span class="tag clin t-a6">ER</span><span class="tag clin t-a6">Kardiológia</span><span class="tag clin t-a2">Interné</span></div>
+          <div class="epa"><span class="epbtn" onclick="event.stopPropagation();openCase(1)">Handoffy (2)</span><span class="epbtn" onclick="event.stopPropagation();openCase(2)">Účet prípadu · 9 položiek</span></div>
+        </div>
+      </div>
       <div class="trow" data-type="doc">
         <div class="spine"><button class="tico t-warn" data-f="doc"><svg class="ico s14" aria-hidden="true"><use href="#i-file"/></svg></button><div class="line"></div></div>
         <div class="card unverified sev-2"><div class="body">
@@ -1314,6 +1363,53 @@ body[data-tab="comm"] .timeline{display:none}
       <div class="gaterow" style="background:var(--surface-1);color:var(--text-muted);margin-top:10px"><svg class="ico s14" style="flex:none"><use href="#i-pen"/></svg><span>Zapíše sa do dekurzu do zvoleného SOAP slotu.</span></div>
     </div>
     <div class="sh-f"><button class="btn" onclick="mClose('recwrap')">Zrušiť</button><button class="btn primary" onclick="saveRec()">Uložiť<span class="kb2">⏎</span></button></div>
+  </div>
+</div>
+
+<div class="sheetwrap" id="casewrap"><div class="scrim" onclick="mClose('casewrap')"></div>
+  <div class="sheet">
+    <div class="sh-h"><span class="hic"><svg class="ico s14"><use href="#i-layers"/></svg></span><b>Prípad — Hypertenzná kríza</b>
+      <span class="tag" style="margin-left:4px">EpisodeOfCare · uzavretý 24.06</span>
+      <button class="x" onclick="mClose('casewrap')" title="Zavrieť">✕</button></div>
+    <div class="dtabs" id="ctabs">
+      <button class="on" onclick="caTab(0,this)">Prehľad</button>
+      <button onclick="caTab(1,this)">Handoffy</button>
+      <button onclick="caTab(2,this)">Účet</button>
+    </div>
+    <div class="dsec on" id="csec0">
+      <div class="encrow"><span class="soap sO" style="background:var(--accent-6-soft);color:var(--accent-6-strong)">1</span><span><b>ER — Pohotovosť</b> · MUDr. Rybár</span><span class="meta2">22.06 21:40 – 23.06 08:15<br>5 udalostí · 3 položky výkazu</span></div>
+      <div class="encrow"><span class="soap sO" style="background:var(--accent-6-soft);color:var(--accent-6-strong)">2</span><span><b>Kardiológia</b> · MUDr. Hlavová</span><span class="meta2">23.06 08:15 – 16:40<br>4 udalosti · 2 položky výkazu</span></div>
+      <div class="encrow"><span class="soap sO" style="background:var(--accent-2-soft);color:var(--accent-2-strong)">3</span><span><b>Interné odd.</b> · MUDr. Karas</span><span class="meta2">23.06 16:40 – 24.06 14:00<br>7 udalostí · 4 položky výkazu</span></div>
+      <div class="gaterow" style="background:var(--surface-1);color:var(--text-muted)"><svg class="ico s14" style="flex:none"><use href="#i-layers"/></svg><span>Presun oddelenia = nový encounter v tej istej epizóde. Pacient sa nikdy nekopíruje; každá udalosť nesie autora aj oddelenie.</span></div>
+    </div>
+    <div class="dsec" id="csec1">
+      <div class="isbar">
+        <h6><svg class="ico s14" style="flex:none"><use href="#i-layers"/></svg>ER → Kardiológia · 23.06 08:15</h6>
+        <div class="il"><b>I</b> 38 r. žena, hypertenzná kríza, prijatá 22.06 21:40.</div>
+        <div class="il"><b>S</b> TK pri príjme 210/120, bolesť hlavy, bez fokálneho nálezu.</div>
+        <div class="il"><b>B</b> SM (Tecfidera), DM2 (Metformín), hypertenzia (Telma 40).</div>
+        <div class="il"><b>A</b> TK stabilizovaný na 160/95 po urapidile i.v.</div>
+        <div class="il"><b>R</b> Kardiologické dovyšetrenie, echo, úprava chronickej medikácie.</div>
+        <div class="ift"><svg class="iqmk" aria-hidden="true"><use href="#i-iqmark"/></svg><span>IQ draft zo SOAP prípadu · potvrdil MUDr. Rybár</span></div>
+      </div>
+      <div class="isbar">
+        <h6><svg class="ico s14" style="flex:none"><use href="#i-layers"/></svg>Kardiológia → Interné · 23.06 16:40</h6>
+        <div class="il"><b>I</b> Prevzatie na doliečenie po stabilizácii TK.</div>
+        <div class="il"><b>S</b> Bez stenokardií, subjektívne zlepšenie.</div>
+        <div class="il"><b>B</b> Echo: EF 60 %, ľahká hypertrofia ĽK, bez chlopňovej chyby.</div>
+        <div class="il"><b>A</b> Sekundárna príčina nepravdepodobná; TK 150/90.</div>
+        <div class="il"><b>R</b> Titrácia antihypertenzív, prepustenie po 24 h stabilite.</div>
+        <div class="ift"><svg class="iqmk" aria-hidden="true"><use href="#i-iqmark"/></svg><span>IQ draft zo SOAP prípadu · potvrdila MUDr. Hlavová</span></div>
+      </div>
+    </div>
+    <div class="dsec" id="csec2">
+      <div class="aggrow"><span>ER — Pohotovosť</span><b>3 položky</b></div>
+      <div class="aggrow"><span>Kardiológia</span><b>2 položky</b></div>
+      <div class="aggrow"><span>Interné odd.</span><b>4 položky</b></div>
+      <div class="aggrow tot"><span>Spolu za epizódu</span><b>9 položiek</b></div>
+      <div class="gaterow" style="background:var(--surface-1);color:var(--text-muted);margin-top:10px"><svg class="ico s14" style="flex:none"><use href="#i-dash"/></svg><span>ChargeItems potvrdené per encounter, agregované per epizóda pri prepustení → DRG dávka / jeden účet. Interná atribúcia výnosov per oddelenie zadarmo.</span></div>
+    </div>
+    <div class="sh-f"><button class="btn" onclick="mClose('casewrap')">Zavrieť</button></div>
   </div>
 </div>
 
@@ -1773,6 +1869,12 @@ function updPendCount(){
   box.classList.toggle('has',n>0);
   const h=box.querySelector('.ph2 span');if(h)h.textContent=tt('Otvorené slučky')+' ('+n+')';
 }
+/* K-21: case vrstva (CASE-01..04) — prehľad epizódy, handoffy, agregovaný účet */
+function caTab(i,btn){
+  document.querySelectorAll('#ctabs button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
+  [0,1,2].forEach(n=>document.getElementById('csec'+n).classList.toggle('on',n===i));
+}
+function openCase(i){mOpen('casewrap');caTab(i,document.querySelectorAll('#ctabs button')[i]);}
 function saveApt(){mClose('aptwrap');showToast('Termín vytvorený');
   if(aptIns)return;aptIns=true;
   const r=mkRow(`<div class="spine"><button class="tico t-plan" data-f="visit"><svg class="ico s14"><use href="#i-steth"/></svg></button><div class="line"></div></div>
@@ -1907,7 +2009,7 @@ function finalizeSign(){
 }
 document.addEventListener('keydown',e=>{
   const open=id=>document.getElementById(id).classList.contains('open');
-  if(e.key==='Escape'){['recwrap','aptwrap','fotwrap','dkwrap','ordwrap'].forEach(id=>{if(open(id))mClose(id)});}
+  if(e.key==='Escape'){['recwrap','aptwrap','fotwrap','dkwrap','ordwrap','casewrap'].forEach(id=>{if(open(id))mClose(id)});}
   if(e.key==='Enter'&&!e.target.matches('textarea')){
     if(open('recwrap')){saveRec();e.preventDefault()}
     else if(open('aptwrap')){saveApt();e.preventDefault()}
@@ -2067,6 +2169,27 @@ const I18N=[
 ["problém (A)","problem (A)"],["dáta (O/order)","data (O/order)"],["riziko: manažment preskripcie","risk: prescription management"],["nízke riziko","low risk"],
 ["Invoice (GST) pripravená","Invoice (GST) ready"],["dávka pre poisťovňu pripravená","insurer batch ready"],
 ["Výkaz potvrdený","Charges confirmed"],["položiek","items"],
+["Prípad — Hypertenzná kríza","Case — Hypertensive crisis"],["EpisodeOfCare · 3 encountery:","EpisodeOfCare · 3 encounters:"],
+["EpisodeOfCare · uzavretý 24.06","EpisodeOfCare · closed 24 Jun"],["Handoffy (2)","Handoffs (2)"],["Účet prípadu · 9 položiek","Case bill · 9 items"],
+["Prehľad","Overview"],["Handoffy","Handoffs"],["Účet","Bill"],
+["ER — Pohotovosť","ER — Emergency"],["Interné odd.","Internal med."],["Kardiológia","Cardiology"],
+["5 udalostí · 3 položky výkazu","5 events · 3 charge items"],["4 udalosti · 2 položky výkazu","4 events · 2 charge items"],["7 udalostí · 4 položky výkazu","7 events · 4 charge items"],
+["Presun oddelenia = nový encounter v tej istej epizóde. Pacient sa nikdy nekopíruje; každá udalosť nesie autora aj oddelenie.","Department transfer = a new encounter within the same episode. The patient is never copied; every event carries its author and department."],
+["ER → Kardiológia · 23.06 08:15","ER → Cardiology · 23 Jun 08:15"],["Kardiológia → Interné · 23.06 16:40","Cardiology → Internal med. · 23 Jun 16:40"],
+["38 r. žena, hypertenzná kríza, prijatá 22.06 21:40.","38 y.o. female, hypertensive crisis, admitted 22 Jun 21:40."],
+["TK pri príjme 210/120, bolesť hlavy, bez fokálneho nálezu.","BP on admission 210/120, headache, no focal deficit."],
+["SM (Tecfidera), DM2 (Metformín), hypertenzia (Telma 40).","MS (Tecfidera), T2DM (Metformin), hypertension (Telma 40)."],
+["TK stabilizovaný na 160/95 po urapidile i.v.","BP stabilised at 160/95 after IV urapidil."],
+["Kardiologické dovyšetrenie, echo, úprava chronickej medikácie.","Cardiology work-up, echo, chronic medication adjustment."],
+["Prevzatie na doliečenie po stabilizácii TK.","Transfer for continued care after BP stabilisation."],
+["Bez stenokardií, subjektívne zlepšenie.","No chest pain, subjective improvement."],
+["Echo: EF 60 %, ľahká hypertrofia ĽK, bez chlopňovej chyby.","Echo: EF 60%, mild LV hypertrophy, no valve disease."],
+["Sekundárna príčina nepravdepodobná; TK 150/90.","Secondary cause unlikely; BP 150/90."],
+["Titrácia antihypertenzív, prepustenie po 24 h stabilite.","Antihypertensive titration, discharge after 24 h stability."],
+["IQ draft zo SOAP prípadu · potvrdil MUDr. Rybár","IQ draft from the case SOAP · confirmed by Dr. Rybar"],
+["IQ draft zo SOAP prípadu · potvrdila MUDr. Hlavová","IQ draft from the case SOAP · confirmed by Dr. Hlavova"],
+["3 položky","3 items"],["2 položky","2 items"],["4 položky","4 items"],["9 položiek","9 items"],["Spolu za epizódu","Episode total"],
+["ChargeItems potvrdené per encounter, agregované per epizóda pri prepustení → DRG dávka / jeden účet. Interná atribúcia výnosov per oddelenie zadarmo.","ChargeItems confirmed per encounter, aggregated per episode at discharge → DRG batch / single bill. Per-department revenue attribution comes for free."],
 ["Kontrola","Follow-up"],["Odber","Blood draw"],["Dátum","Date"],["Čas","Time"],["Miesto","Place"],["Ambulancia","Clinic"],
 ["Zapíše sa do sekcie PLÁNOVANÉ na osi a pacientovi do aplikácie.","Will appear in the PLANNED section of the pathway and in the patient app."],
 ["Vytvoriť termín","Create appointment"],["Termín vytvorený","Appointment created"],
