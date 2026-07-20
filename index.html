@@ -4,8 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v73 (Rx položky otvorené)</title>
+<title>Hilbi Cockpit — v74 (K-23 reverzný flow P→A)</title>
 <!-- CHANGELOG
+v74 (2026-07-20): K-23 — SOAP pokračovanie na QR obrazovke (reverzný flow P→A;
+  nové pravidlo SOAP-10: reverzný návrh A z P len ako explicitne potvrdzovaný návrh).
+  Jeden core, vstup z ktorejkoľvek strany: EU S→O→A→P aj IN P→A skladajú ten istý
+  dekurz. Na "eRecept pripravený": mini completeness (živý, zdieľa updComp), pole
+  DIAGNÓZA/POPIS (A) + IQ návrhy diagnóz DERIVOVANÉ z predpísaných liekov (generic →
+  dg mapa; tap chip = vyplní pole, lekár potvrdzuje — nikdy autofill), follow-up
+  1-klik chipy (zdieľajú fuDone s dekurzom — žiadna duplicita), Enter v poli = Finish.
+  Hotovo/Finish: ak je diagnóza vyplnená → A karta na osi + A udalosť v dekurze,
+  toast "Zapísané: Rx (P) + diagnóza (A)". Indický minimálny dekurz = 2 taply po
+  podpise Rx. Riadok "Výkaz pre poisťovňu" opravený na "kandidát · potvrdíte pri
+  podpise dňa" (BILL-02 konzistencia).
 v73 (2026-07-20): K-22 — položky liekov v Rx košíku sú po pridaní OTVORENÉ (per-item
   open flag namiesto RX.edit indexu): dávkovanie, dĺžka aj pole ODPORÚČANIE PRE
   PACIENTA viditeľné hneď, bez klikania. Chevron zbalí/rozbalí jednotlivo; Escape
@@ -1356,11 +1367,29 @@ body[data-tab="comm"] .timeline{display:none}
         <div class="big" style="width:56px;height:56px;border-radius:50%;background:var(--success-soft);display:flex;align-items:center;justify-content:center;margin:0 auto 14px"><svg class="ico" style="width:28px;height:28px;stroke:var(--success)"><use href="#i-sok"/></svg></div>
         <h3 style="font-size:16px;font-weight:800;color:var(--text-heading);margin-bottom:6px">eRecept pripravený</h3>
         <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:14px">Kód pre pacienta: Z4K-882 · app / SMS / <b>tlač QR</b></div><div style="display:flex;justify-content:center;margin:2px 0 18px"><svg viewBox="0 0 21 21" width="116" height="116" shape-rendering="crispEdges" role="img" aria-label="QR — Z4K-882"><path d="M0 0h7v1H0zM8 0h2v1H8zM11 0h1v1H11zM14 0h7v1H14zM0 1h1v1H0zM6 1h1v1H6zM8 1h4v1H8zM14 1h1v1H14zM20 1h1v1H20zM0 2h1v1H0zM2 2h3v1H2zM6 2h1v1H6zM8 2h1v1H8zM10 2h2v1H10zM14 2h1v1H14zM16 2h3v1H16zM20 2h1v1H20zM0 3h1v1H0zM2 3h3v1H2zM6 3h1v1H6zM9 3h3v1H9zM14 3h1v1H14zM16 3h3v1H16zM20 3h1v1H20zM0 4h1v1H0zM2 4h3v1H2zM6 4h1v1H6zM8 4h3v1H8zM12 4h1v1H12zM14 4h1v1H14zM16 4h3v1H16zM20 4h1v1H20zM0 5h1v1H0zM6 5h1v1H6zM10 5h3v1H10zM14 5h1v1H14zM20 5h1v1H20zM0 6h7v1H0zM8 6h1v1H8zM10 6h1v1H10zM12 6h1v1H12zM14 6h7v1H14zM10 7h3v1H10zM0 8h1v1H0zM3 8h7v1H3zM12 8h2v1H12zM16 8h1v1H16zM18 8h3v1H18zM0 9h5v1H0zM8 9h2v1H8zM12 9h3v1H12zM16 9h4v1H16zM0 10h1v1H0zM2 10h1v1H2zM4 10h1v1H4zM6 10h1v1H6zM8 10h3v1H8zM13 10h2v1H13zM16 10h1v1H16zM19 10h1v1H19zM2 11h2v1H2zM5 11h1v1H5zM11 11h1v1H11zM13 11h1v1H13zM15 11h2v1H15zM18 11h1v1H18zM1 12h1v1H1zM3 12h2v1H3zM6 12h1v1H6zM13 12h1v1H13zM15 12h1v1H15zM19 12h2v1H19zM8 13h3v1H8zM12 13h1v1H12zM15 13h2v1H15zM0 14h7v1H0zM8 14h1v1H8zM10 14h1v1H10zM12 14h3v1H12zM18 14h3v1H18zM0 15h1v1H0zM6 15h1v1H6zM8 15h2v1H8zM12 15h1v1H12zM15 15h3v1H15zM20 15h1v1H20zM0 16h1v1H0zM2 16h3v1H2zM6 16h1v1H6zM8 16h1v1H8zM10 16h1v1H10zM12 16h2v1H12zM16 16h1v1H16zM18 16h1v1H18zM0 17h1v1H0zM2 17h3v1H2zM6 17h1v1H6zM8 17h1v1H8zM10 17h4v1H10zM16 17h1v1H16zM18 17h1v1H18zM0 18h1v1H0zM2 18h3v1H2zM6 18h1v1H6zM9 18h1v1H9zM11 18h5v1H11zM17 18h4v1H17zM0 19h1v1H0zM6 19h1v1H6zM9 19h2v1H9zM12 19h2v1H12zM17 19h1v1H17zM19 19h1v1H19zM0 20h7v1H0zM8 20h1v1H8zM14 20h1v1H14zM16 20h4v1H16z" fill="#1B2340"/></svg></div>
+        <div class="rxsoap" style="text-align:left;margin:0 6px 12px">
+          <div class="scomp" style="margin:0 0 10px">
+            <span class="si" data-s="S"><span class="sd"></span>S</span>
+            <span class="si" data-s="O"><span class="sd"></span>O</span>
+            <span class="si" data-s="A"><span class="sd"></span>A</span>
+            <span class="si" data-s="P"><span class="sd"></span>P</span>
+            <span class="lbl">pokračujte v zázname</span>
+          </div>
+          <label style="display:block;font-size:11.5px;font-weight:700;color:var(--text-muted);letter-spacing:.3px;margin:0 0 6px">DIAGNÓZA / POPIS (A)</label>
+          <input id="rxdg" class="recline" placeholder="Jedna veta stačí — dg. alebo popis…">
+          <div class="catchips" id="rxdgsug" style="margin-top:8px"></div>
+          <div class="fuchips" style="margin-top:12px;margin-bottom:0">
+            <span class="fl">Follow-up (1 klik):</span>
+            <button data-d="3 dni" onclick="fuRx(this)">3 dni</button>
+            <button data-d="1 týždeň" onclick="fuRx(this)">1 týždeň</button>
+            <button data-d="1 mesiac" onclick="fuRx(this)">1 mesiac</button>
+          </div>
+        </div>
         <div class="auto" style="text-align:left;background:var(--surface-1);border-radius:12px;padding:14px 16px;margin:0 6px">
           <p style="font-size:11.5px;font-weight:700;color:var(--text-muted);margin-bottom:9px;letter-spacing:.3px">AUTOMATICKY ZAPÍSANÉ</p>
           <div style="display:flex;gap:9px;align-items:center;font-size:13px;padding:4px 0"><svg style="width:14px;height:14px;stroke:var(--success)" class="ico"><use href="#i-sok"/></svg><span>Epizóda na osi</span></div>
           <div style="display:flex;gap:9px;align-items:center;font-size:13px;padding:4px 0"><svg style="width:14px;height:14px;stroke:var(--success)" class="ico"><use href="#i-sok"/></svg><span>Riadok dekurzu</span></div>
-          <div style="display:flex;gap:9px;align-items:center;font-size:13px;padding:4px 0"><svg style="width:14px;height:14px;stroke:var(--success)" class="ico"><use href="#i-sok"/></svg><span>Výkaz pre poisťovňu</span></div>
+          <div style="display:flex;gap:9px;align-items:center;font-size:13px;padding:4px 0"><svg style="width:14px;height:14px;stroke:var(--success)" class="ico"><use href="#i-sok"/></svg><span>Výkaz — kandidát · potvrdíte pri podpise dňa</span></div>
           <div style="display:flex;gap:9px;align-items:center;font-size:13px;padding:4px 0"><svg style="width:14px;height:14px;stroke:var(--success)" class="ico"><use href="#i-sok"/></svg><span>Life ID — aktívna medikácia</span></div>
           <div style="display:flex;gap:9px;align-items:center;font-size:13px;padding:4px 0"><svg style="width:14px;height:14px;stroke:var(--success)" class="ico"><use href="#i-sok"/></svg><span>Odporúčanie pacientovi (app)</span></div>
         </div>
@@ -1657,7 +1686,7 @@ function rxRender(){
  cnt.style.display=RX.cart.length&&!RX.done?'inline-flex':'none';cnt.textContent=rxT('Recept')+' ('+RX.cart.length+')';
  const f=document.getElementById('rxfoot');f.innerHTML='';
  const btn=(txt,cls,fn,kbd)=>{const b=document.createElement('button');b.className='btn '+cls;b.textContent=txt;if(kbd){const k=document.createElement('span');k.className='kb2';k.textContent='⏎';b.appendChild(k)}b.onclick=fn;f.appendChild(b);return b};
- if(RX.done){btn(rxT('Hotovo'),'primary',()=>{closeRx();showToast()})}
+ if(RX.done){btn(rxT('Hotovo'),'primary',finishRx)}
  else{
    const note=document.createElement('span');
    note.style.cssText='margin-right:auto;font-size:10.5px;color:var(--text-subtle);align-self:center;max-width:200px;line-height:1.35';
@@ -1739,7 +1768,7 @@ function rmCart(i){RX.cart.splice(i,1);rxRender()}
 function doSign(){
  if(!RX.cart.length)return;
  if(RX.cart.some(it=>it.warn&&!it.ack)){rxRender();return}
- RX.done=true;rxRender();insertRxCard();
+ RX.done=true;rxRender();insertRxCard();renderRxSoap();
 }
 let lastRxCard=null;
 function insertRxCard(){
@@ -1768,6 +1797,7 @@ document.addEventListener('keydown',e=>{
  if(!w.classList.contains('open'))return;
  if(e.key==='Escape'){if(RX.cart.some(it=>it.open!==false)){RX.cart.forEach(it=>it.open=false);rxRender()}else closeRx();return}
  if(e.key==='Enter'&&!e.target.matches('input,textarea')){doSign();e.preventDefault()}
+ if(e.key==='Enter'&&e.target.id==='rxdg'){finishRx();e.preventDefault()}
 });
 
 
@@ -1889,6 +1919,51 @@ function updPendCount(){
   const n=box.querySelectorAll('.prow2').length;
   box.classList.toggle('has',n>0);
   const h=box.querySelector('.ph2 span');if(h)h.textContent=tt('Otvorené slučky')+' ('+n+')';
+}
+/* v74 · K-23: SOAP pokračovanie na QR obrazovke — reverzný flow P→A (SOAP-10) */
+const DGSUG={'azithromycin':'Akútna infekcia dýchacích ciest','amoxicillin + clavulanate':'Akútna infekcia dýchacích ciest',
+'paracetamol':'Febrilný stav / bolesť','pantoprazole':'Dyspepsia / GERD','metformin':'Diabetes mellitus 2. typu',
+'telmisartan':'Artériová hypertenzia','ramipril':'Artériová hypertenzia','dimethyl fumarate':'Sclerosis multiplex — pokračovanie liečby',
+'warfarin':'Antikoagulačná liečba — kontrola','acetylsalicylic acid':'KV prevencia — antiagregácia'};
+function renderRxSoap(){
+  const sug=[...new Set(RX.cart.map(it=>DGSUG[it.d.g]).filter(Boolean))];
+  document.getElementById('rxdgsug').innerHTML=sug.map(s=>`<button onclick="dgPick(this)">${escT(tt(s))}</button>`).join('');
+  document.getElementById('rxdg').value='';
+}
+function dgPick(btn){
+  document.querySelectorAll('#rxdgsug button').forEach(b=>b.classList.toggle('on',b===btn));
+  document.getElementById('rxdg').value=btn.textContent;
+}
+function fuRx(btn){
+  btn.closest('.fuchips').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===btn));
+  FUsel=btn.dataset.d;
+  if(!fuDone){fuDone=true;
+    dekAddEv('P','Follow-up — '+FUsel,tt('lekár'));
+    const r=mkRow(`<div class="spine"><button class="tico t-plan" data-f="visit"><svg class="ico s14"><use href="#i-steth"/></svg></button><div class="line"></div></div>
+    <div class="card planned"><div class="body"><div class="pav ph doc1">N<span class="vb">＋</span></div><div class="cmain">
+    <div class="l1"><b>${tt('Follow-up — kontrola')}</b><span class="dt"><span class="sdot d-plan"></span><svg class="ico sok"><use href="#i-sok"/></svg>+${escT(FUsel)}</span></div>
+    <div class="l2">${tt('naplánované jedným klikom pri podpise')}</div>
+    <div class="crow"><span class="soap sP" title="${SOAPTITLE.P}">P</span><span class="tag st-plan">${tt('Plánované')}</span></div></div></div></div>`,'visit');
+    const t=document.querySelector('.today');t.parentNode.insertBefore(r,t);
+    showToast('Follow-up naplánovaný · P');
+  }
+}
+function finishRx(){
+  const v=(document.getElementById('rxdg').value||'').trim();
+  if(v){
+    const now=new Date();const tm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+    const r=mkRow(`<div class="spine"><button class="tico" data-f="mon"><svg class="ico s14"><use href="#i-pen"/></svg></button><div class="line"></div></div>
+    <div class="card"><div class="body"><div class="pav ph doc1">N<span class="vb">＋</span></div><div class="cmain">
+    <div class="l1"><b>${escT(v)}</b><span class="dt"><span class="sdot d-ok"></span><svg class="ico sok"><use href="#i-sok"/></svg>17.07 · ${tm}</span></div>
+    <div class="l2">${tt('zápis do dekurzu')}</div>
+    <div class="crow"><span class="soap sA" title="${SOAPTITLE.A}">A</span><span class="tag">${tt('Ukončené')}</span></div></div></div></div>`,'mon');
+    const t=document.querySelector('.today');t.parentNode.insertBefore(r,t.nextSibling);
+    const c=r.querySelector('.card');c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),1900);
+    dekAddEv('A',v,tt('lekár'));
+    if(LANG==='en')swapText(SK2EN);
+  }
+  closeRx();
+  showToast(v?'Zapísané: Rx (P) + diagnóza (A)':undefined);
 }
 /* K-21: case vrstva (CASE-01..04) — prehľad epizódy, handoffy, agregovaný účet */
 function caTab(i,btn){
@@ -2190,6 +2265,13 @@ const I18N=[
 ["problém (A)","problem (A)"],["dáta (O/order)","data (O/order)"],["riziko: manažment preskripcie","risk: prescription management"],["nízke riziko","low risk"],
 ["Invoice (GST) pripravená","Invoice (GST) ready"],["dávka pre poisťovňu pripravená","insurer batch ready"],
 ["Výkaz potvrdený","Charges confirmed"],["položiek","items"],
+["pokračujte v zázname","continue the record"],["Výkaz — kandidát · potvrdíte pri podpise dňa","Charges — candidate · confirm at day sign-off"],
+["Jedna veta stačí — dg. alebo popis…","One line is enough — dg. or description…"],
+["Akútna infekcia dýchacích ciest","Acute respiratory infection"],["Febrilný stav / bolesť","Febrile state / pain"],
+["Dyspepsia / GERD","Dyspepsia / GERD"],["Diabetes mellitus 2. typu","Type 2 diabetes mellitus"],
+["Artériová hypertenzia","Arterial hypertension"],["Sclerosis multiplex — pokračovanie liečby","Multiple sclerosis — continued therapy"],
+["Antikoagulačná liečba — kontrola","Anticoagulation — monitoring"],["KV prevencia — antiagregácia","CV prevention — antiplatelet"],
+["Zapísané: Rx (P) + diagnóza (A)","Recorded: Rx (P) + diagnosis (A)"],["DIAGNÓZA / POPIS (A)","DIAGNOSIS / DESCRIPTION (A)"],
 ["Prípad — Hypertenzná kríza","Case — Hypertensive crisis"],["EpisodeOfCare · 3 encountery:","EpisodeOfCare · 3 encounters:"],
 ["EpisodeOfCare · uzavretý 24.06","EpisodeOfCare · closed 24 Jun"],["Handoffy (2)","Handoffs (2)"],["Účet prípadu · 9 položiek","Case bill · 9 items"],
 ["Prehľad","Overview"],["Handoffy","Handoffs"],["Účet","Bill"],
