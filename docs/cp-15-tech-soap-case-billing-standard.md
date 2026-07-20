@@ -1,7 +1,7 @@
 ---
 doc_id: TBD (priradiť podľa gsr-13)
 title: "SOAP jadro, case vrstva a billing derivácia — kokpit"
-version: 1.0-draft
+version: 1.1-draft
 date: 2026-07-20
 authority: "navrhol: Patrik (CEO) · schvaľuje: Roman (CBO) · aplikuje: Dominika/Viktor · kontroluje: Marek"
 type: normative
@@ -30,6 +30,8 @@ nie dátovým modelom.
 - **SOAP-07** Order NIE JE neúplný dekurz. Order vytvára otvorenú slučku (pending result); výsledok sa zapisuje ako O. Kategórie prvej úrovne v UI sú výhradne **Radiology** a **Labs** (nie modality typu MRI); položky sú katalógové per trh/zariadenie.
 - **SOAP-08** Finálna správa je render `Composition` (→ `DocumentReference`). Existujú dva templaty: **Rx slip** (IN default) a **plná správa** (EU/US default, obsahuje eRx a follow-up). Jeden dátový objekt, žiadne obsahové vetvenie.
 - **SOAP-09** `market_rules` je konfigurácia, nie kódová vetva: minimal-sign set · požiadavka kódovania dg (ICD-10) · default render template · follow-up prezentácia (IN: 1-klik chip pri Rx · EU/US: riadok v správe).
+
+- **SOAP-10** Reverzný návrh A z P (napr. návrh diagnózy odvodený z predpísaných liekov) je prípustný VÝHRADNE ako explicitne potvrdzovaný návrh — vyplní pole, lekár potvrdzuje; nikdy autofill, nikdy tichý zápis.
 
 ## 2. Normatívne pravidlá — case vrstva
 
