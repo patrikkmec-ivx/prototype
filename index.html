@@ -4,8 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v67 (K-18 ordery + pending)</title>
+<title>Hilbi Cockpit — v68 (K-19 podpis & render)</title>
 <!-- CHANGELOG
+v68 (2026-07-20): K-19 — podpis & render podľa market_rules (cp-15: SOAP-06/08/09).
+  Dekurz tab "Generovať": prepínač trhu India | EU | US (market_rules ako konfigurácia,
+  nie fork) + popis pravidiel; živá validácia minima pre podpis (IN/EU/US: A+P) — zelený/
+  warning gaterow, prepočítava sa s každou udalosťou; follow-up 1-klik chipy (3 dni /
+  1 týždeň / 1 mesiac) — prvý výber vytvorí P udalosť + plánovanú kartu na osi (Flow A).
+  Podpísať deň: pod minimum blokuje s toastom a skokom na Dnes; nad minimum podpíše
+  (hlavička dekurzu → ✓ podpísané · Dr. Novak · čas) a vyrenderuje výstup: IN = Rx slip
+  (Dg z A, Rx z P, follow-up), EU/US = plná správa (S/O/A/P sekcie + eRx + follow-up
+  riadok + naratív). Jeden dátový objekt, dva templaty — prepnutie trhu prerendruje.
+  Validácia Flow A vs B na tých istých dátach možná. Escape zatvára aj ordwrap.
+  NEW do Figmy: mktseg, fuchips, signval, rendout. Mobil: M-17 tokeny.
 v67 (2026-07-20): K-18 — ordery a otvorené slučky (cp-15: SOAP-07, Flow C).
   Order modal: kategórie prvej úrovne LEN Radiology | Labs (žiadne modality), katalógové
   multi-select chipy (rad: MRI mozgu/CT hrudníka/RTG chrbtice/USG abdomenu; lab: KO/
@@ -695,6 +706,26 @@ body[data-tab="comm"] .timeline{display:none}
 .pend .prow2{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--text-body);padding:4px 0}
 .pend .prow2 .sim{margin-left:auto;border:1px solid var(--warning);color:#8a5a1e;background:#fff;border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:700;cursor:pointer;flex:none}
 .tag.st-pend{color:#8a5a1e}
+/* K-19 · podpis & render (market_rules) — NEW, doplniť do Figmy */
+.mktseg{display:flex;gap:8px;margin-bottom:8px}
+.mktseg button{flex:1;border:1.5px solid var(--border-default);background:#fff;border-radius:10px;padding:8px 0;font-size:13px;font-weight:700;color:var(--text-muted);cursor:pointer}
+.mktseg button.on{border-color:var(--brand-teal);background:var(--brand-cyan-soft);color:var(--brand-teal-text)}
+.mktlbl{font-size:11.5px;color:var(--text-subtle);margin:0 2px 12px}
+.fuchips{display:flex;gap:8px;align-items:center;margin:0 0 12px;flex-wrap:wrap}
+.fuchips .fl{font-size:12px;font-weight:700;color:var(--text-muted)}
+.fuchips button{border:1.5px solid var(--border-default);background:#fff;border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:700;color:var(--text-heading);cursor:pointer}
+.fuchips button.on{border-color:var(--accent-1-strong);background:var(--accent-1-soft);color:var(--accent-1-strong)}
+.signval{margin-bottom:12px}
+.signval.ok{background:var(--success-soft)!important;color:#1e7a4f!important}
+.signval.ok .ico{stroke:#1e7a4f}
+.signval.warn{background:var(--warning-soft)!important;color:#8a5a1e!important}
+.signval.warn .ico{stroke:#8a5a1e}
+.rendout{border:1px solid var(--border-strong);border-radius:12px;background:#fff;box-shadow:0 6px 18px rgba(27,35,64,.08);padding:16px 18px;margin-top:4px;display:none}
+.rendout.show{display:block}
+.rendout h4{margin:0 0 8px;font-size:14px;color:var(--text-heading)}
+.rendout .rsec{margin:7px 0;font-size:12.5px;color:var(--text-body);line-height:18px}
+.rendout .rsec b{color:var(--text-heading)}
+.rendout .rft{margin-top:10px;padding-top:8px;border-top:1px dashed var(--border-strong);font-size:11.5px;color:var(--text-muted)}
 .typechips button.on{background:var(--brand-cyan-soft);border:2px solid var(--brand-cyan);padding:7.5px 13.5px;color:#0E7D92}
 .vbox input{border:none;outline:none;font-family:inherit;font-size:14px;font-weight:700;color:var(--text-heading);width:100%;background:none}
 .drop{border:1.5px dashed var(--border-strong);border-radius:12px;padding:26px;text-align:center;color:var(--text-muted);font-size:13px;margin-bottom:12px}
@@ -867,6 +898,13 @@ body[data-tab="comm"] .timeline{display:none}
   .pend .prow2{font-size:var(--t-meta)}
   .pend .ph2{font-size:var(--t-label)}
   .pend .prow2 .sim{min-height:36px;font-size:var(--t-label)}
+  /* K-19: podpis & render na mobilnej škále */
+  .mktseg button{min-height:44px;font-size:var(--t-meta)}
+  .mktlbl{font-size:var(--t-label)}
+  .fuchips button{min-height:40px;font-size:var(--t-meta)}
+  .rendout .rsec{font-size:var(--t-body);line-height:21px}
+  .rendout h4{font-size:var(--t-title)}
+  .rendout .rft{font-size:var(--t-label)}
 }
 </style>
 </head>
@@ -1330,6 +1368,20 @@ body[data-tab="comm"] .timeline{display:none}
       <div class="vrow"><span class="vd" style="background:var(--success)"></span><b>14.07.2026</b><span>· podpísané + dodatok</span><span class="meta">dodatok 15.07 · 08:10</span></div>
     </div>
     <div class="dsec" id="dsec2">
+      <div class="mktseg" id="mktseg">
+        <button data-m="IN" onclick="setMkt('IN',this)">India</button>
+        <button class="on" data-m="EU" onclick="setMkt('EU',this)">EU</button>
+        <button data-m="US" onclick="setMkt('US',this)">US</button>
+      </div>
+      <div class="mktlbl" id="mktlbl">min. podpis: A+P (S/O odporúčané) · render: plná správa</div>
+      <div class="gaterow signval ok" id="signval"><svg class="ico s14" style="flex:none"><use href="#i-sok"/></svg><span>Minimum pre podpis splnené (A+P)</span></div>
+      <div class="fuchips" id="fuchips">
+        <span class="fl">Follow-up (1 klik):</span>
+        <button data-d="3 dni" onclick="fuPick(this)">3 dni</button>
+        <button data-d="1 týždeň" onclick="fuPick(this)">1 týždeň</button>
+        <button data-d="1 mesiac" onclick="fuPick(this)">1 mesiac</button>
+      </div>
+      <div class="rendout" id="rendout"></div>
       <div class="genrow"><svg class="ico s14"><use href="#i-file"/></svg><span><b>Lekárska správa</b><small>projekcia z verzie 15.07 ✓ · jazyk podľa príjemcu</small></span><button class="btn">Generovať</button></div>
       <div class="genrow"><svg class="ico s14"><use href="#i-file"/></svg><span><b>Potvrdenie</b><small>pre pacienta / zamestnávateľa</small></span><button class="btn">Generovať</button></div>
       <div class="genrow"><svg class="ico s14"><use href="#i-user"/></svg><span><b>Sumár pre pacienta</b><small>zrozumiteľný jazyk · app / tlač</small></span><button class="btn">Generovať</button></div>
@@ -1610,6 +1662,7 @@ function dekAddEv(slot,text,who){
 function updComp(){
   const have=new Set(Array.from(document.querySelectorAll('#dsec0 .evrow')).map(r=>r.dataset.soap).filter(Boolean));
   document.querySelectorAll('.scomp .si').forEach(i=>i.classList.toggle('full',have.has(i.dataset.s)));
+  if(typeof updSignVal==='function')updSignVal();
 }
 function cTab(t,btn){
   btn.closest('.tabs').querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
@@ -1701,11 +1754,75 @@ function saveFot(){mClose('fotwrap');showToast('Nahrané — čaká na overenie'
   <div class="crow"><span class="tag st-ver"><svg class="ico" style="width:11px;height:11px;vertical-align:-1px"><use href="#i-tri"/></svg> Na overenie</span><button class="verify-btn">Overiť teraz</button></div></div></div></div>`,'doc');
   const t=document.querySelector('.today');t.parentNode.insertBefore(r,t.nextSibling);
   if(LANG==='en')swapText(SK2EN);}
-function signDay(){mClose('dkwrap');showToast('Dekurz podpísaný');
-  const b=document.querySelector('.dock .hasbdg');if(b)b.classList.remove('hasbdg');}
+/* K-19: podpis & render — market_rules (SOAP-06/08/09), Flow A vs B */
+const MKT={
+ IN:{min:['A','P'],tpl:'slip',lbl:'min. podpis: A+P · render: Rx slip'},
+ EU:{min:['A','P'],tpl:'full',lbl:'min. podpis: A+P (S/O odporúčané) · render: plná správa'},
+ US:{min:['A','P'],tpl:'full',lbl:'min. podpis: A+P (MDM) · render: plná správa'}
+};
+let MKTC='EU',FUsel=null,fuDone=false;
+function setMkt(m,btn){MKTC=m;document.querySelectorAll('#mktseg button').forEach(b=>b.classList.toggle('on',b===btn));
+  document.getElementById('mktlbl').textContent=tt(MKT[m].lbl);updSignVal();
+  if(document.getElementById('rendout').classList.contains('show'))renderOut();}
+function haveSlots(){return new Set(Array.from(document.querySelectorAll('#dsec0 .evrow')).map(r=>r.dataset.soap).filter(Boolean))}
+function updSignVal(){const v=document.getElementById('signval');if(!v)return;
+  const h=haveSlots();const miss=MKT[MKTC].min.filter(s=>!h.has(s));
+  if(miss.length){v.className='gaterow signval warn';v.querySelector('span').textContent=tt('Chýba pre podpis')+': '+miss.join(', ')}
+  else{v.className='gaterow signval ok';v.querySelector('span').textContent=tt('Minimum pre podpis splnené')+' ('+MKT[MKTC].min.join('+')+')'}}
+function slotTexts(s){return Array.from(document.querySelectorAll('#dsec0 .evrow')).filter(r=>r.dataset.soap===s).map(r=>r.children[2].textContent)}
+function fuPick(btn){
+  document.querySelectorAll('#fuchips button').forEach(b=>b.classList.toggle('on',b===btn));
+  FUsel=btn.dataset.d;
+  if(!fuDone){fuDone=true;
+    dekAddEv('P','Follow-up — '+FUsel,tt('lekár'));
+    const r=mkRow(`<div class="spine"><button class="tico t-plan" data-f="visit"><svg class="ico s14"><use href="#i-steth"/></svg></button><div class="line"></div></div>
+    <div class="card planned"><div class="body"><div class="pav ph doc1">N<span class="vb">＋</span></div><div class="cmain">
+    <div class="l1"><b>${tt('Follow-up — kontrola')}</b><span class="dt"><span class="sdot d-plan"></span><svg class="ico sok"><use href="#i-sok"/></svg>+${escT(FUsel)}</span></div>
+    <div class="l2">${tt('naplánované jedným klikom pri podpise')}</div>
+    <div class="crow"><span class="soap sP" title="${SOAPTITLE.P}">P</span><span class="tag st-plan">${tt('Plánované')}</span></div></div></div></div>`,'visit');
+    const t=document.querySelector('.today');t.parentNode.insertBefore(r,t);
+    showToast('Follow-up naplánovaný · P');
+  }
+  if(document.getElementById('rendout').classList.contains('show'))renderOut();
+}
+function renderOut(){
+  const ro=document.getElementById('rendout');ro.classList.add('show');
+  const A=slotTexts('A'),S=slotTexts('S'),O=slotTexts('O'),P=slotTexts('P');
+  const rx=P.filter(t=>/eRecept|ePrescription/i.test(t));
+  const fu=FUsel?(tt('Kontrola o')+' '+tt(FUsel)):null;const dash='—';
+  if(MKT[MKTC].tpl==='slip'){
+    ro.innerHTML=`<h4>Rx slip · ExpertMed</h4>
+    <div class="rsec">Jane Carter · ID 76157 8787 · 17.07.2026</div>
+    <div class="rsec"><b>Dg:</b> ${A.length?A.map(escT).join('; '):dash}</div>
+    <div class="rsec"><b>Rx:</b> ${rx.length?rx.map(escT).join('; '):dash}</div>
+    <div class="rsec"><b>Follow-up:</b> ${fu?escT(fu):dash}</div>
+    <div class="rft">${tt('podpis')}: Dr. Novak · ${tt('elektronicky')} · market_rules: IN</div>`;
+  }else{
+    const sec=(l,arr)=>`<div class="rsec"><b>${l}:</b> ${arr.length?arr.map(escT).join('; '):dash}</div>`;
+    const narrEl=document.querySelector('#dsec0 .narr textarea');const narr=narrEl?narrEl.value:'';
+    ro.innerHTML=`<h4>${tt('Lekárska správa')} · ExpertMed</h4>
+    <div class="rsec">Jane Carter · ID 76157 8787 · 17.07.2026 · Dr. Novak</div>
+    ${sec('S',S)}${sec('O',O)}${sec('A',A)}${sec('P',P)}
+    <div class="rsec"><b>eRx:</b> ${rx.length?rx.map(escT).join('; '):dash}</div>
+    <div class="rsec"><b>Follow-up:</b> ${fu?escT(fu):dash}</div>
+    ${narr?`<div class="rsec"><b>${tt('Naratív')}:</b> ${escT(narr)}</div>`:''}
+    <div class="rft">${tt('podpis')}: Dr. Novak · ${tt('elektronicky')} · market_rules: ${MKTC}</div>`;
+  }
+}
+function signDay(){
+  const h=haveSlots();const miss=MKT[MKTC].min.filter(s=>!h.has(s));
+  if(miss.length){showToast(tt('Nemožno podpísať — chýba')+': '+miss.join(', '));
+    dTab(0,document.querySelectorAll('.dtabs button')[0]);return}
+  const b=document.querySelector('.dock .hasbdg');if(b)b.classList.remove('hasbdg');
+  const now=new Date();const tm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const hdr=document.querySelector('#dkwrap .sh-h .tag');
+  if(hdr){hdr.classList.remove('st-ver');hdr.innerHTML='✓ '+tt('podpísané')+' · Dr. Novak · '+tm;hdr.style.color='var(--success)'}
+  renderOut();dTab(2,document.querySelectorAll('.dtabs button')[2]);
+  showToast(MKT[MKTC].tpl==='slip'?'Podpísané · Rx slip pripravený':'Podpísané · správa pripravená');
+}
 document.addEventListener('keydown',e=>{
   const open=id=>document.getElementById(id).classList.contains('open');
-  if(e.key==='Escape'){['recwrap','aptwrap','fotwrap','dkwrap'].forEach(id=>{if(open(id))mClose(id)});}
+  if(e.key==='Escape'){['recwrap','aptwrap','fotwrap','dkwrap','ordwrap'].forEach(id=>{if(open(id))mClose(id)});}
   if(e.key==='Enter'&&!e.target.matches('textarea')){
     if(open('recwrap')){saveRec();e.preventDefault()}
     else if(open('aptwrap')){saveApt();e.preventDefault()}
@@ -1846,6 +1963,17 @@ const I18N=[
 ["výsledok prijatý — zapísaný ako O","result received — written as O"],["Výsledok zapísaný · O","Result written · O"],["Rádiológia","Radiology dept."],
 ["Order — Radiology / Labs","Order — Radiology / Labs"],["MRI mozgu","Brain MRI"],["CT hrudníka","Chest CT"],["RTG chrbtice","Spine X-ray"],["USG abdomenu","Abdominal US"],
 ["Krvný obraz","CBC"],["Lipidový profil","Lipid panel"],["Kreatinín","Creatinine"],
+["min. podpis: A+P · render: Rx slip","min. sign: A+P · render: Rx slip"],
+["min. podpis: A+P (S/O odporúčané) · render: plná správa","min. sign: A+P (S/O recommended) · render: full report"],
+["min. podpis: A+P (MDM) · render: plná správa","min. sign: A+P (MDM) · render: full report"],
+["Chýba pre podpis","Missing for sign-off"],["Minimum pre podpis splnené","Sign-off minimum met"],
+["Nemožno podpísať — chýba","Cannot sign — missing"],["Follow-up (1 klik):","Follow-up (1 click):"],
+["3 dni","3 days"],["1 týždeň","1 week"],["1 mesiac","1 month"],["Kontrola o","Follow-up in"],
+["Follow-up — kontrola","Follow-up — check-up"],["naplánované jedným klikom pri podpise","planned with one click at sign-off"],
+["Plánované","Planned"],["Follow-up naplánovaný · P","Follow-up planned · P"],
+["podpis","signature"],["elektronicky","electronic"],["podpísané","signed"],["Naratív","Narrative"],
+["Podpísané · Rx slip pripravený","Signed · Rx slip ready"],["Podpísané · správa pripravená","Signed · report ready"],
+["Lekárska správa","Medical report"],
 ["Kontrola","Follow-up"],["Odber","Blood draw"],["Dátum","Date"],["Čas","Time"],["Miesto","Place"],["Ambulancia","Clinic"],
 ["Zapíše sa do sekcie PLÁNOVANÉ na osi a pacientovi do aplikácie.","Will appear in the PLANNED section of the pathway and in the patient app."],
 ["Vytvoriť termín","Create appointment"],["Termín vytvorený","Appointment created"],
