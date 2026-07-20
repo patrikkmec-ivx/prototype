@@ -4,8 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v75 (biometria pri podpise Rx)</title>
+<title>Hilbi Cockpit — v76 (podpis na konci flow)</title>
 <!-- CHANGELOG
+v76 (2026-07-20): Preusporiadanie Rx flow — podpis je POSLEDNÝ krok (aby pokryl aj
+  diagnózu). Krok 1 (košík): tlačidlo "Dokončiť (N)" — bez biometrie, len prechod na
+  súhrnnú obrazovku (QR + diagnóza A + follow-up); zatiaľ sa NIČ nezapisuje na os.
+  Krok 2: tlačidlo "Podpísať" (aj Enter v poli diagnózy) → biometria (Face ID
+  simulácia) → po overení sa zapíše VŠETKO NARAZ: Rx karta (P) + prípadná diagnóza
+  (A) na os aj do dekurzu, modal sa zavrie, toast. Jeden podpis kryje celý zápis.
+  Hlavička zoznamu premenovaná na "PO PODPISE AUTOMATICKY" (predtým tvrdila zapísané
+  pred podpisom). Follow-up chip ostáva okamžitý (vedomé — plánovanie nie je súčasť
+  podpisovaného klinického obsahu).
 v75 (2026-07-20): Simulácia biometrického overenia pri Sign eReceptu. doSign →
   Face ID overlay (blur pozadie, rámik s tvárou + bežiaci scan line ~1.3 s) →
   úspech (zelený check v rámiku, "Overené · kvalifikovaný podpis pripojený" ~0.65 s)
@@ -1406,7 +1415,7 @@ body[data-tab="comm"] .timeline{display:none}
           </div>
         </div>
         <div class="auto" style="text-align:left;background:var(--surface-1);border-radius:12px;padding:14px 16px;margin:0 6px">
-          <p style="font-size:11.5px;font-weight:700;color:var(--text-muted);margin-bottom:9px;letter-spacing:.3px">AUTOMATICKY ZAPÍSANÉ</p>
+          <p style="font-size:11.5px;font-weight:700;color:var(--text-muted);margin-bottom:9px;letter-spacing:.3px">PO PODPISE AUTOMATICKY</p>
           <div style="display:flex;gap:9px;align-items:center;font-size:13px;padding:4px 0"><svg style="width:14px;height:14px;stroke:var(--success)" class="ico"><use href="#i-sok"/></svg><span>Epizóda na osi</span></div>
           <div style="display:flex;gap:9px;align-items:center;font-size:13px;padding:4px 0"><svg style="width:14px;height:14px;stroke:var(--success)" class="ico"><use href="#i-sok"/></svg><span>Riadok dekurzu</span></div>
           <div style="display:flex;gap:9px;align-items:center;font-size:13px;padding:4px 0"><svg style="width:14px;height:14px;stroke:var(--success)" class="ico"><use href="#i-sok"/></svg><span>Výkaz — kandidát · potvrdíte pri podpise dňa</span></div>
@@ -1720,13 +1729,13 @@ function rxRender(){
  cnt.style.display=RX.cart.length&&!RX.done?'inline-flex':'none';cnt.textContent=rxT('Recept')+' ('+RX.cart.length+')';
  const f=document.getElementById('rxfoot');f.innerHTML='';
  const btn=(txt,cls,fn,kbd)=>{const b=document.createElement('button');b.className='btn '+cls;b.textContent=txt;if(kbd){const k=document.createElement('span');k.className='kb2';k.textContent='⏎';b.appendChild(k)}b.onclick=fn;f.appendChild(b);return b};
- if(RX.done){btn(rxT('Hotovo'),'primary',finishRx)}
+ if(RX.done){btn(rxT('Podpísať'),'primary',signFinal,true)}
  else{
    const note=document.createElement('span');
    note.style.cssText='margin-right:auto;font-size:10.5px;color:var(--text-subtle);align-self:center;max-width:200px;line-height:1.35';
    note.textContent=rxT('podpis: certifikát (PC) · biometria (mobil)');f.appendChild(note);
    btn(rxT('Zrušiť'),'',closeRx);
-   const b=btn(rxT('Podpísať')+(RX.cart.length?' ('+RX.cart.length+')':''),'primary',doSign);
+   const b=btn(rxT('Dokončiť')+(RX.cart.length?' ('+RX.cart.length+')':''),'primary',finishStep1);
    if(!RX.cart.length){b.disabled=true;b.style.opacity=.45}
  }
  if(!RX.done){renderS1Cart();renderChips();renderRes()}
@@ -1800,9 +1809,12 @@ function renderRes(){
 function ackW(i){RX.cart[i].ack=true;rxRender()}
 function rmCart(i){RX.cart.splice(i,1);rxRender()}
 let bioBusy=false;
-function doSign(){
+function finishStep1(){
  if(!RX.cart.length)return;
  if(RX.cart.some(it=>it.warn&&!it.ack)){rxRender();return}
+ RX.done=true;rxRender();renderRxSoap();
+}
+function signFinal(){
  if(bioBusy)return;bioBusy=true;
  const w=document.getElementById('biowrap'),b=document.getElementById('biobox');
  b.classList.remove('ok');
@@ -1814,14 +1826,13 @@ function doSign(){
    const f=document.getElementById('biofsvg');f.innerHTML='<path d="M10 24V16a6 6 0 0 1 6-6h8M52 10h8a6 6 0 0 1 6 6v8M66 52v8a6 6 0 0 1-6 6h-8M24 66h-8a6 6 0 0 1-6-6v-8"/><path d="m26 39 8 8 16-16" stroke-width="5"/>';
    document.getElementById('biotxt').textContent=tt('Overené');
    document.getElementById('biosub').textContent=tt('kvalifikovaný podpis pripojený');
-   setTimeout(()=>{w.classList.remove('open');bioBusy=false;doSignCore();
+   setTimeout(()=>{w.classList.remove('open');bioBusy=false;
+     insertRxCard();finishRx();
      const f2=document.getElementById('biofsvg');f2.innerHTML='<path d="M10 24V16a6 6 0 0 1 6-6h8M52 10h8a6 6 0 0 1 6 6v8M66 52v8a6 6 0 0 1-6 6h-8M24 66h-8a6 6 0 0 1-6-6v-8"/><path d="M28 32v6M48 32v6M38 34v10h-3M28 52c2.8 3 6.2 4.5 10 4.5s7.2-1.5 10-4.5" stroke-width="3.5"/>';
    },650);
  },1300);
 }
-function doSignCore(){
- RX.done=true;rxRender();insertRxCard();renderRxSoap();
-}
+function doSign(){RX.done?signFinal():finishStep1()}
 let lastRxCard=null;
 function insertRxCard(){
  const names=RX.cart.map(i=>i.d.b);
@@ -1849,7 +1860,7 @@ document.addEventListener('keydown',e=>{
  if(!w.classList.contains('open'))return;
  if(e.key==='Escape'){if(RX.cart.some(it=>it.open!==false)){RX.cart.forEach(it=>it.open=false);rxRender()}else closeRx();return}
  if(e.key==='Enter'&&!e.target.matches('input,textarea')){doSign();e.preventDefault()}
- if(e.key==='Enter'&&e.target.id==='rxdg'){finishRx();e.preventDefault()}
+ if(e.key==='Enter'&&e.target.id==='rxdg'){signFinal();e.preventDefault()}
 });
 
 
@@ -2325,6 +2336,7 @@ const I18N=[
 ["Antikoagulačná liečba — kontrola","Anticoagulation — monitoring"],["KV prevencia — antiagregácia","CV prevention — antiplatelet"],
 ["Zapísané: Rx (P) + diagnóza (A)","Recorded: Rx (P) + diagnosis (A)"],["DIAGNÓZA / POPIS (A)","DIAGNOSIS / DESCRIPTION (A)"],
 ["Overenie tvárou…","Face verification…"],["pozrite sa do kamery","look at the camera"],["Overené","Verified"],["kvalifikovaný podpis pripojený","qualified signature attached"],
+["Dokončiť","Finish"],["PO PODPISE AUTOMATICKY","AUTOMATICALLY UPON SIGNING"],
 ["Prípad — Hypertenzná kríza","Case — Hypertensive crisis"],["EpisodeOfCare · 3 encountery:","EpisodeOfCare · 3 encounters:"],
 ["EpisodeOfCare · uzavretý 24.06","EpisodeOfCare · closed 24 Jun"],["Handoffy (2)","Handoffs (2)"],["Účet prípadu · 9 položiek","Case bill · 9 items"],
 ["Prehľad","Overview"],["Handoffy","Handoffs"],["Účet","Bill"],
