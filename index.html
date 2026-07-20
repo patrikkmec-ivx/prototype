@@ -4,8 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v66 (K-17 dekurz v2)</title>
+<title>Hilbi Cockpit — v67 (K-18 ordery + pending)</title>
 <!-- CHANGELOG
+v67 (2026-07-20): K-18 — ordery a otvorené slučky (cp-15: SOAP-07, Flow C).
+  Order modal: kategórie prvej úrovne LEN Radiology | Labs (žiadne modality), katalógové
+  multi-select chipy (rad: MRI mozgu/CT hrudníka/RTG chrbtice/USG abdomenu; lab: KO/
+  HbA1c/Lipidový profil/CRP/Kreatinín), voliteľná indikácia, Enter = odoslať. V + menu
+  a na klávese O. Odoslanie: karta na osi s P chipom a tagom "Čaká na výsledok" (nie
+  neúplná správa!), P udalosť v dekurze, riadok v "Otvorené slučky" boxe v dekurze
+  (warning tón, dashed). "Simulovať výsledok": order karta → Ukončené, NOVÁ O karta
+  výsledku na osi, O udalosť v dekurze (autor Laboratórium/Rádiológia), slučka zmizne,
+  počítadlo sa aktualizuje. Nový symbol i-flask. NEW do Figmy: catchips, pend box,
+  st-pend tag. Mobil: všetko na M-17 tokenoch.
 v66 (2026-07-20): K-17 — dekurz v2 (cp-15: SOAP-03/06, príprava Flow B).
   Dekurz "Dnes": completeness indikátor S/O/A/P (bodky, farby podľa slotov — informuje,
   NIKDY neblokuje; východzí stav S●O●A○P● zámerne nabáda na jednu vetu do A), evrows
@@ -674,6 +684,17 @@ body[data-tab="comm"] .timeline{display:none}
 .s2dek{margin-top:8px;display:inline-flex;gap:6px;align-items:center;border:1.5px solid var(--accent-2-strong);color:var(--accent-2-strong);background:#fff;border-radius:999px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer}
 .s2dek b{font-size:12px}
 .s2dek.done{border-color:var(--success);color:var(--success);pointer-events:none}
+/* K-18 · order + pending slučky — NEW, doplniť do Figmy */
+.catchips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.catchips button{border:1.5px solid var(--border-default);background:#fff;border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;color:var(--text-heading);cursor:pointer}
+.catchips button.on{border-color:var(--brand-teal);background:var(--brand-cyan-soft);color:var(--brand-teal-text)}
+.pend{margin:0 0 12px;border:1px dashed var(--warning);background:var(--warning-soft);border-radius:10px;padding:9px 13px;display:none}
+.pend.has{display:block}
+.pend .ph2{font-size:12px;font-weight:800;color:#8a5a1e;margin-bottom:4px;display:flex;gap:6px;align-items:center}
+.pend .ph2 .ico{stroke:#8a5a1e}
+.pend .prow2{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--text-body);padding:4px 0}
+.pend .prow2 .sim{margin-left:auto;border:1px solid var(--warning);color:#8a5a1e;background:#fff;border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:700;cursor:pointer;flex:none}
+.tag.st-pend{color:#8a5a1e}
 .typechips button.on{background:var(--brand-cyan-soft);border:2px solid var(--brand-cyan);padding:7.5px 13.5px;color:#0E7D92}
 .vbox input{border:none;outline:none;font-family:inherit;font-size:14px;font-weight:700;color:var(--text-heading);width:100%;background:none}
 .drop{border:1.5px dashed var(--border-strong);border-radius:12px;padding:26px;text-align:center;color:var(--text-muted);font-size:13px;margin-bottom:12px}
@@ -841,6 +862,11 @@ body[data-tab="comm"] .timeline{display:none}
   .cbub{font-size:var(--t-body);line-height:21px;max-width:88%}
   .cbub .cwho{font-size:var(--t-label)}
   .s2dek{min-height:36px;font-size:var(--t-meta)}
+  /* K-18: order + pending na mobilnej škále */
+  .catchips button{min-height:40px;font-size:var(--t-meta)}
+  .pend .prow2{font-size:var(--t-meta)}
+  .pend .ph2{font-size:var(--t-label)}
+  .pend .prow2 .sim{min-height:36px;font-size:var(--t-label)}
 }
 </style>
 </head>
@@ -862,6 +888,7 @@ body[data-tab="comm"] .timeline{display:none}
 <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></symbol>
 <symbol id="i-syr" viewBox="0 0 24 24"><path d="m18 2 4 4"/><path d="m17 7 3-3"/><path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"/><path d="m9 11 4 4"/><path d="m5 19-3 3"/><path d="m14 4 6 6"/></symbol>
 <symbol id="i-act" viewBox="0 0 24 24"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></symbol>
+<symbol id="i-flask" viewBox="0 0 24 24"><path d="M10 2v6.3L4.6 18a2 2 0 0 0 1.8 3h11.2a2 2 0 0 0 1.8-3L14 8.3V2M8.5 2h7M7 15h10"/></symbol>
 <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
 <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
 <symbol id="i-clip" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></symbol>
@@ -1222,6 +1249,22 @@ body[data-tab="comm"] .timeline{display:none}
   </div>
 </div>
 
+<div class="sheetwrap" id="ordwrap"><div class="scrim" onclick="mClose('ordwrap')"></div>
+  <div class="sheet">
+    <div class="sh-h"><span class="hic"><svg class="ico s14"><use href="#i-flask"/></svg></span><b>Order</b><button class="x" onclick="mClose('ordwrap')" title="Zavrieť">✕</button></div>
+    <div class="sh-b">
+      <div class="typechips" id="ordcat">
+        <button class="on" data-c="rad" onclick="ordCat('rad',this)">Radiology</button>
+        <button data-c="lab" onclick="ordCat('lab',this)">Labs</button>
+      </div>
+      <div class="catchips" id="ordcatalog"></div>
+      <input id="ordind" class="recline" style="margin-top:12px" placeholder="Indikácia (voliteľné)…">
+      <div class="gaterow" style="background:var(--surface-1);color:var(--text-muted);margin-top:10px"><svg class="ico s14" style="flex:none"><use href="#i-flask"/></svg><span>Vytvorí požiadavku (P) a otvorenú slučku — výsledok sa zapíše ako O.</span></div>
+    </div>
+    <div class="sh-f"><button class="btn" onclick="mClose('ordwrap')">Zrušiť</button><button class="btn primary" onclick="saveOrd()">Odoslať order<span class="kb2">⏎</span></button></div>
+  </div>
+</div>
+
 <div class="sheetwrap" id="aptwrap"><div class="scrim" onclick="mClose('aptwrap')"></div>
   <div class="sheet">
     <div class="sh-h"><span class="hic"><svg class="ico s14"><use href="#i-cal"/></svg></span><b>Termín</b><button class="x" onclick="mClose('aptwrap')" title="Zavrieť">✕</button></div>
@@ -1267,6 +1310,9 @@ body[data-tab="comm"] .timeline{display:none}
         <span class="si" data-s="P"><span class="sd"></span>P</span>
         <span class="lbl">kompletnosť SOAP · informatívne</span>
       </div>
+      <div class="pend" id="pendbox">
+        <div class="ph2"><svg class="ico" style="width:13px;height:13px;flex:none" aria-hidden="true"><use href="#i-tri"/></svg><span>Otvorené slučky (0)</span></div>
+      </div>
       <div class="evrow" data-soap="O"><span class="tm">08:12</span><span class="soap sO" title="SOAP · Objektívne">O</span><span>TK 138/88 mmHg · pulz 72</span><span class="who">systém · Omron</span></div>
       <div class="evrow" data-soap="P"><span class="tm">09:05</span><span class="soap sP" title="SOAP · Plán">P</span><span>Krok plánu: kontrola DM — splnený</span><span class="who">lekár</span></div>
       <div class="evrow" data-soap="S"><span class="tm">09:20</span><span class="soap sS" title="SOAP · Subjektívne">S</span><span>PRO dotazník — vyhodnotený</span><span class="who iq" title="Hilbi IQ"><svg class="iqmk" aria-hidden="true"><use href="#i-iqmark"/></svg></span></div>
@@ -1299,6 +1345,7 @@ body[data-tab="comm"] .timeline{display:none}
     <div class="sep"></div>
     <button onclick="openRx()"><svg class="ico s14" aria-hidden="true"><use href="#i-syr"/></svg> Preskripcia <kbd class="kb">R</kbd></button>
     <button onclick="mOpen('recwrap')"><svg class="ico s14" aria-hidden="true"><use href="#i-pen"/></svg> Zaznamenať <kbd class="kb">N</kbd></button>
+    <button onclick="mOpen('ordwrap')"><svg class="ico s14" aria-hidden="true"><use href="#i-flask"/></svg> Order — Radiology / Labs <kbd class="kb">O</kbd></button>
     <button onclick="mOpen('fotwrap')"><svg class="ico s14" aria-hidden="true"><use href="#i-cam"/></svg> Odfotiť dokument <kbd class="kb">F</kbd></button>
     <button onclick="mOpen('dkwrap');dTab(2,document.querySelectorAll('.dtabs button')[2])"><svg class="ico s14" aria-hidden="true"><use href="#i-file"/></svg> Generovať správu <kbd class="kb">S</kbd></button>
     <button onclick="mOpen('aptwrap')"><svg class="ico s14" aria-hidden="true"><use href="#i-cal"/></svg> Termín <kbd class="kb">T</kbd></button>
@@ -1575,6 +1622,67 @@ function chat2S(btn){
   showToast('Zapísané do dekurzu · S');
 }
 updComp();
+/* K-18: ordery Radiology/Labs (SOAP-07) + pending slučky */
+const ORDCAT={rad:['MRI mozgu','CT hrudníka','RTG chrbtice','USG abdomenu'],lab:['Krvný obraz','HbA1c','Lipidový profil','CRP','Kreatinín']};
+let ordC='rad',pendN=0;
+function ordCat(c,btn){ordC=c;document.querySelectorAll('#ordcat button').forEach(b=>b.classList.toggle('on',b===btn));ordRender()}
+function ordRender(){document.getElementById('ordcatalog').innerHTML=ORDCAT[ordC].map(n=>`<button onclick="this.classList.toggle('on')">${tt(n)}</button>`).join('')}
+ordRender();
+document.getElementById('ordind').addEventListener('keydown',e=>{if(e.key==='Enter'){saveOrd();e.preventDefault()}});
+function saveOrd(){
+  const items=Array.from(document.querySelectorAll('#ordcatalog button.on')).map(b=>b.textContent);
+  if(!items.length){showToast('Vyberte aspoň jednu položku');return}
+  mClose('ordwrap');
+  const catN=ordC==='rad'?'Radiology':'Labs';
+  const ind=(document.getElementById('ordind').value||'').trim();
+  const now=new Date();const tm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const chips=items.map(n=>`<span class="tag clin t-a2">${escT(n)}</span>`).join('');
+  const r=mkRow(`<div class="spine"><button class="tico" data-f="doc"><svg class="ico s14"><use href="#i-flask"/></svg></button><div class="line"></div></div>
+  <div class="card"><div class="body"><div class="pav ph doc1">N<span class="vb">＋</span></div><div class="cmain">
+  <div class="l1"><b>Order — ${catN}</b><span class="dt"><span class="sdot d-plan"></span><svg class="ico sok"><use href="#i-sok"/></svg>17.07 · ${tm}</span></div>
+  <div class="l2">${escT(items.join(' · '))}${ind?' · '+escT(ind):''}</div>
+  <div class="crow"><span class="soap sP" title="${SOAPTITLE.P}">P</span><span class="tag st-pend">${tt('Čaká na výsledok')}</span>${chips}</div></div></div></div>`,'doc');
+  const t=document.querySelector('.today');t.parentNode.insertBefore(r,t.nextSibling);
+  const c=r.querySelector('.card');c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),1900);
+  r.scrollIntoView({behavior:'smooth',block:'center'});
+  dekAddEv('P','Order '+catN+': '+items.join(', '),tt('lekár'));
+  addPend(catN,items,r);
+  document.querySelectorAll('#ordcatalog button').forEach(b=>b.classList.remove('on'));
+  document.getElementById('ordind').value='';
+  showToast('Order odoslaný · čaká na výsledok');
+  if(LANG==='en')swapText(SK2EN);
+}
+function addPend(catN,items,cardRow){
+  const box=document.getElementById('pendbox');
+  const id='pend'+(++pendN);
+  const row=document.createElement('div');row.className='prow2';row.id=id;
+  row.innerHTML=`<span class="soap sP" title="${SOAPTITLE.P}">P</span><span>${escT(catN)} — ${escT(items.join(', '))}</span><button class="sim" onclick="resolvePend('${id}')">${tt('Simulovať výsledok')}</button>`;
+  row._items=items;row._cat=catN;row._card=cardRow;
+  box.appendChild(row);updPendCount();
+}
+function resolvePend(id){
+  const row=document.getElementById(id);if(!row)return;
+  const items=row._items,catN=row._cat,cardRow=row._card;
+  const tag=cardRow&&cardRow.querySelector('.tag.st-pend');
+  if(tag){tag.classList.remove('st-pend');tag.textContent=tt('Ukončené')}
+  const now=new Date();const tm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const r=mkRow(`<div class="spine"><button class="tico" data-f="doc"><svg class="ico s14"><use href="#i-act"/></svg></button><div class="line"></div></div>
+  <div class="card"><div class="body"><div class="pav ph doc1">N<span class="vb">＋</span></div><div class="cmain">
+  <div class="l1"><b>${tt('Výsledok')} — ${escT(items[0])}${items.length>1?' +'+(items.length-1):''}</b><span class="dt"><span class="sdot d-ok"></span><svg class="ico sok"><use href="#i-sok"/></svg>17.07 · ${tm}</span></div>
+  <div class="l2">${escT(catN)} · ${tt('výsledok prijatý — zapísaný ako O')}</div>
+  <div class="crow"><span class="soap sO" title="${SOAPTITLE.O}">O</span><span class="tag">${tt('Ukončené')}</span></div></div></div></div>`,'doc');
+  const t=document.querySelector('.today');t.parentNode.insertBefore(r,t.nextSibling);
+  const c=r.querySelector('.card');c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),1900);
+  dekAddEv('O',tt('Výsledok')+' '+catN+': '+items.join(', '),catN==='Labs'?tt('Laboratórium Alpha'):tt('Rádiológia'));
+  row.remove();updPendCount();
+  showToast('Výsledok zapísaný · O');
+}
+function updPendCount(){
+  const box=document.getElementById('pendbox');
+  const n=box.querySelectorAll('.prow2').length;
+  box.classList.toggle('has',n>0);
+  const h=box.querySelector('.ph2 span');if(h)h.textContent=tt('Otvorené slučky')+' ('+n+')';
+}
 function saveApt(){mClose('aptwrap');showToast('Termín vytvorený');
   if(aptIns)return;aptIns=true;
   const r=mkRow(`<div class="spine"><button class="tico t-plan" data-f="visit"><svg class="ico s14"><use href="#i-steth"/></svg></button><div class="line"></div></div>
@@ -1630,6 +1738,7 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='Enter'&&kIdx>=0){cs[kIdx].classList.toggle('expanded');return}
   else if(['r','R'].includes(e.key)){openRx();return}
   else if(['n','N'].includes(e.key)){mOpen('recwrap');return}
+  else if(['o','O'].includes(e.key)){mOpen('ordwrap');return}
   else if(['t','T'].includes(e.key)){mOpen('aptwrap');return}
   else if(['f','F'].includes(e.key)){mOpen('fotwrap');return}
   else if(['s','S'].includes(e.key)){mOpen('dkwrap');dTab(2,document.querySelectorAll('.dtabs button')[2]);return}
@@ -1731,6 +1840,12 @@ const I18N=[
 ["Dobre, TK doplním. Ďakujem.","Alright, I'll add the BP reading. Thank you."],
 ["→ do dekurzu","→ to progress note"],["v dekurze","in progress note"],["Chat výňatok","Chat excerpt"],["pacient · chat","patient · chat"],
 ["Zapísané do dekurzu · S","Written to progress note · S"],["eRecept vydaný","ePrescription issued"],
+["Indikácia (voliteľné)…","Indication (optional)…"],["Vytvorí požiadavku (P) a otvorenú slučku — výsledok sa zapíše ako O.","Creates a request (P) and an open loop — the result is written as O."],
+["Odoslať order","Send order"],["Vyberte aspoň jednu položku","Select at least one item"],["Order odoslaný · čaká na výsledok","Order sent · awaiting result"],
+["Čaká na výsledok","Awaiting result"],["Otvorené slučky","Open loops"],["Simulovať výsledok","Simulate result"],["Výsledok","Result"],
+["výsledok prijatý — zapísaný ako O","result received — written as O"],["Výsledok zapísaný · O","Result written · O"],["Rádiológia","Radiology dept."],
+["Order — Radiology / Labs","Order — Radiology / Labs"],["MRI mozgu","Brain MRI"],["CT hrudníka","Chest CT"],["RTG chrbtice","Spine X-ray"],["USG abdomenu","Abdominal US"],
+["Krvný obraz","CBC"],["Lipidový profil","Lipid panel"],["Kreatinín","Creatinine"],
 ["Kontrola","Follow-up"],["Odber","Blood draw"],["Dátum","Date"],["Čas","Time"],["Miesto","Place"],["Ambulancia","Clinic"],
 ["Zapíše sa do sekcie PLÁNOVANÉ na osi a pacientovi do aplikácie.","Will appear in the PLANNED section of the pathway and in the patient app."],
 ["Vytvoriť termín","Create appointment"],["Termín vytvorený","Appointment created"],
