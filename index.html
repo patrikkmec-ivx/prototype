@@ -4,8 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v71 (M-18 full-screen sheety)</title>
+<title>Hilbi Cockpit — v72 (hotfix Rx flow)</title>
 <!-- CHANGELOG
+v72 (2026-07-20): HOTFIX regresie z v67/v68 — top-level volania ordRender() a updComp()
+  (cez updSignVal → tt()) siahali na `let LANG` pred jej deklaráciou (TDZ ReferenceError),
+  skript spadol v strede a NIČ za tým sa neinicializovalo — vrátane Rx modalu
+  (najčastejšie lieky, vyhľadávanie, celý flow) a setLang('en'). Fix: inicializácie
+  presunuté na koniec skriptu za setLang. POUČENIE do procesu: každá dávka s top-level
+  JS kódom musí bežať až po bloku deklarácií (LANG/I18N) — overiť runtime, nie len
+  syntax (node --check TDZ nechytí).
 v71 (2026-07-20): M-18 — všetky sheety na mobile (≤744px) full-screen: Rx, Order,
   Record, Termín, Foto dokumentu, Dekurz (vrátane podpisu a billboxu), Case modal.
   Jednotné pravidlo cez .sheet override (100dvh, radius 0, safe-area hore aj dole,
@@ -1818,13 +1825,11 @@ function chat2S(btn){
   btn.classList.add('done');btn.innerHTML='✓ '+tt('v dekurze');
   showToast('Zapísané do dekurzu · S');
 }
-updComp();
 /* K-18: ordery Radiology/Labs (SOAP-07) + pending slučky */
 const ORDCAT={rad:['MRI mozgu','CT hrudníka','RTG chrbtice','USG abdomenu'],lab:['Krvný obraz','HbA1c','Lipidový profil','CRP','Kreatinín']};
 let ordC='rad',pendN=0;
 function ordCat(c,btn){ordC=c;document.querySelectorAll('#ordcat button').forEach(b=>b.classList.toggle('on',b===btn));ordRender()}
 function ordRender(){document.getElementById('ordcatalog').innerHTML=ORDCAT[ordC].map(n=>`<button onclick="this.classList.toggle('on')">${tt(n)}</button>`).join('')}
-ordRender();
 document.getElementById('ordind').addEventListener('keydown',e=>{if(e.key==='Enter'){saveOrd();e.preventDefault()}});
 function saveOrd(){
   const items=Array.from(document.querySelectorAll('#ordcatalog button.on')).map(b=>b.textContent);
@@ -2265,6 +2270,10 @@ document.getElementById('langEN').onclick=()=>{setLang('en');document.getElement
 document.getElementById('langSK').onclick=()=>{setLang('sk');document.getElementById('hmenu').classList.remove('open')};
 /* default EN */
 setLang('en');
+
+/* v72 hotfix: inicializácie závislé na LANG/i18n MUSIA bežať až tu (po deklaráciách) */
+updComp();
+ordRender();
 
 /* M-17: mobil — tap rozbalí orezanú poznámku karty a attention banner */
 document.addEventListener('click',e=>{
