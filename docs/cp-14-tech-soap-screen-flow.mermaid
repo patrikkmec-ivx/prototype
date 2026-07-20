@@ -1,0 +1,29 @@
+%% cp-14-tech-soap-screen-flow · v1.0 · 2026-07-20
+%% SSOT: kokpit — SOAP jadro, tri flows, case vrstva (EpisodeOfCare)
+%% Autorita: navrhol Patrik · schvaľuje Roman · aplikuje Dominika/Viktor
+flowchart TD
+  subgraph CASE["EpisodeOfCare — prípad (ambulantne degeneruje na 1 encounter)"]
+    subgraph ENC["Encounter — oddelenie / návšteva"]
+      PLUS["+ menu: Rx / Order / Note / Follow-up"] --> RXM[Rx modal]
+      PLUS --> ORDM["Order modal — Radiology / Labs"]
+      PLUS --> NOTE["Poznámka 1 riadok — default A"]
+      COMM[Communication] -->|1-klik výňatok| S
+      RXM -->|MedicationRequest| P
+      ORDM -->|ServiceRequest| P
+      NOTE -->|Condition/text| A
+      VIT["Vitály / PHR"] -->|Observation| O
+      subgraph DEK["Dekurz — kompilácia na pozadí (Composition)"]
+        S; O; A; P
+      end
+      DEK --> SIGN["Podpis — market_rules validácia<br/>IN: A+P · EU/US: plná"]
+      SIGN --> CHG["ChargeItem kandidáti — potvrdenie lekárom"]
+    end
+    ORDM -.-> PEND["Pending result — otvorená slučka"] -.->|výsledok| O
+    ENC -->|"handoff: IQ zhrnutie (ISBAR)"| ENC2["Encounter — ďalšie oddelenie"]
+    ENC2 --> DIS["Prepustenie / uzavretie prípadu"]
+    ENC --> DIS
+  end
+  SIGN --> OUT1["Render: Rx slip (IN)"]
+  SIGN --> OUT2["Render: plná správa (EU/US) vrátane eRx + follow-up"]
+  CHG --> AGG["Agregácia per epizóda → účet / DRG dávka / Invoice"]
+  DIS --> AGG
