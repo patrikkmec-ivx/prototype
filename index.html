@@ -4,8 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v68 (K-19 podpis & render)</title>
+<title>Hilbi Cockpit — v69 (K-20 billing derivation)</title>
 <!-- CHANGELOG
+v69 (2026-07-20): K-20 — billing derivation (cp-15: BILL-01..04, uzatvára gap H31 v UI).
+  Podpis je teraz dvojkrokový: 1. klik "Podpísať deň" → billbox "Výkaz — návrh
+  z udalostí dňa": ChargeItem kandidáti DERIVOVANÍ z dekurzu (konzultácia; vitály ak O
+  s TK; Rp ak eRecept; indikácia ak Order; PRO ak S dotazník; objednanie ak Follow-up),
+  checkboxy default zaškrtnuté — lekár odškrtáva, nikdy nedopisuje (BILL-02). Kódy per
+  trh (SK bodovník mock / US CPT mock / IN PKG). US navyše E/M riadok: návrh 99213/99214
+  odvodený z MDM (počet A problémov, O+order dáta, riziko = manažment preskripcie)
+  so zdôvodnením z vlastných dát (BILL-04) — radio prepínateľné. 2. klik "Potvrdiť
+  výkaz a podpísať" → podpis + render; footer správy/slipu dostáva riadok "Výkaz
+  potvrdený: N položiek · artefakt" (IN: Invoice GST / EU: dávka / US: claim 837P + E/M).
+  Prepnutie trhu prebuduje kandidátov aj render. NEW do Figmy: billbox, brow, emrow.
 v68 (2026-07-20): K-19 — podpis & render podľa market_rules (cp-15: SOAP-06/08/09).
   Dekurz tab "Generovať": prepínač trhu India | EU | US (market_rules ako konfigurácia,
   nie fork) + popis pravidiel; živá validácia minima pre podpis (IN/EU/US: A+P) — zelený/
@@ -726,6 +737,19 @@ body[data-tab="comm"] .timeline{display:none}
 .rendout .rsec{margin:7px 0;font-size:12.5px;color:var(--text-body);line-height:18px}
 .rendout .rsec b{color:var(--text-heading)}
 .rendout .rft{margin-top:10px;padding-top:8px;border-top:1px dashed var(--border-strong);font-size:11.5px;color:var(--text-muted)}
+/* K-20 · billing derivation (ChargeItem potvrdenie) — NEW, doplniť do Figmy */
+.billbox{border:1px solid var(--border-strong);border-radius:12px;background:var(--surface-1);padding:13px 15px;margin:0 0 12px;display:none}
+.billbox.show{display:block}
+.billbox h5{margin:0 0 6px;font-size:12.5px;font-weight:800;color:var(--text-heading);display:flex;gap:8px;align-items:center}
+.billbox .bnote{font-size:11.5px;color:var(--text-subtle);margin-bottom:8px}
+.brow{display:flex;gap:10px;align-items:center;padding:6px 0;font-size:12.5px;color:var(--text-body)}
+.brow input{accent-color:var(--brand-teal);width:16px;height:16px;flex:none}
+.brow .bcode{margin-left:auto;font-size:10.5px;font-weight:700;border:1px solid var(--border-strong);border-radius:4px;padding:1px 6px;color:var(--text-muted);background:#fff;flex:none}
+.emrow{margin-top:8px;padding-top:8px;border-top:1px dashed var(--border-strong);font-size:12px;color:var(--text-body)}
+.emrow label{margin-right:14px;font-weight:700;cursor:pointer}
+.emrow input{accent-color:var(--brand-teal)}
+.emjust{font-size:11.5px;color:var(--text-subtle);margin-top:4px}
+.billfoot{display:flex;gap:10px;margin-top:10px;justify-content:flex-end}
 .typechips button.on{background:var(--brand-cyan-soft);border:2px solid var(--brand-cyan);padding:7.5px 13.5px;color:#0E7D92}
 .vbox input{border:none;outline:none;font-family:inherit;font-size:14px;font-weight:700;color:var(--text-heading);width:100%;background:none}
 .drop{border:1.5px dashed var(--border-strong);border-radius:12px;padding:26px;text-align:center;color:var(--text-muted);font-size:13px;margin-bottom:12px}
@@ -905,6 +929,12 @@ body[data-tab="comm"] .timeline{display:none}
   .rendout .rsec{font-size:var(--t-body);line-height:21px}
   .rendout h4{font-size:var(--t-title)}
   .rendout .rft{font-size:var(--t-label)}
+  /* K-20: billing na mobilnej škále */
+  .brow{font-size:var(--t-meta);min-height:40px}
+  .brow input{width:20px;height:20px}
+  .billbox h5{font-size:var(--t-meta)}
+  .billbox .bnote,.emjust{font-size:var(--t-label)}
+  .emrow{font-size:var(--t-meta)}
 }
 </style>
 </head>
@@ -1381,6 +1411,13 @@ body[data-tab="comm"] .timeline{display:none}
         <button data-d="1 týždeň" onclick="fuPick(this)">1 týždeň</button>
         <button data-d="1 mesiac" onclick="fuPick(this)">1 mesiac</button>
       </div>
+      <div class="billbox" id="billbox">
+        <h5><svg class="ico s14" style="flex:none"><use href="#i-dash"/></svg><span>Výkaz — návrh z udalostí dňa</span></h5>
+        <div class="bnote">Systém navrhuje, lekár potvrdzuje. Odškrtnite, čo nemá byť vykázané.</div>
+        <div id="billrows"></div>
+        <div class="emrow" id="emrow" style="display:none"></div>
+        <div class="billfoot"><button class="btn primary" onclick="finalizeSign()" id="billconfirm">Potvrdiť výkaz a podpísať</button></div>
+      </div>
       <div class="rendout" id="rendout"></div>
       <div class="genrow"><svg class="ico s14"><use href="#i-file"/></svg><span><b>Lekárska správa</b><small>projekcia z verzie 15.07 ✓ · jazyk podľa príjemcu</small></span><button class="btn">Generovať</button></div>
       <div class="genrow"><svg class="ico s14"><use href="#i-file"/></svg><span><b>Potvrdenie</b><small>pre pacienta / zamestnávateľa</small></span><button class="btn">Generovať</button></div>
@@ -1763,6 +1800,7 @@ const MKT={
 let MKTC='EU',FUsel=null,fuDone=false;
 function setMkt(m,btn){MKTC=m;document.querySelectorAll('#mktseg button').forEach(b=>b.classList.toggle('on',b===btn));
   document.getElementById('mktlbl').textContent=tt(MKT[m].lbl);updSignVal();
+  if(document.getElementById('billbox').classList.contains('show'))buildBill();
   if(document.getElementById('rendout').classList.contains('show'))renderOut();}
 function haveSlots(){return new Set(Array.from(document.querySelectorAll('#dsec0 .evrow')).map(r=>r.dataset.soap).filter(Boolean))}
 function updSignVal(){const v=document.getElementById('signval');if(!v)return;
@@ -1796,7 +1834,7 @@ function renderOut(){
     <div class="rsec"><b>Dg:</b> ${A.length?A.map(escT).join('; '):dash}</div>
     <div class="rsec"><b>Rx:</b> ${rx.length?rx.map(escT).join('; '):dash}</div>
     <div class="rsec"><b>Follow-up:</b> ${fu?escT(fu):dash}</div>
-    <div class="rft">${tt('podpis')}: Dr. Novak · ${tt('elektronicky')} · market_rules: IN</div>`;
+    <div class="rft">${tt('podpis')}: Dr. Novak · ${tt('elektronicky')} · market_rules: IN${BILLN?'<br>'+tt('Výkaz potvrdený')+': '+BILLN+' '+tt('položiek')+' · '+billArtifact():''}</div>`;
   }else{
     const sec=(l,arr)=>`<div class="rsec"><b>${l}:</b> ${arr.length?arr.map(escT).join('; '):dash}</div>`;
     const narrEl=document.querySelector('#dsec0 .narr textarea');const narr=narrEl?narrEl.value:'';
@@ -1806,13 +1844,60 @@ function renderOut(){
     <div class="rsec"><b>eRx:</b> ${rx.length?rx.map(escT).join('; '):dash}</div>
     <div class="rsec"><b>Follow-up:</b> ${fu?escT(fu):dash}</div>
     ${narr?`<div class="rsec"><b>${tt('Naratív')}:</b> ${escT(narr)}</div>`:''}
-    <div class="rft">${tt('podpis')}: Dr. Novak · ${tt('elektronicky')} · market_rules: ${MKTC}</div>`;
+    <div class="rft">${tt('podpis')}: Dr. Novak · ${tt('elektronicky')} · market_rules: ${MKTC}${BILLN?'<br>'+tt('Výkaz potvrdený')+': '+BILLN+' '+tt('položiek')+' · '+billArtifact():''}</div>`;
   }
+}
+/* K-20: billing derivation (BILL-01..04) — suggestion engine, lekár potvrdzuje */
+let BILLN=0,EMsel='';
+function billCandidates(){
+  const evs=Array.from(document.querySelectorAll('#dsec0 .evrow')).map(r=>({s:r.dataset.soap,t:r.children[2].textContent}));
+  const c=[{code:MKTC==='US'?'E/M':(MKTC==='IN'?'PKG':'60'),name:tt('Vyšetrenie / konzultácia')}];
+  if(evs.some(e=>e.s==='O'&&/TK|BP/i.test(e.t)))c.push({code:MKTC==='US'?'99473':'4a',name:tt('Vitálne funkcie — meranie')});
+  if(evs.some(e=>/eRecept|ePrescription/i.test(e.t)))c.push({code:'Rp',name:tt('Predpis lieku — manažment medikácie')});
+  if(evs.some(e=>/Order/i.test(e.t)))c.push({code:'ind',name:tt('Indikácia vyšetrenia (Radiology/Labs)')});
+  if(evs.some(e=>e.s==='S'&&/PRO/i.test(e.t)))c.push({code:MKTC==='US'?'96127':'PRO',name:tt('Vyhodnotenie PRO dotazníka')});
+  if(evs.some(e=>/Follow-up/i.test(e.t)))c.push({code:'obj',name:tt('Objednanie kontroly')});
+  return c;
+}
+function emCalc(){
+  const nA=slotTexts('A').length,P=slotTexts('P');
+  const data=slotTexts('O').length+P.filter(t=>/Order/i.test(t)).length;
+  const rx=P.some(t=>/eRecept|ePrescription/i.test(t));
+  const lvl=(rx||nA>=2)?'99214':'99213';
+  const just=nA+'× '+tt('problém (A)')+' · '+data+'× '+tt('dáta (O/order)')+' · '+(rx?tt('riziko: manažment preskripcie'):tt('nízke riziko'));
+  return {lvl,just};
+}
+function buildBill(){
+  const rows=document.getElementById('billrows');
+  rows.innerHTML=billCandidates().map((c,i)=>`<label class="brow"><input type="checkbox" checked data-i="${i}"><span>${c.name}</span><span class="bcode">${c.code}</span></label>`).join('');
+  const em=document.getElementById('emrow');
+  if(MKTC==='US'){const e=emCalc();EMsel=e.lvl;
+    em.style.display='';
+    em.innerHTML=`<span style="font-weight:800">${tt('E/M úroveň')}:</span>
+    <label><input type="radio" name="emx" value="99213" ${e.lvl==='99213'?'checked':''} onchange="EMsel='99213'"> 99213</label>
+    <label><input type="radio" name="emx" value="99214" ${e.lvl==='99214'?'checked':''} onchange="EMsel='99214'"> 99214</label>
+    <span class="bcode">${tt('návrh')}: ${e.lvl}</span>
+    <div class="emjust">${tt('zdôvodnenie z dát')}: ${e.just}</div>`;
+  }else{em.style.display='none';em.innerHTML=''}
+  document.getElementById('billbox').classList.add('show');
+}
+function billArtifact(){
+  if(MKTC==='IN')return tt('Invoice (GST) pripravená');
+  if(MKTC==='US')return tt('claim 837P')+' · E/M '+EMsel;
+  return tt('dávka pre poisťovňu pripravená');
 }
 function signDay(){
   const h=haveSlots();const miss=MKT[MKTC].min.filter(s=>!h.has(s));
   if(miss.length){showToast(tt('Nemožno podpísať — chýba')+': '+miss.join(', '));
     dTab(0,document.querySelectorAll('.dtabs button')[0]);return}
+  if(!document.getElementById('billbox').classList.contains('show')){
+    buildBill();dTab(2,document.querySelectorAll('.dtabs button')[2]);
+    showToast('Skontrolujte návrh výkazu');return}
+  finalizeSign();
+}
+function finalizeSign(){
+  BILLN=document.querySelectorAll('#billrows input:checked').length;
+  document.getElementById('billbox').classList.remove('show');
   const b=document.querySelector('.dock .hasbdg');if(b)b.classList.remove('hasbdg');
   const now=new Date();const tm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   const hdr=document.querySelector('#dkwrap .sh-h .tag');
@@ -1973,7 +2058,15 @@ const I18N=[
 ["Plánované","Planned"],["Follow-up naplánovaný · P","Follow-up planned · P"],
 ["podpis","signature"],["elektronicky","electronic"],["podpísané","signed"],["Naratív","Narrative"],
 ["Podpísané · Rx slip pripravený","Signed · Rx slip ready"],["Podpísané · správa pripravená","Signed · report ready"],
-["Lekárska správa","Medical report"],
+["Výkaz — návrh z udalostí dňa","Charges — derived from today's events"],["Systém navrhuje, lekár potvrdzuje. Odškrtnite, čo nemá byť vykázané.","The system suggests, the physician confirms. Untick anything that should not be billed."],
+["Potvrdiť výkaz a podpísať","Confirm charges & sign"],["Skontrolujte návrh výkazu","Review the suggested charges"],
+["Vyšetrenie / konzultácia","Examination / consultation"],["Vitálne funkcie — meranie","Vital signs — measurement"],
+["Predpis lieku — manažment medikácie","Prescription — medication management"],["Indikácia vyšetrenia (Radiology/Labs)","Test indication (Radiology/Labs)"],
+["Vyhodnotenie PRO dotazníka","PRO questionnaire evaluation"],["Objednanie kontroly","Follow-up scheduling"],
+["E/M úroveň","E/M level"],["návrh","suggested"],["zdôvodnenie z dát","justification from data"],
+["problém (A)","problem (A)"],["dáta (O/order)","data (O/order)"],["riziko: manažment preskripcie","risk: prescription management"],["nízke riziko","low risk"],
+["Invoice (GST) pripravená","Invoice (GST) ready"],["dávka pre poisťovňu pripravená","insurer batch ready"],
+["Výkaz potvrdený","Charges confirmed"],["položiek","items"],
 ["Kontrola","Follow-up"],["Odber","Blood draw"],["Dátum","Date"],["Čas","Time"],["Miesto","Place"],["Ambulancia","Clinic"],
 ["Zapíše sa do sekcie PLÁNOVANÉ na osi a pacientovi do aplikácie.","Will appear in the PLANNED section of the pathway and in the patient app."],
 ["Vytvoriť termín","Create appointment"],["Termín vytvorený","Appointment created"],
