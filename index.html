@@ -4,8 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v70 (K-21 case vrstva)</title>
+<title>Hilbi Cockpit — v71 (M-18 full-screen sheety)</title>
 <!-- CHANGELOG
+v71 (2026-07-20): M-18 — všetky sheety na mobile (≤744px) full-screen: Rx, Order,
+  Record, Termín, Foto dokumentu, Dekurz (vrátane podpisu a billboxu), Case modal.
+  Jednotné pravidlo cez .sheet override (100dvh, radius 0, safe-area hore aj dole,
+  scrim skrytý), telo scrolluje, pätka nad home indikátorom. Uzatvára dlh M-06.
+  Desktop bez zmeny (520px centrovaný sheet).
 v70 (2026-07-20): K-21 — case vrstva pre DPU scenár (cp-15: CASE-01..04, BILL-03/05).
   Na osi nový epband "Prípad — Hypertenzná kríza · EpisodeOfCare · 3 encountery
   (ER/Kardiológia/Interné) · 22.–24.06" nad nemocničnými kartami — klik otvorí case
@@ -975,6 +980,12 @@ body[data-tab="comm"] .timeline{display:none}
   .isbar h6{font-size:var(--t-meta)}
   .isbar .ift{font-size:var(--t-label)}
   .aggrow{font-size:var(--t-meta)}
+  /* M-18: VŠETKY sheety (Rx, Order, Record, Termín, Foto, Dekurz, Case) full-screen
+     — uzatvára dlh M-06; vzor IQ modal/PHR sheet */
+  .sheetwrap.open{align-items:stretch;justify-content:stretch}
+  .sheet{width:100%;max-width:none;max-height:none;height:100dvh;border-radius:0;padding-top:env(safe-area-inset-top)}
+  .sh-f{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+  .sheetwrap .scrim{display:none}
 }
 </style>
 </head>
