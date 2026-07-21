@@ -4,8 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v82 (identifikátor pacienta)</title>
+<title>Hilbi Cockpit — v83 (zarovnanie a pozadie tagov)</title>
 <!-- CHANGELOG
+v83 (2026-07-21): Tagy na QR obrazovke — návrh diagnózy zarovnaný vľavo ako ostatný
+  obsah (odsadenie 42/38px zrušené aj pre chipy) a všetky tagy (návrhy dg +
+  follow-up) dostali pozadie surface-1 (rovnaké ako blok Automatically upon
+  signing) bez orámovania; aktívny stav ostáva farebný (teal soft).
 v82 (2026-07-21): Riadok pacienta na QR obrazovke — meno boldom + indické mobilné
   číslo ako druhý identifikátor: "Pacient: **Jane Carter** · +91 98204 71135".
   "app / SMS / tlač QR" odstránené.
@@ -869,7 +873,10 @@ body[data-tab="comm"] .timeline{display:none}
 .rxic.c-doc,.hic.c-doc{background:var(--accent-5-soft);color:var(--accent-5-strong)}
 .rxic.c-case,.hic.c-case{background:var(--accent-3-soft);color:var(--accent-3-strong)}
 /* v79 · hierarchia sekcií na QR obrazovke: obsah odsadený pod text hlavičky (nie zarovno ikony), užšie chipy */
-.rxsoap .catchips,.rxsoap .fuchips{margin-left:42px}
+.rxsoap .catchips,.rxsoap .fuchips{margin-left:0}
+.rxsoap .catchips button,.rxsoap .fuchips button{background:var(--surface-1);border-color:transparent;color:var(--text-heading)}
+.rxsoap .catchips button.on{background:var(--brand-cyan-soft);color:var(--brand-teal-text)}
+.rxsoap .fuchips button.on{background:var(--accent-1-soft);border-color:var(--accent-1-strong);color:var(--accent-1-strong)}
 .rxsoap .recline{width:100%}
 .rxsoap .catchips button{padding:5px 10px;font-size:12px}
 .rxsoap .fuchips button{padding:5px 11px;font-size:12px}
@@ -1078,7 +1085,7 @@ body[data-tab="comm"] .timeline{display:none}
   .rendout h4{font-size:var(--t-title)}
   .rendout .rft{font-size:var(--t-label)}
   /* v79: QR sekcie na mobile — menšie odsadenie, kompaktné chipy */
-  .rxsoap .catchips,.rxsoap .fuchips{margin-left:38px}
+  .rxsoap .catchips,.rxsoap .fuchips{margin-left:0}
   .rxsoap .catchips button,.rxsoap .fuchips button{min-height:34px;font-size:var(--t-label)}
   /* K-20: billing na mobilnej škále */
   .brow{font-size:var(--t-meta);min-height:40px}
