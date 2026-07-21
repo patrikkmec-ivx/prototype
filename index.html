@@ -4,8 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v96 (profil bez hamburgeru, org switch FN/DFN)</title>
+<title>Hilbi Cockpit — v97 (org dropdown UX flow — pozicovanie fix)</title>
 <!-- CHANGELOG
+v97 (2026-07-21): Org dropdown (výber poskytovateľa) — UX flow oprava. Dropdown sa
+  neotváral, lebo bol súrodencom .org a .nav mal overflow:hidden (padal mimo/odrezaný).
+  Fix: 1) dropdown presunutý DOVNÚTRA .org (top:100% teraz voči komponentu),
+  2) .nav overflow:hidden→visible, 3) z-index 60, väčší tieň. Chevron sa pri
+  otvorení otočí (.org.open). Klik na nemocnicu prepne názov/lokalitu/logo + toast,
+  klik mimo zatvára. Tri nemocnice: Miami General / Fakultná nemocnica Trnava (FN,
+  zelené) / DFN Hospital (DF, fialové).
 v96 (2026-07-21): 1) Profil lekára dole — odstránená hamburger (menu) ikona; ostáva
   avatar + meno 2 riadky + settings gear vpravo. Pri ZBALENÍ menu: avatar a pod ním
   ozubené koliesko (stĺpec). 2) Prepínanie poskytovateľa opravené na správne
@@ -485,7 +492,7 @@ button{font-family:inherit}
 .app{display:grid;grid-template-columns:var(--navw) minmax(640px,1fr) var(--phrw);gap:14px;max-width:1600px;margin:0 auto;padding:16px;height:100vh}
 
 /* NavRail */
-.nav{background:var(--surface-navy);border-radius:16px;color:#B9C0D6;display:flex;flex-direction:column;padding:20px 12px;position:relative;overflow:hidden}
+.nav{background:var(--surface-navy);border-radius:16px;color:#B9C0D6;display:flex;flex-direction:column;padding:20px 12px;position:relative;overflow:visible}
 .nav .org{display:flex;gap:10px;align-items:center;padding:0 6px 22px}
 .nav .org .logo{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#1C93AC,#2E5FB5);color:#fff;font-weight:800;font-size:15px;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;flex:none}
 .org .orgtxt{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px}
@@ -535,8 +542,9 @@ body[data-nav="min"] .nav .me{justify-content:center}
 .navcol{background:none!important;border:none!important;box-shadow:none!important;color:var(--text-subtle);cursor:pointer;padding:4px;display:flex;align-items:center}
 .org{position:relative}
 .orgchev{background:none;border:none;color:#B9C0D6;cursor:pointer;display:inline-flex;align-items:center;padding:6px}
-.orgchev svg{width:14px;height:8px}
-.orgdrop{display:none;position:absolute;left:12px;right:12px;top:100%;margin-top:4px;background:#232C4E;border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.4);z-index:40;padding:6px;flex-direction:column}
+.orgchev svg{width:14px;height:8px;transition:transform .18s}
+.org.open .orgchev svg{transform:rotate(180deg)}
+.orgdrop{display:none;position:absolute;left:0;right:0;top:calc(100% + 6px);background:#232C4E;border-radius:12px;box-shadow:0 14px 34px rgba(0,0,0,.45);z-index:60;padding:6px;flex-direction:column;gap:2px}
 .orgdrop.on{display:flex}
 .orgdrop button{text-align:left;background:none;border:none;color:#E6EAF5;font-size:13px;font-weight:600;padding:9px 11px;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;gap:2px;width:100%}
 .orgdrop button small{color:#8891AE;font-weight:500;font-size:11px}
@@ -555,7 +563,7 @@ body[data-nav="min"] .navcollapse .cvico svg{transform:rotate(-90deg)}
 body[data-nav="min"] .navcol{margin:0}
 body[data-nav="min"] .org .orgtxt{display:none}
 body[data-nav="min"] .org .orgchev{display:none}
-body[data-nav="min"] .orgdrop{left:6px;right:6px}
+body[data-nav="min"] .orgdrop{left:0;right:0;min-width:220px}
 /* collapse: PHR */
 body[data-phr="min"] .phr .tabs,body[data-phr="min"] .phr .pbody{display:none}
 .phrclose{display:none}
@@ -1354,11 +1362,11 @@ body[data-tab="comm"] .timeline{display:none}
       <div class="logo" id="orgLogo">MG</div>
       <div class="orgtxt"><b id="orgName">Miami General Hospital</b><span id="orgLoc">Florida · US</span></div>
       <button class="orgchev" onclick="orgSwitch(event)" title="Prepnúť zariadenie"><svg width="14" height="8" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-    </div>
-    <div class="orgdrop" id="orgdrop">
-      <button onclick="pickOrg('Miami General Hospital','Florida · US','MG',this)"><span class="odlogo mg">MG</span><span class="odtxt"><b>Miami General Hospital</b><small>Florida · US</small></span></button>
-      <button onclick="pickOrg('Fakultná nemocnica Trnava','Trnava · SK','FN',this)"><span class="odlogo fn">FN</span><span class="odtxt"><b>Fakultná nemocnica Trnava</b><small>Trnava · SK</small></span></button>
-      <button onclick="pickOrg('DFN Hospital','Bratislava · SK','DF',this)"><span class="odlogo df">DF</span><span class="odtxt"><b>DFN Hospital</b><small>Bratislava · SK</small></span></button>
+      <div class="orgdrop" id="orgdrop">
+        <button onclick="pickOrg('Miami General Hospital','Florida · US','MG',this)"><span class="odlogo mg">MG</span><span class="odtxt"><b>Miami General Hospital</b><small>Florida · US</small></span></button>
+        <button onclick="pickOrg('Fakultná nemocnica Trnava','Trnava · SK','FN',this)"><span class="odlogo fn">FN</span><span class="odtxt"><b>Fakultná nemocnica Trnava</b><small>Trnava · SK</small></span></button>
+        <button onclick="pickOrg('DFN Hospital','Bratislava · SK','DF',this)"><span class="odlogo df">DF</span><span class="odtxt"><b>DFN Hospital</b><small>Bratislava · SK</small></span></button>
+      </div>
     </div>
     <button class="navcollapse" id="navToggleTop" title="Hide menu" aria-label="Hide menu"><span class="cvico"><svg width="14" height="8" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="lb">Hide menu</span></button>
     <a href="#"><svg class="ico s14 nic" aria-hidden="true"><use href="#i-dash"/></svg>Overview</a>
@@ -2489,7 +2497,7 @@ function clearFilter(){activeF=null;document.querySelectorAll('.trow').forEach(r
 function navFlip(){b.dataset.nav=b.dataset.nav==='min'?'':'min';const m=b.dataset.nav==='min';
 const lb=document.querySelector('#navToggleTop .lb');if(lb)lb.textContent=m?'':(LANG==='en'?'Show menu':'Zobraziť menu');
 document.getElementById('navToggleTop').title=m?(LANG==='en'?'Show menu':'Zobraziť menu'):(LANG==='en'?'Hide menu':'Skryť menu');}
-function orgSwitch(ev){ev.stopPropagation();document.getElementById('orgdrop').classList.toggle('on');}
+function orgSwitch(ev){ev.stopPropagation();const d=document.getElementById('orgdrop');const on=d.classList.toggle('on');document.querySelector('.org').classList.toggle('open',on);}
 function pickOrg(name,loc,code,btn){
   document.getElementById('orgName').textContent=name;
   document.getElementById('orgLoc').textContent=loc;
@@ -2498,9 +2506,10 @@ function pickOrg(name,loc,code,btn){
   const grad={MG:'linear-gradient(135deg,#1C93AC,#2E5FB5)',FN:'linear-gradient(135deg,#2E7D5B,#1C5B3E)',DF:'linear-gradient(135deg,#7B4FA8,#4A2E6E)'};
   lg.style.background=grad[code]||grad.MG;
   document.getElementById('orgdrop').classList.remove('on');
+  document.querySelector('.org').classList.remove('open');
   showToast((LANG==='en'?'Facility switched — ':'Zariadenie prepnuté — ')+name);
 }
-document.addEventListener('click',e=>{const d=document.getElementById('orgdrop');if(d&&d.classList.contains('on')&&!e.target.closest('.org')&&!e.target.closest('#orgdrop'))d.classList.remove('on');});
+document.addEventListener('click',e=>{const d=document.getElementById('orgdrop');if(d&&d.classList.contains('on')&&!e.target.closest('.org')){d.classList.remove('on');document.querySelector('.org').classList.remove('open');}});
 
 document.getElementById('navToggleTop').onclick=navFlip;
 document.getElementById('phrToggle').onclick=()=>{b.dataset.phr='min'};
