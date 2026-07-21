@@ -4,8 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v90 (šípka vpravo, presná os)</title>
+<title>Hilbi Cockpit — v91 (chevron ikona z dizajnu)</title>
 <!-- CHANGELOG
+v91 (2026-07-21): Collapse chevron nahradený presnou ikonou z dizajnu (14×8 viewBox,
+  stroke 2, round) namiesto starej 24×24 cesty — zjednotené s designom vo všetkých
+  troch collapse tlačidlách. Farba text-heading, otáča sa pri open.
 v90 (2026-07-21): 1) chevron šípka presunutá NAPRAVO celého komponentu, vertikálne
   v strede výšky (position absolute, right:12, top:50%), rovnaká šípka ako doteraz,
   otáča sa pri open (.enccard.op); presunutá z riadku tagov na úroveň karty pre
@@ -774,7 +777,7 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
 .cartit i{font-style:normal;font-size:12px;color:var(--text-muted)}
 .cartit .cv{margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;width:24px;height:24px;flex:none}
 .cv:hover{color:var(--text-heading)}
-.cartit .cv svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
+.cartit .cv svg{width:14px;height:8px;color:var(--text-heading);transition:transform .15s}
 .cartit .cv.open svg{transform:rotate(180deg)}
 .cartit .rm{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;flex:none}
 .recbox{margin:8px 0 2px}
@@ -1361,7 +1364,7 @@ body[data-tab="comm"] .timeline{display:none}
               <div class="l2">Dekompenzácia DM2 — Metformín 2×1000 mg · TK 138/88 mmHg</div>
               <div class="crow"><span class="soap sO" title="SOAP · Objektívne">O</span><span class="soap sA" title="SOAP · Zhodnotenie">A</span><span class="soap sP" title="SOAP · Plán">P</span><span class="tag">Podpísané</span><span class="tag">4 udalostí</span><span class="tag clin t-a1">Diabetes</span><span class="tag clin t-a6">Hypertenzia</span></div>
             </div>
-          </div><button class="cv" onclick="subToggle(event)" title="Rozbaliť"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button></div>
+          </div><button class="cv" onclick="subToggle(event)" title="Rozbaliť"><svg width="14" height="8" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
               <div class="subaxis">
                 <div class="subcard sO" onclick="evDetailStatic('TK a pulz','O','10.07 · 10:07','sestra','TK 138/88 mmHg · pulz 76/min · SpO2 98 %')"><span class="soap sO" title="SOAP · Objektívne">O</span><span class="sc-main"><span class="sc-t"><b>TK a pulz</b><span class="tm2">10:07</span></span><span class="sc-m">138/88 mmHg · 76/min</span></span></div>
                 <div class="subcard sO" onclick="evDetailStatic('Fyzikálne vyšetrenie','O','10.07 · 10:18','MUDr. Novák','Kardiopulmonálne kompenzovaná, bez opuchov. Akcia srdca pravidelná.')"><span class="soap sO" title="SOAP · Objektívne">O</span><span class="sc-main"><span class="sc-t"><b>Fyzikálne vyšetrenie</b><span class="tm2">10:18</span></span><span class="sc-m">bez patologického nálezu</span></span></div>
@@ -1935,7 +1938,7 @@ function renderS1Cart(){
   }
   div.innerHTML='<div class="t"><svg class="ico s14" style="stroke:var(--success);flex:none"><use href="#i-sok"/></svg><b style="color:var(--accent-'+a+'-strong)">'+it.d.b+'</b>'
    +'<button style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--brand-teal);font-weight:700" onclick="tglEdit('+i+')">'+it.sig+' × '+it.dur+' '+rxT('dní')+' · ≈ '+qty(it.sig,it.dur)+' '+it.d.f+'</button>'
-   +'<button class="cv'+(it.open!==false?' open':'')+'" onclick="tglEdit('+i+')" title="'+rxT('Upraviť')+'"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>'
+   +'<button class="cv'+(it.open!==false?' open':'')+'" onclick="tglEdit('+i+')" title="'+rxT('Upraviť')+'"><svg width="14" height="8" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
    +'<button class="rm" onclick="rmCart('+i+')">✕</button></div>'+ed+g;
   sc.appendChild(div);
  });
@@ -2194,7 +2197,7 @@ function renderEnc(flash){
   <div class="l1"><b>${tt('GP vyšetrenie')} · Dr. Novak</b><span class="dt"><span class="sdot ${ENC.signed?'d-ok':'d-plan'}"></span><svg class="ico sok"><use href="#i-sok"/></svg>${first.time} – ${last.time}</span></div>
   <div class="l2">${escT(encAggKey())}</div>
   <div class="crow">${chips}<span class="tag${ENC.signed?'':' st-plan'}">${ENC.signed?tt('Podpísané'):tt('Prebieha')}</span><span class="tag">${n} ${tt('udalostí')}</span></div>
-  </div></div><button class="cv" onclick="encToggle(event)" title="${tt('Rozbaliť')}"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button></div>
+  </div></div><button class="cv" onclick="encToggle(event)" title="${tt('Rozbaliť')}"><svg width="14" height="8" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
   <div class="subaxis${ENC.open?' on':''}">${subs}</div>
   </div>`;
  }
