@@ -1,0 +1,45 @@
+%% CORE-TECH-CLINICAL-CORE — service topology & data flow (v0.9, 2026-07-21)
+%% Normative source: core-01-tech-clinical-core-standard.md (this file is an informative mirror)
+flowchart LR
+  subgraph AUTH["Authoring (global artifacts)"]
+    GH["GitHub<br/>domain packs + templates<br/>PlanDefinition · StructureDefinition<br/>Library · StructureMap · bodies"]
+    CI["CI validation<br/>schema + refs + region compat"]
+    GH --> CI
+  end
+
+  subgraph PLANE["Regional data plane (EU / US / IN — isolated)"]
+    FHIR[("FHIR R4 store<br/>CLINICAL TRUTH<br/>Observation · Condition · Encounter<br/>Immunization · DocumentReference<br/>CarePlan · Composition · Provenance")]
+    ENG["@hilbi/summary-engine<br/>(library, stateless)<br/>resources + template → Composition"]
+    RP["Region pack<br/>US Core / EHDS / ABDM<br/>profiles + ConceptMaps + adapters"]
+    FHIR --- ENG
+    RP -. "boundary mapping only" .- FHIR
+  end
+
+  CI -- "publish (FHIR artifacts)" --> FHIR
+
+  subgraph PROD["Producers (C1 write contract + Provenance)"]
+    MAN["Manual entry<br/>source=manual"]
+    OCR["OCR digitize<br/>source=ocr · preliminary"]
+    SPK["IQ speech-to-note<br/>source=speech · preliminary → sign → final"]
+    DEV["Life ID device feeds<br/>source=device"]
+    IMP["Imports / vaccination<br/>source=import"]
+    PRED["IQ predictions<br/>RiskAssessment · preliminary"]
+  end
+  MAN & OCR & SPK & DEV & IMP & PRED -- "FHIR REST" --> FHIR
+
+  subgraph DOM["Domain microservices"]
+    SM["SM Care Plan+<br/>protocol logic · no clinical store<br/>(sm_* → migrated per Part I)"]
+  end
+  SM <-- "FHIR REST only" --> FHIR
+
+  subgraph OUT["Renders & surfaces (projections)"]
+    DK["Dekurz (SOAP)<br/>Composition"]
+    RPT["Reports: AOS · VÚSCH · discharge<br/>Composition → DocumentReference"]
+    TL["Patient timeline<br/>read projection"]
+  end
+  ENG --> DK & RPT
+  FHIR --> TL
+
+  NOTE1["Core NEVER calls GitHub (D2)"]:::rule
+  NOTE2["preliminary excluded from final renders (B4)"]:::rule
+  classDef rule fill:#FCE7F0,stroke:#E0568E,color:#46506B;
