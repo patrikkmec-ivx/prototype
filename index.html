@@ -4,8 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v104 (Life ID: Personal — náš dizajn, key-value)</title>
+<title>Hilbi Cockpit — v105 (Life ID kompletné: PHR list + patient súhrn)</title>
 <!-- CHANGELOG
+v105 (2026-07-21): Life ID inkrement 4 (posledný) — PHR tab. Patient-facing Summary
+  (aktívne diagnózy, medikácia, alergie — alergie zvýraznené --danger). Health data:
+  Diagnoses/Medicines/Allergies/Food supplements. Records: All + 7 typov (Examination
+  reports, Recipe, Vaccination, Radiology, Laboratory, Letter of referral, Documents).
+  Nový list-row komponent (ikonový chip accent-soft/strong + label + count + chevron).
+  Counts konzistentné s Jane Carter. 0 nových tokenov. Komponent do library: phr-listrow.
+  → Life ID kompletné: 4 taby PHR/Vitals/Behavioral/Personal, 4 nové komponenty
+  (gauge/range/ring/listrow), žiadne nové BE záznamy.
 v104 (2026-07-21): Life ID inkrement 3 — Personal tab v našom dizajne (žiadne nové
   komponenty). 5 sekcií ako karty: Personal details, Insurance, Others, Address,
   Contact — key-value riadky (label t-meta muted / hodnota t-body heading). Dáta
@@ -679,6 +687,14 @@ body[data-phr="min"] .phr .tabs,body[data-phr="min"] .phr .pbody{display:none}
 .prow{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 13px;border-top:1px solid var(--border-default)}
 .prow span{font-size:12.5px;color:var(--text-muted);flex:none}
 .prow b{font-size:13.5px;color:var(--text-heading);font-weight:600;text-align:right;word-break:break-word;min-width:0}
+.plrow{display:flex;align-items:center;gap:11px;width:100%;background:var(--surface-white);border:1px solid var(--border-default);border-radius:12px;padding:10px 13px;cursor:pointer;text-align:left}
+.plrow:hover{border-color:var(--border-strong)}
+.plico{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none}
+.plico .ico{width:16px;height:16px}
+.pltx{flex:1;font-size:13.5px;color:var(--text-heading);font-weight:600;min-width:0}
+.plc{font-size:12.5px;color:var(--text-muted);font-variant-numeric:tabular-nums}
+.plch{color:var(--text-disabled);flex:none;display:flex}
+.prow b.alrg{color:var(--danger)}
 .phrclose{display:none}
 .phrmin{display:none;flex:1;flex-direction:column;align-items:center;gap:6px;padding:12px 0}
 body[data-phr="min"] .phrmin{display:flex}
@@ -2745,7 +2761,7 @@ const I18N=[
 ["zobraziť →","view all →"],["Filter aktívny — zrušiť ✕","Filter active — clear ✕"],
 ["PLÁNOVANÉ","PLANNED"],["DNES · 17.07.2026","TODAY · 17 Jul 2026"],
 ["Kontrola — diabetológ","Follow-up — diabetologist"],["Diabetologická ambulancia","Diabetology clinic"],
-["Kontrola DM + hypertenzia","DM + hypertension check-up"],["MUDr. Novák","Dr. Novak"],["MUDr. Rezník","Dr. Reznik"],["MUDr. Baláž","Dr. Balaz"],["MUDr. Horák","Dr. Horak"],["MUDr. Šimková","Dr. Simkova"],["Jane Carter · pacient","Jane Carter · patient"],["Podpísané","Signed"],["Domov","Home"],["Zoznam pacientov","Patient list"],["Komunikácia","Communications"],["Hromadné oznamy","Group notices"],["Kalendáre","Calendars"],["Online objednávky","Online appointments"],["Úprava objednávok","Edit appointments"],["Zoznam objednávok","List of appointments"],["Neprítomnosti","Absences"],["Ordinačné hodiny","Office hours"],["Zvýšený dopyt","Increased demand"],["Čakárne","Waiting areas"],["Zoznam návštev","List of visits"],["Objednávky","Orders"],["Žiadosti","Requests"],["Balíky","Packages"],["e-Recepty","e-Prescriptions"],["Platby","Payments"],["Transakcie","Transactions"],["Žiadosti o vrátenie","Refund requests"],["Výpisy","Statements"],["Žiadosti o platbu","Payment requests"],["Zdravotnícke zariadenie","Medical Facility"],["Profil zariadenia","Medical Facility profile"],["Nastavenia webu","Website settings"],["Oznamy pre pacientov","Announcements for patients"],["Obchod","Store"],["Vitálne údaje","Vital data"],["Zdravotný profil","Health profile"],["Stav","Status"],["Priemer","Average"],["Záznamy","Records"],["Manuálne","Manually"],["V norme","Normal"],["Zvýšené","Elevated"],["V norme / V norme","Normal / Normal"],["Krvný tlak","Blood pressure"],["Srdcová frekvencia","Heart rate"],["Glukóza","Glucose"],["Dychová frekvencia","Respiratory rate"],["Telesná teplota","Body temperature"],["Obvod pása","Waist circumference"],["BMI index","BMI Index"],["Hmotnosť","Weight"],["Výška","Height"],["v norme","normal"],["zvýšené riziko obezity","increased risk of obesity"],["vysoké riziko obezity","high risk of obesity"],["podváha","underweight"],["predobezita","pre-obesity"],["obezita I","obesity I"],["Behaviorálne údaje","Behavioral data"],["Kroky","Steps"],["Spánok","Sleep"],["Vitalita","Vitality"],["Stres","Stress"],["Saturácia kyslíkom","Oxygen saturation"],["Cieľ","Target"],["Nízky","Low"],["Osobné údaje","Personal data"],["Osobné údaje – detaily","Personal details"],["Pohlavie","Sex"],["Žena","Female"],["Rodné číslo","Birth no."],["Dátum narodenia","Date of birth"],["Vek","Age"],["Poistenie","Insurance"],["Poisťovňa","Insurance company"],["Číslo karty poistenca","Insurance card number"],["Ostatné","Others"],["Krvná skupina","Blood type"],["Fajčiar","Smoker"],["Nie","No"],["Rodinný stav","Marital status"],["Ženatý/vydatá","Married"],["Deti","Children"],["Adresa","Address"],["Ulica a č. domu","Street and house no."],["Mesto","City"],["PSČ","Zip code"],["Krajina","Country"],["Spojené štáty","United States"],["Kontakt","Contact"],["E-mail","E-mail"],["Tel. číslo","Tel. number"],["Všeobecná ambulancia","General practice"],["Univerzitná nemocnica akademika Ladislava Dérera, Neurologická klinika SZU","Dérer University Hospital, Neurology Clinic"],["Otvorené slučky (0)","Open loops (0)"],["Minimum pre podpis splnené (A+P)","Sign-off minimum met (A+P)"],["MUDr. Rybár","Dr. Rybar"],["MUDr. Hlavová","Dr. Hlavova"],["MUDr. Karas","Dr. Karas"],["Všeobecná ambulancia · MUDr. Novák","General practice · Dr. Novak"],
+["Kontrola DM + hypertenzia","DM + hypertension check-up"],["MUDr. Novák","Dr. Novak"],["MUDr. Rezník","Dr. Reznik"],["MUDr. Baláž","Dr. Balaz"],["MUDr. Horák","Dr. Horak"],["MUDr. Šimková","Dr. Simkova"],["Jane Carter · pacient","Jane Carter · patient"],["Podpísané","Signed"],["Domov","Home"],["Zoznam pacientov","Patient list"],["Komunikácia","Communications"],["Hromadné oznamy","Group notices"],["Kalendáre","Calendars"],["Online objednávky","Online appointments"],["Úprava objednávok","Edit appointments"],["Zoznam objednávok","List of appointments"],["Neprítomnosti","Absences"],["Ordinačné hodiny","Office hours"],["Zvýšený dopyt","Increased demand"],["Čakárne","Waiting areas"],["Zoznam návštev","List of visits"],["Objednávky","Orders"],["Žiadosti","Requests"],["Balíky","Packages"],["e-Recepty","e-Prescriptions"],["Platby","Payments"],["Transakcie","Transactions"],["Žiadosti o vrátenie","Refund requests"],["Výpisy","Statements"],["Žiadosti o platbu","Payment requests"],["Zdravotnícke zariadenie","Medical Facility"],["Profil zariadenia","Medical Facility profile"],["Nastavenia webu","Website settings"],["Oznamy pre pacientov","Announcements for patients"],["Obchod","Store"],["Vitálne údaje","Vital data"],["Zdravotný profil","Health profile"],["Stav","Status"],["Priemer","Average"],["Záznamy","Records"],["Manuálne","Manually"],["V norme","Normal"],["Zvýšené","Elevated"],["V norme / V norme","Normal / Normal"],["Krvný tlak","Blood pressure"],["Srdcová frekvencia","Heart rate"],["Glukóza","Glucose"],["Dychová frekvencia","Respiratory rate"],["Telesná teplota","Body temperature"],["Obvod pása","Waist circumference"],["BMI index","BMI Index"],["Hmotnosť","Weight"],["Výška","Height"],["v norme","normal"],["zvýšené riziko obezity","increased risk of obesity"],["vysoké riziko obezity","high risk of obesity"],["podváha","underweight"],["predobezita","pre-obesity"],["obezita I","obesity I"],["Behaviorálne údaje","Behavioral data"],["Kroky","Steps"],["Spánok","Sleep"],["Vitalita","Vitality"],["Stres","Stress"],["Saturácia kyslíkom","Oxygen saturation"],["Cieľ","Target"],["Nízky","Low"],["Osobné údaje","Personal data"],["Osobné údaje – detaily","Personal details"],["Pohlavie","Sex"],["Žena","Female"],["Rodné číslo","Birth no."],["Dátum narodenia","Date of birth"],["Vek","Age"],["Poistenie","Insurance"],["Poisťovňa","Insurance company"],["Číslo karty poistenca","Insurance card number"],["Ostatné","Others"],["Krvná skupina","Blood type"],["Fajčiar","Smoker"],["Nie","No"],["Rodinný stav","Marital status"],["Ženatý/vydatá","Married"],["Deti","Children"],["Adresa","Address"],["Ulica a č. domu","Street and house no."],["Mesto","City"],["PSČ","Zip code"],["Krajina","Country"],["Spojené štáty","United States"],["Kontakt","Contact"],["E-mail","E-mail"],["Tel. číslo","Tel. number"],["Súhrn","Summary"],["Aktívne diagnózy","Active diagnoses"],["Aktuálna medikácia","Current medication"],["Alergie","Allergies"],["Zdravotné údaje","Health data"],["Diagnózy","Diagnoses"],["Lieky","Medicines"],["Alergie a intolerancie","Allergies and intolerances"],["Výživové doplnky","Food supplements"],["Záznamy – všetky","Records"],["Všetky","All"],["Správy z vyšetrenia","Examination reports"],["Recept","Recipe"],["Očkovanie","Vaccination"],["Rádiológia","Radiology"],["Laboratórne vyšetrenie","Laboratory examination"],["Výmenný lístok","Letter of referral"],["Dokumenty a potvrdenia","Documents and confirmations"],["Všeobecná ambulancia","General practice"],["Univerzitná nemocnica akademika Ladislava Dérera, Neurologická klinika SZU","Dérer University Hospital, Neurology Clinic"],["Otvorené slučky (0)","Open loops (0)"],["Minimum pre podpis splnené (A+P)","Sign-off minimum met (A+P)"],["MUDr. Rybár","Dr. Rybar"],["MUDr. Hlavová","Dr. Hlavova"],["MUDr. Karas","Dr. Karas"],["Všeobecná ambulancia · MUDr. Novák","General practice · Dr. Novak"],
 ["Úprava dávkovania Metformínu na 2×1000 mg. TK 138/88 mmHg.","Metformin dose adjusted to 2×1000 mg. BP 138/88 mmHg."],
 ["Odber krvi — kompletný","Blood draw — complete"],["Laboratórium Alpha","Alpha Laboratory"],
 ["Prepúšťacia správa — Interné odd.","Discharge report — Internal med."],["Nemocnica sv. Michala","St. Michael Hospital"],
@@ -3055,6 +3071,39 @@ function renderPersonal(){
   ).join('');
 }
 renderPersonal();
+function phrRow(o){
+  return '<button class="plrow"><span class="plico" style="background:var(--accent-'+o.a+'-soft);color:var(--accent-'+o.a+'-strong)"><svg class="ico" aria-hidden="true"><use href="#'+o.icon+'"/></svg></span>'
+    +'<span class="pltx">'+o.name+'</span><span class="plc">'+o.n+'</span>'
+    +'<span class="plch"><svg width="7" height="12" viewBox="0 0 8 14" fill="none"><path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>';
+}
+function renderPHR(){
+  const el=document.getElementById('pt-phr'); if(!el)return;
+  const HD=[
+   {name:'Diagnoses',n:3,a:7,icon:'i-act'},
+   {name:'Medicines',n:2,a:1,icon:'i-pill'},
+   {name:'Allergies and intolerances',n:1,a:5,icon:'i-alert'},
+   {name:'Food supplements',n:0,a:8,icon:'i-flask'}
+  ];
+  const RC=[
+   {name:'All',n:12,a:2,icon:'i-rows'},
+   {name:'Examination reports',n:4,a:2,icon:'i-file'},
+   {name:'Recipe',n:2,a:1,icon:'i-pill'},
+   {name:'Vaccination',n:1,a:4,icon:'i-syr'},
+   {name:'Radiology',n:1,a:3,icon:'i-scan'},
+   {name:'Laboratory examination',n:2,a:7,icon:'i-flask'},
+   {name:'Letter of referral',n:1,a:8,icon:'i-clip'},
+   {name:'Documents and confirmations',n:1,a:5,icon:'i-file'}
+  ];
+  el.innerHTML='<div class="pthead"><b>PHR</b></div>'
+    +'<div class="vcard"><div class="psh">Summary</div>'
+      +'<div class="prow"><span>Active diagnoses</span><b>Diabetes · Hypertension</b></div>'
+      +'<div class="prow"><span>Current medication</span><b>Metformin · Aspirin</b></div>'
+      +'<div class="prow"><span>Allergies</span><b class="alrg">Penicillin</b></div>'
+    +'</div>'
+    +'<div class="ptsub">Health data</div>'+HD.map(phrRow).join('')
+    +'<div class="ptsub">Records</div>'+RC.map(phrRow).join('');
+}
+renderPHR();
 
 /* default EN */
 setLang('en');
