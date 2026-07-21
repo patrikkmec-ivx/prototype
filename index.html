@@ -4,8 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v78 (farebná škála typov záznamov)</title>
+<title>Hilbi Cockpit — v79 (hierarchia QR sekcií)</title>
 <!-- CHANGELOG
+v79 (2026-07-21): Hierarchia sekcií na QR obrazovke — obsah (pole diagnózy, IQ návrhy,
+  follow-up chipy) odsadený 42px zľava (mobil 38px), zarovnaný pod TEXT hlavičky,
+  nie pod ikonu → vizuálna hierarchia dlaždica > hlavička > obsah. Chipy návrhov
+  a follow-up užšie (padding 5×10/11, 12px; mobil min-height 34px).
 v78 (2026-07-21): Farebná škála typov záznamov (NEW — doplniť do Figmy), štýl =
   hlavička Prescription (soft pozadie + ikona v strong farbe):
   preskripcia = a1 teal · diagnóza/popis = a7 amber (i-steth) · follow-up/termín =
@@ -849,6 +853,12 @@ body[data-tab="comm"] .timeline{display:none}
 .rxic.c-note,.hic.c-note{background:var(--accent-8-soft);color:var(--accent-8-strong)}
 .rxic.c-doc,.hic.c-doc{background:var(--accent-5-soft);color:var(--accent-5-strong)}
 .rxic.c-case,.hic.c-case{background:var(--accent-3-soft);color:var(--accent-3-strong)}
+/* v79 · hierarchia sekcií na QR obrazovke: obsah odsadený pod text hlavičky (nie zarovno ikony), užšie chipy */
+.rxsoap .recline,.rxsoap .catchips,.rxsoap .fuchips{margin-left:42px}
+.rxsoap .catchips button{padding:5px 10px;font-size:12px}
+.rxsoap .fuchips button{padding:5px 11px;font-size:12px}
+.rxsoap .fuchips{gap:6px}
+.rxsoap .catchips{gap:6px;margin-top:6px}
 /* K-21 · case vrstva (EpisodeOfCare) — NEW, doplniť do Figmy */
 .epband{flex:1;border:1px solid var(--accent-3-strong);background:var(--accent-3-soft);border-radius:12px;padding:11px 14px;cursor:pointer}
 .epband .eph{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
@@ -1048,6 +1058,9 @@ body[data-tab="comm"] .timeline{display:none}
   .rendout .rsec{font-size:var(--t-body);line-height:21px}
   .rendout h4{font-size:var(--t-title)}
   .rendout .rft{font-size:var(--t-label)}
+  /* v79: QR sekcie na mobile — menšie odsadenie, kompaktné chipy */
+  .rxsoap .recline,.rxsoap .catchips,.rxsoap .fuchips{margin-left:38px}
+  .rxsoap .catchips button,.rxsoap .fuchips button{min-height:34px;font-size:var(--t-label)}
   /* K-20: billing na mobilnej škále */
   .brow{font-size:var(--t-meta);min-height:40px}
   .brow input{width:20px;height:20px}
@@ -1431,7 +1444,7 @@ body[data-tab="comm"] .timeline{display:none}
         <div class="rxsoap" style="text-align:left;margin:0 6px 12px">
           <div class="rxsh"><span class="rxic c-dg"><svg class="ico"><use href="#i-steth"/></svg></span><b>Diagnóza / popis</b></div>
           <input id="rxdg" class="recline" placeholder="Jedna veta stačí — dg. alebo popis…">
-          <div class="catchips" id="rxdgsug" style="margin-top:8px"></div>
+          <div class="catchips" id="rxdgsug"></div>
           <div class="rxsh"><span class="rxic c-fu"><svg class="ico"><use href="#i-cal"/></svg></span><b>Follow-up</b></div>
           <div class="fuchips" style="margin:0">
             <button data-d="3 dni" onclick="fuRx(this)">3 dni</button>
