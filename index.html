@@ -4,8 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v108b (Life ID: expand chevron zjednotený, bez outline)</title>
+<title>Hilbi Cockpit — v109 (Care plans dropdown: Studio + 4 plány)</title>
 <!-- CHANGELOG
+v109 (2026-07-21): Care plans tab v strednej ploche má dropdown (klik na tab/šípku).
+  Obsah: Care Plan Studio (authoring, teal) + separátor + SM Care Plan, Dementia Care
+  plan, Fabry Care plan, Colorectal Care plan. Náš dizajn (reuse tokenov), chevron
+  nahradený naším štandardným (rotuje pri otvorení), klik mimo zatvára. cpMenu/cpPick.
 v108 (2026-07-21): 1) PHR Summary komponent úplne odstránený — PHR tab = Health data
   + Records. 2) Collapse fix: pri zbalení sa panel VŽDY zmenší (min rule --phrw:46px
   !important prebije inline resized šírku), ale naťahaná šírka ostane zapamätaná (inline
@@ -583,6 +587,16 @@ button{font-family:inherit}
 .nav 
 .nav 
 .nav .org .chev{margin-left:auto;font-size:11px}
+.tabdd{position:relative;display:inline-flex}
+.tabdd .chev svg{transition:transform .18s}
+.tabdd.open .chev svg{transform:rotate(180deg)}
+.cpdrop{display:none;position:absolute;left:0;top:calc(100% + 4px);min-width:220px;background:var(--surface-white);border:1px solid var(--border-default);border-radius:12px;box-shadow:0 14px 34px rgba(27,35,64,.16);z-index:60;padding:6px;flex-direction:column;gap:1px}
+.tabdd.open .cpdrop{display:flex}
+.cpdrop button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:none;border-radius:8px;padding:9px 11px;font-size:13.5px;font-weight:600;color:var(--text-heading);cursor:pointer;white-space:nowrap}
+.cpdrop button:hover{background:var(--surface-1)}
+.cpdrop button .ico{width:15px;height:15px;color:var(--brand-teal);stroke:var(--brand-teal);flex:none}
+.cpdrop .cpstudio{color:var(--brand-teal-text)}
+.cpsep{height:1px;background:var(--border-default);margin:4px 6px}
 .nav a{display:flex;gap:11px;align-items:center;padding:9px 12px;border-radius:8px;font-size:13.5px;color:#B9C0D6;text-decoration:none}
 .nav a .nic{flex:none}
 .nav a.active{background:var(--nav-active);color:#fff;font-weight:600}
@@ -772,7 +786,7 @@ body[data-phr="min"] .phrmin{display:flex}
 @media (min-width:745px){.tabs .tab.tabphr{display:none}}
 .tabs .tab.active{color:var(--text-heading);font-weight:700}
 .tabs .tab.active::after{content:'';position:absolute;left:50%;transform:translateX(-50%);bottom:-1px;width:40px;height:3px;border-radius:2px;background:var(--text-heading)}
-.tabs .chev{font-size:11px;color:var(--text-subtle);margin-left:4px}
+.tabs .chev{font-size:11px;color:var(--text-subtle);margin-left:4px;display:inline-flex!important;align-items:center}
 .tabs .ticons{margin-left:auto;display:flex;gap:8px;align-items:center}
 .tabs .ticons button{min-width:30px;height:28px;border:1px solid var(--border-strong);border-radius:7px;background:var(--surface-1);color:var(--text-muted);cursor:pointer;font-size:13px;padding:0 8px}
 .ticons .tprof{border:none!important;background:none!important;box-shadow:none!important;color:var(--text-subtle)}
@@ -1628,7 +1642,17 @@ body[data-tab="comm"] .timeline{display:none}
 
     <div class="tabs">
       <button class="tab active" onclick="cTab('path',this)"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-route"/></svg><span class="tlb">Patient pathway</span></button>
-      <button class="tab"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-cliplist"/></svg><span class="tlb">Care plans</span> <span class="chev">▾</span></button>
+      <div class="tabdd">
+      <button class="tab" onclick="cpMenu(event)"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-cliplist"/></svg><span class="tlb">Care plans</span> <span class="chev"><svg width="12" height="7" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+      <div class="cpdrop" id="cpdrop">
+        <button class="cpstudio" onclick="cpPick(this)"><svg class="ico s14" aria-hidden="true"><use href="#i-slide"/></svg>Care Plan Studio</button>
+        <div class="cpsep"></div>
+        <button onclick="cpPick(this)">SM Care Plan</button>
+        <button onclick="cpPick(this)">Dementia Care plan</button>
+        <button onclick="cpPick(this)">Fabry Care plan</button>
+        <button onclick="cpPick(this)">Colorectal Care plan</button>
+      </div>
+      </div>
       <button class="tab"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-folder2"/></svg><span class="tlb">Records</span></button>
       <button class="tab" onclick="cTab('comm',this)"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-msgc"/></svg><span class="tlb">Communication</span></button>
       <button class="tab"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-users2"/></svg><span class="tlb">Multidisciplinárny panel</span></button>
@@ -2405,6 +2429,14 @@ function updComp(){
   document.querySelectorAll('.scomp .si').forEach(i=>i.classList.toggle('full',have.has(i.dataset.s)));
   if(typeof updSignVal==='function')updSignVal();
 }
+function cpMenu(ev){ev.stopPropagation();const w=document.querySelector('.tabdd');w.classList.toggle('open');}
+function cpPick(btn){const w=document.querySelector('.tabdd');w.classList.remove('open');
+  const t=btn.textContent.trim();
+  document.querySelectorAll('.center>.tabs .tab').forEach(x=>x.classList.remove('active'));
+  w.querySelector('.tab').classList.add('active');
+  showToast((LANG==='en'?'Opening — ':'Otváram — ')+t);
+}
+document.addEventListener('click',e=>{const w=document.querySelector('.tabdd');if(w&&w.classList.contains('open')&&!e.target.closest('.tabdd'))w.classList.remove('open');});
 function cTab(t,btn){
   btn.closest('.tabs').querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');document.body.dataset.tab=t;
