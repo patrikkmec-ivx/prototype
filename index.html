@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v108 (Life ID: summary preč, collapse zmenší + pamätá šírku)</title>
+<title>Hilbi Cockpit — v108b (Life ID: expand chevron zjednotený, bez outline)</title>
 <!-- CHANGELOG
 v108 (2026-07-21): 1) PHR Summary komponent úplne odstránený — PHR tab = Health data
   + Records. 2) Collapse fix: pri zbalení sa panel VŽDY zmenší (min rule --phrw:46px
@@ -725,7 +725,7 @@ body[data-phr="min"] .phrmin{display:flex}
 .phrmin button::before{content:'';position:absolute;inset:-5px}
 .phrmin button:hover{background:var(--surface-1)}
 .phrmin button.on{background:var(--brand-cyan-soft);color:var(--brand-teal)}
-.phrmin .xp{margin-bottom:6px;border:1px solid var(--border-strong);background:var(--surface-white)}
+.phrmin .xp{margin-bottom:6px}
 
 /* Center */
 .center{background:var(--surface-white);border-radius:16px;display:flex;flex-direction:column;overflow:hidden;position:relative}
@@ -1831,7 +1831,7 @@ body[data-tab="comm"] .timeline{display:none}
       <div class="phrtab" id="pt-personal" hidden><div class="phrempty">Personal — ďalší inkrement</div></div>
     </div>
     <div class="phrmin" id="phrExpand" role="toolbar" aria-label="Life ID — zbalené menu">
-      <button class="xp" title="Rozbaliť panel">«</button>
+      <button class="xp" title="Rozbaliť panel"><svg width="14" height="8" viewBox="0 0 14 8" fill="none" style="transform:rotate(90deg)"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <button class="on" title="PHR"><svg class="ico s14" aria-hidden="true"><use href="#i-heart"/></svg></button>
       <button title="Vitals"><svg class="ico s14" aria-hidden="true"><use href="#i-act"/></svg></button>
       <button title="Behavioral"><svg class="ico s14" aria-hidden="true"><use href="#i-steps"/></svg></button>
