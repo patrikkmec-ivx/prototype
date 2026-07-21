@@ -6,17 +6,17 @@ area: tech
 type: spec
 owner: patrik
 status: draft-for-approval
-version: 0.9
+version: 0.10
 created: 2026-07-21
 updated: 2026-07-21
 review_due: 2026-10-21
 tags: [ssot, standard, fhir, ehr, dekurz, composition, templates, provenance]
-related: [CP-TECH-STANDARD, CP-TECH-CONTRACTS, GSR-TECH-ARCH, GSR-SEC-ISO]
+related: [CP-TECH-STANDARD, CP-TECH-CONTRACTS, GSR-TECH-ARCH, GSR-SEC-ISO, CORE-AUDIT-CONSOLIDATION]
 iso_controls: [A.8.1, A.5.12, A.8.11]
 classification: Dôverné — interné
 ---
 
-# Hilbi Clinical Core (EHR Engine) — Standard v0.9
+# Hilbi Clinical Core (EHR Engine) — Standard v0.10
 
 > **Authority: NORMATIVE.** This document is the Single Source of Truth (SSOT) for the Hilbi
 > Clinical Core — the domain-agnostic clinical record engine of the platform. Every clinical
@@ -30,8 +30,10 @@ classification: Dôverné — interné
 > language (see CP-TECH-STANDARD D17).
 > **Anchored in:** HL7 FHIR R4, HL7 IPS, US Core / USCDI, EU EHDS, India ABDM (FHIR IN),
 > ISO/IEC 27001 + 27799, ISO 13606, IEC 62304 — see Normative references.
-> **Status:** draft v0.9 — for approval by Roman (business) and Marek (compliance) via K35
-> change control; becomes `active` v1.0 upon sign-off.
+> **Status:** draft v0.10 — v0.9 + the seven convergent audit clauses (CORE-AUDIT-CONSOLIDATION)
+> and the deployment-mode clause A6, all additive. For approval by Roman (business) and Marek
+> (compliance) via K35 change control; becomes `active` v1.0 upon sign-off. The single remaining
+> v1.0 design gate (EU-02 erasure) is closed by H6.
 
 ---
 
@@ -100,6 +102,21 @@ of Layer-1 resources distinguished only by provenance.
 write contract (Part C). Downstream consumers (renders, gating, billing) MUST NOT branch on
 producer identity except via `Provenance` (e.g. review gates for AI-produced content, C4).
 
+### A6. Deployment modes: companion vs primary
+**Description:** Hilbi is a data orchestrator, not an EHR competitor. Per market the Core
+operates in one of two declared modes. **Companion mode:** Hilbi runs on top of a certified
+external EHR (e.g. as a SMART on FHIR application over Epic/athenahealth); the external EHR
+remains the system of record for encounter documentation. **Primary mode:** no external EHR
+exists beneath Hilbi (e.g. India, SK ambulatory practices without a NIS); the Core is the
+clinician's system of record and carries the full regional EHR burden.
+**Requirements:** The deployment mode MUST be declared per market in the region pack (Part G).
+In companion mode, Hilbi-originated clinical truth MUST be limited to the care-plan and
+engagement scope; all other clinical writes MUST be written back to the master EHR through the
+pack's write-back adapter, with the external record referenced per A2. In primary mode the
+full Standard applies. Certification-relevant capabilities (patient access APIs, exchange
+rails, logging/export components) MUST be implemented as separate BE microservices activated
+by the region pack — never compiled into the Core.
+
 ---
 
 ## PART B — Canonical data model (FHIR R4)
@@ -141,8 +158,8 @@ A concept MUST NOT have two FHIR homes.
 **Description:** Clinical history is additive (KB-ARCH-00). Corrections create new resource
 versions; nothing is destructively edited.
 **Requirements:** The store MUST retain full `_history` for every resource. Deletion is a
-status change (`entered-in-error`), never physical removal, except lawful erasure workflows
-(Part H).
+status change (`entered-in-error`), never physical removal, except the erasure/restriction
+design of H6.
 
 ### B4. Record status lifecycle (quarantine)
 **Description:** The SM+ `validated:false` split-save generalizes to the FHIR status
@@ -150,6 +167,20 @@ lifecycle: `preliminary` (draft/unvalidated) → `final` (validated/signed) → 
 **Requirements:** Resources in `preliminary` MUST be excluded from rendered Compositions,
 protocol gating, billing and IQ synthesis unless a surface explicitly requests drafts.
 Validation override MUST emit `AuditEvent(action=validation_override)`.
+A region pack MAY declare a **maximum residence time** in `preliminary` for content that has
+been clinically relied upon, with an escalation queue ("To verify") and SLA — mandatory in the
+US pack (information-blocking exposure, CORE-AUDIT-US US-02).
+
+### B5. Patient identity and matching
+**Description:** Multi-source ingestion (C1–C5) makes identity the primary operational failure
+mode. Identifier regimes differ per region: no national identifier in the US (MPI/matching),
+verified **ABHA** in India, national IDs/eIDs in EU member states.
+**Requirements:** Each region pack MUST declare its identifier policy: authoritative
+identifiers, verification method, matching methodology. Where a verified identifier exists
+(e.g. ABHA), linking MUST be deterministic; probabilistic matching MAY be used only where no
+verified identifier exists and MUST record its method and score in `Provenance`. Duplicate
+resolution uses `Patient.link` + merge with full `Provenance`; merged records are never
+physically collapsed (B3 applies).
 
 ---
 
@@ -192,6 +223,25 @@ national systems) are producers like any other.
 **Requirements:** Same write path (C1); source system recorded in `Provenance`; regional
 terminology normalized at the boundary via the region pack ConceptMaps (Part G), never inside
 consumers.
+
+### C6. Signature model
+**Description:** "Signing" (B4, C3, C4) is a legal act, not merely a status transition. The
+required signature level differs per document class and jurisdiction (eIDAS AdES/QES in the
+EU; practitioner e-signature regimes elsewhere).
+**Requirements:** Every sign event MUST store a signature artifact in `Provenance.signature`
+bound to the practitioner identity. The required signature **level** (simple / advanced /
+qualified) is declared per Composition profile in the region pack (or national sub-pack, G3);
+the Core MUST refuse the `final` transition when the pack-required level is not met.
+Signature verification data MUST survive export (D6).
+
+### C7. Producer resilience (offline / intermittent connectivity)
+**Description:** Field conditions (tier-2/3 connectivity in India, mobile use everywhere)
+make synchronous-only writes unfit for clinical use.
+**Requirements:** Producer clients MUST be able to queue C1 writes locally with idempotency
+keys and replay on reconnect; replay MUST preserve the original event time in `Provenance`
+(clinical time and replay time both recorded). Read surfaces SHOULD use cacheable projections
+(F1). Queued content is clinical data: encrypted at rest, purged after confirmed replay.
+This is a platform-wide property, not an India-only feature.
 
 ---
 
@@ -239,6 +289,17 @@ section semantics, independent of template wording.
 slot codes (S/O/A/P) via `Composition.section.code`; gating and billing MUST read section
 codes and resource references — never parse narrative text.
 
+### D6. Regional document exposure (dual-expose)
+**Description:** Regions exchange documents in their own envelope: US Core clinical notes as
+`DocumentReference` (note classes per USCDI), ABDM record types (`OPConsultRecord`,
+`DischargeSummaryRecord`, `Prescription`, …), EHDS **EEHRxF** priority categories.
+**Requirements:** Every `final` Composition MUST additionally be exposed as the regional
+document type declared by the active region pack; the Composition ↔ regional-type mapping is
+a pack artifact and CI-tested (E-CONF-08). The Composition remains the canonical render;
+regional exposures are derived and MUST reference it. Seed mappings: dekurz →
+US Core `DocumentReference` / ABDM `OPConsultRecord`; discharge report →
+`DischargeSummaryRecord` / EEHRxF discharge category.
+
 ---
 
 ## PART E — Service topology and domain contract
@@ -265,6 +326,9 @@ version and K35.
 E-CONF-02: no `preliminary` resource appears in a `final` Composition. E-CONF-03: a reference
 "toy domain" pack onboards with zero Core code changes. E-CONF-04: render determinism (D3).
 E-CONF-05: region-pack swap (Part G) changes no Core behavior, only profiles/terminology.
+E-CONF-06: a **national sub-pack** swap (G3) passes the same test. E-CONF-07: consent
+revocation (H5) halts ongoing exchange flows immediately and is audited. E-CONF-08: every
+`final` Composition has a regional exposure per the D6 mapping of the active pack.
 
 ---
 
@@ -295,8 +359,9 @@ packs**: profile layers + terminology ConceptMaps + export/exchange adapters. Ad
 API mapping at the boundary — never a fork of the canonical model.
 **Requirements:** Regional requirements MUST be implemented as: (a) additional profile
 constraints on canonical resources, (b) ConceptMap terminology translation (ICD-10-CM vs
-ICD-10 vs national codes, LOINC/SNOMED bindings), (c) exchange adapters (EHDS exchange format,
-ABDM building blocks, US Core API). A region pack MUST NOT add region-specific resource types
+ICD-10 vs national codes, LOINC/SNOMED bindings), (c) **role/exchange modules** implemented as separate BE
+microservices per A6 (e.g. ABDM HIP/HIU Gateway client, NCPDP SCRIPT eRx, SMART on FHIR
+patient-access API, EEHRxF export), (d) certification obligations of the market. A region pack MUST NOT add region-specific resource types
 to the canonical mapping; if a concept has no canonical home, extend B2 via K35 for all
 regions at once.
 
@@ -306,6 +371,17 @@ run their own Core store; HHTech (UAE) remains synthetic-data-only.
 **Requirements:** Clinical resources MUST NOT cross regional planes. Cross-region features
 operate on de-identified/aggregate data only, through the RWD boundary. Region packs are
 deployed per plane; template/domain packs are global artifacts deployed into each plane.
+
+### G3. Pack composition and national sub-packs
+**Description:** A region pack is more than profiles + terminology — and the "EU" is 27
+national eHealth systems, not one market.
+**Requirements:** A region pack consists of: profiles, terminology, role/exchange modules,
+access APIs, certification obligations, deployment mode (A6), identifier policy (B5),
+signature matrix (C6), `preliminary` residence SLA where required (B4), and the
+retention/erasure matrix (H6). The **EU pack MUST be structured as a base pack
+(EHDS/EEHRxF + IPS) plus national sub-packs** with the same additive mechanics — e.g.
+gematik/ISiK (DE), ezdravie/NCZI (SK). A national sub-pack MAY add adapters and constraints;
+it MUST NOT alter the canonical model (G1 applies transitively). E-CONF-06 tests the swap.
 
 ---
 
@@ -318,7 +394,10 @@ isolated (GSR data-plane rule).
 
 ### H2. Audit
 **Requirements:** Every write, validation override, sign event, template publish and region-
-pack deploy MUST emit `Provenance`/`AuditEvent`. Audio/scan artifacts follow the retention
+pack deploy MUST emit `Provenance`/`AuditEvent`. Every **read/export** of a clinical
+compartment MUST also emit `AuditEvent` with the recipient identity, queryable per patient —
+this single mechanism satisfies the EHDS logging component and HIPAA accounting of
+disclosures (CORE-AUDIT-EU EU-04, CORE-AUDIT-US US-08). Audio/scan artifacts follow the retention
 schedule agreed with compliance (open item O2).
 
 ### H3. Change control
@@ -330,6 +409,38 @@ approvals: Patrik (architecture) → Roman (business) → Marek (compliance).
 **Requirements:** AI-produced or AI-assisted content MUST be attributable end-to-end
 (Provenance → UI attribution → Composition narrative note where required), satisfying AI Act
 Article 50 obligations for Hilbi IQ.
+
+### H5. Consent lifecycle and purpose of use
+**Description:** Consent is not a stored document but an enforced lifecycle:
+grant → purpose-bound access → expiry → revocation → cascade. Regional bindings differ
+(HL7 DS4P sensitivity labels + 42 CFR Part 2 in the US, EHDS permits in the EU, ABDM consent
+artefacts + DPDP in India).
+**Requirements:** For data classes that require it (declared per pack), the Core MUST
+evaluate **purpose-of-use at read** against an active `Consent` carrying purpose, scope and
+validity window. Revocation MUST take effect immediately: ongoing exchange flows halt,
+subsequent reads are denied, and both are audited (H2, E-CONF-07). Renderers (D3/D4) MUST
+honor sensitivity labels: a Composition MUST NOT include consent-bound content without a
+matching active `Consent` (no Part-2 content without Part-2 consent).
+
+### H6. Erasure, restriction and legal hold
+**Description:** Erasure rights (GDPR Art. 17, DPDP purpose-end erasure) and retention duties
+(medical-record laws, US state retention) point in **opposite directions per region**; in an
+additive store (B3) erasure is an architectural feature, not a workflow footnote. This clause
+closes audit finding EU-02 — the single v1.0 design gate.
+**Requirements:**
+(a) **Adjudication:** every erasure request runs through legal-hold adjudication against the
+region pack's retention/erasure matrix; statutory retention prevails where the law says so;
+the adjudication outcome (grant/deny/partial + legal basis) is itself audited.
+(b) **Mechanism:** `Binary` artifacts are **crypto-shredded** (per-artifact keys destroyed);
+structured resources are masked with **tombstones** that preserve referential integrity —
+a Composition referencing an erased resource renders a tombstone marker, never the content;
+`_history` is included in the cascade.
+(c) **Cascade:** erasure propagates to derived exposures (D6), exports, producer queues (C7),
+caches, and the RWD ingestion boundary.
+(d) **Backups:** erased data MUST become unrecoverable within a declared SLA (key destruction
+or backup cycling), stated in the pack's matrix.
+(e) **Restriction of processing** (GDPR Art. 18) is a `meta.security` label that excludes the
+resource from renders, exchange and IQ synthesis while preserving it intact.
 
 ---
 
@@ -354,6 +465,10 @@ conflicts resolve in favor of the Core. Cut-over completion is an E-CONF gated m
 | O3 | CP-TECH-STANDARD A1 cross-reference amendment (A2 here) | Patrik → K35 |
 | O4 | Terminology licensing per region (SNOMED CT affiliate status SK/US/IN) | Marek |
 | O5 | `sm_*` → FHIR migration plan (separate deliverable, Part I) | Viktor |
+| O6 | Retention/erasure matrix per region & member state (feeds H6, G3) | Marek |
+| O7 | Signature-level matrix per document class per country (C6) | Marek |
+| O8 | MDR / AI Act qualification of IQ predictions (MDCG 2019-11; until resolved predictions stay `preliminary`, labelled, non-prescriptive) | Marek |
+| O9 | Deployment-mode declaration per market (A6): US=companion, IN=primary, EU=per member state | Patrik → Roman |
 
 ---
 
@@ -367,5 +482,19 @@ Producers (manual · OCR · speech · device · import · IQ) ──C1──► 
                                         @hilbi/summary-engine (library) render
                                                                         ▼
                               Composition (dekurz · AOS · VÚSCH · message) ──► timeline / export
-Region packs (US Core · EHDS · ABDM) adapt at the boundary — the canonical core never forks.
+Region packs (US Core · EHDS+national · ABDM) adapt at the boundary — the canonical core never forks.
+Deployment mode per market (A6): companion (over external EHR) or primary (Core = system of record).
 ```
+
+---
+
+## Changelog
+
+**v0.10 (2026-07-21)** — additive, per CORE-AUDIT-CONSOLIDATION (K35):
+A6 deployment modes (companion/primary); B4 `preliminary` residence SLA hook; B5 identity &
+matching; C6 signature model (eIDAS AdES/QES); C7 producer resilience (offline); D6 regional
+document dual-expose; G1 role/exchange modules as BE microservices; G3 pack composition +
+EU national sub-packs; H2 read/export audit (EHDS logging + HIPAA disclosures); H5 consent
+lifecycle & purpose-of-use; H6 erasure/restriction/legal-hold design (**closes EU-02, the
+v1.0 gate**); E-CONF-06..08; open items O6–O9.
+**v0.9 (2026-07-21)** — initial draft.
