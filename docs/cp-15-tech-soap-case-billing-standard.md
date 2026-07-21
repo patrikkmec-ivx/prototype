@@ -1,7 +1,7 @@
 ---
 doc_id: TBD (priradiť podľa gsr-13)
 title: "SOAP jadro, case vrstva a billing derivácia — kokpit"
-version: 1.1-draft
+version: 1.2-draft
 date: 2026-07-20
 authority: "navrhol: Patrik (CEO) · schvaľuje: Roman (CBO) · aplikuje: Dominika/Viktor · kontroluje: Marek"
 type: normative
@@ -39,6 +39,15 @@ nie dátovým modelom.
 - **CASE-02** Presun pacienta medzi oddeleniami = uzavretie encounteru + nový encounter v tej istej epizóde. Pacient sa NIKDY nekopíruje.
 - **CASE-03** Handoff medzi oddeleniami generuje IQ draft zhrnutia v štruktúre ISBAR zo skompilovaného SOAP prípadu; zhrnutie je udalosť na osi, potvrdzuje odovzdávajúci lekár.
 - **CASE-04** Každá udalosť nesie autora A oddelenie. Časová os prípadu je jedna; oddelenie vidí svoju výseč, ošetrujúci lekár prípadu celok.
+
+
+## 2b. Normatívne pravidlá — encounter vrstvenie na časovej osi
+
+- **ENC-01** Časová os zobrazuje defaultne granularitu encounteru; atomické udalosti sa vrstvia pod ním (dlaždica → vnorená mini-os → detail).
+- **ENC-02** Prvá akcia nad pacientom otvorí encounter; každá ďalšia akcia v seanse sa pripája automaticky. Podpis encounter uzatvára. Zoskupenie je vedľajší produkt práce, nikdy krok navyše.
+- **ENC-03** Encounter s jednou udalosťou sa renderuje ako samotná udalosť (degenerácia — indický Rx-only zápis ostáva jednou kartou).
+- **ENC-04** Asynchrónny výsledok orderu sa pripája k encounteru, z ktorého order vyšiel; slučka sa uzatvára dovnútra skupiny.
+- **ENC-05** Typ/názov encounteru sa derivuje z odbornosti lekára (GP vyšetrenie, Ortopedické vyšetrenie…), je editovateľný. Súhrnná dlaždica agreguje kľúčové info čiastkových úkonov (A; P · O) + SOAP chipy + stav + počet.
 
 ## 3. Normatívne pravidlá — billing derivácia
 
