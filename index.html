@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v91 (chevron ikona z dizajnu)</title>
+<title>Hilbi Cockpit — v92 (chevron sivý outline)</title>
 <!-- CHANGELOG
+v92 (2026-07-21): Collapse chevron — bez pozadia, bez okraja (background/border/
+  box-shadow none !important), sivý (text-subtle) ako outline; hover jemne stmavne.
 v91 (2026-07-21): Collapse chevron nahradený presnou ikonou z dizajnu (14×8 viewBox,
   stroke 2, round) namiesto starej 24×24 cesty — zjednotené s designom vo všetkých
   troch collapse tlačidlách. Farba text-heading, otáča sa pri open.
@@ -775,9 +777,9 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
 .cartit .t{display:flex;gap:10px;align-items:center}
 .cartit b{font-size:15.5px;font-weight:800;color:var(--text-heading)}
 .cartit i{font-style:normal;font-size:12px;color:var(--text-muted)}
-.cartit .cv{margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;width:24px;height:24px;flex:none}
-.cv:hover{color:var(--text-heading)}
-.cartit .cv svg{width:14px;height:8px;color:var(--text-heading);transition:transform .15s}
+.cartit .cv{margin-left:auto;background:none!important;border:none!important;box-shadow:none!important;color:var(--text-subtle);cursor:pointer;display:flex;align-items:center;justify-content:center;width:24px;height:24px;flex:none;padding:0}
+.cv:hover{color:var(--text-muted)}
+.cartit .cv svg{width:14px;height:8px;color:var(--text-subtle);transition:transform .15s}
 .cartit .cv.open svg{transform:rotate(180deg)}
 .cartit .rm{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;flex:none}
 .recbox{margin:8px 0 2px}
