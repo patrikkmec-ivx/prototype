@@ -4,8 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v97b (org dropdown — menšie ikony/písmo + gap)</title>
+<title>Hilbi Cockpit — v98 (mená lekárov na hover avatara, nie v titulku)</title>
 <!-- CHANGELOG
+v98 (2026-07-21): Mená lekárov už nie sú za názvom vyšetrenia. Odstránené "· MUDr.
+  Novák" / "· Dr. Novak" z titulkov encounter dlaždíc (statická aj dynamická ENC
+  render). Meno lekára sa teraz zobrazí ako hover tooltip nad avatarom lekára
+  (.pav[data-tip], šípka + navy bublina, funguje aj na focus pre klávesnicu).
+  i18n záznam pre preklad tooltipu.
 v97 (2026-07-21): Org dropdown (výber poskytovateľa) — UX flow oprava. Dropdown sa
   neotváral, lebo bol súrodencom .org a .nav mal overflow:hidden (padal mimo/odrezaný).
   Fix: 1) dropdown presunutý DOVNÚTRA .org (top:100% teraz voči komponentu),
@@ -1143,6 +1148,9 @@ body[data-tab="comm"] .timeline{display:none}
 
 .dock .hasbdg::before{content:'';position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--warning);box-shadow:0 0 0 2px #1B2340;inset:auto;z-index:2}
 .dock button:hover::after{content:attr(data-tip);position:absolute;bottom:52px;left:50%;transform:translateX(-50%);background:var(--surface-navy);color:#fff;font-size:12px;font-weight:600;padding:5px 10px;border-radius:6px;white-space:nowrap}
+.pav[data-tip]{cursor:default}
+.pav[data-tip]:hover::after,.pav[data-tip]:focus-visible::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--surface-navy);color:#fff;font-size:11.5px;font-weight:600;padding:5px 9px;border-radius:6px;white-space:nowrap;z-index:50;box-shadow:0 6px 16px rgba(27,35,64,.25)}
+.pav[data-tip]:hover::before,.pav[data-tip]:focus-visible::before{content:"";position:absolute;bottom:calc(100% + 1px);left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--surface-navy);z-index:50}
 
 /* demo state switcher */
 .card.kfocus{outline:2px solid var(--brand-teal);outline-offset:2px}
@@ -1470,9 +1478,9 @@ body[data-tab="comm"] .timeline{display:none}
         <div class="encblock">
         <div class="card current enccard op" onclick="subToggle(event)">
           <div class="body">
-            <div class="pav ph doc1">N<span class="vb">＋</span></div>
+            <div class="pav ph doc1" data-tip="MUDr. Novák" tabindex="0">N<span class="vb">＋</span></div>
             <div class="cmain">
-              <div class="l1"><b>Kontrola DM + hypertenzia · MUDr. Novák</b><span class="dt"><span class="sdot d-now"></span><svg class="ico sok" aria-hidden="true"><use href="#i-sok"/></svg>10.07 · 10:07 – 10:31</span></div>
+              <div class="l1"><b>Kontrola DM + hypertenzia</b><span class="dt"><span class="sdot d-now"></span><svg class="ico sok" aria-hidden="true"><use href="#i-sok"/></svg>10.07 · 10:07 – 10:31</span></div>
               <div class="l2">Dekompenzácia DM2 — Metformín 2×1000 mg · TK 138/88 mmHg</div>
               <div class="crow"><span class="soap sO" title="SOAP · Objektívne">O</span><span class="soap sA" title="SOAP · Zhodnotenie">A</span><span class="soap sP" title="SOAP · Plán">P</span><span class="tag">Podpísané</span><span class="tag">4 udalostí</span><span class="tag clin t-a1">Diabetes</span><span class="tag clin t-a6">Hypertenzia</span></div>
             </div>
@@ -2307,8 +2315,8 @@ function renderEnc(flash){
   const subs=ENC.events.map((e,i)=>`<div class="subcard s${e.slot}" onclick="evDetail(${i})"><span class="soap s${e.slot}" title="${SOAPTITLE[e.slot]}">${e.slot}</span><span class="sc-main"><span class="sc-t"><b>${escT(e.title)}</b><span class="tm2">${e.time}</span></span><span class="sc-m">${escT(e.sub||'')}</span></span></div>`).join('');
   row.innerHTML=`<div class="spine"><button class="tico" data-f="visit"><svg class="ico s14"><use href="#i-steth"/></svg></button><div class="line"></div></div>
   <div class="encblock">
-  <div class="card enccard${ENC.open?' op':''}" onclick="encToggle(event)"><div class="body"><div class="pav ph doc1">N<span class="vb">＋</span></div><div class="cmain">
-  <div class="l1"><b>${tt('GP vyšetrenie')} · Dr. Novak</b><span class="dt"><span class="sdot ${ENC.signed?'d-ok':'d-plan'}"></span><svg class="ico sok"><use href="#i-sok"/></svg>${first.time} – ${last.time}</span></div>
+  <div class="card enccard${ENC.open?' op':''}" onclick="encToggle(event)"><div class="body"><div class="pav ph doc1" data-tip="Dr. Novak" tabindex="0">N<span class="vb">＋</span></div><div class="cmain">
+  <div class="l1"><b>${tt('GP vyšetrenie')}</b><span class="dt"><span class="sdot ${ENC.signed?'d-ok':'d-plan'}"></span><svg class="ico sok"><use href="#i-sok"/></svg>${first.time} – ${last.time}</span></div>
   <div class="l2">${escT(encAggKey())}</div>
   <div class="crow">${chips}<span class="tag${ENC.signed?'':' st-plan'}">${ENC.signed?tt('Podpísané'):tt('Prebieha')}</span><span class="tag">${n} ${tt('udalostí')}</span></div>
   </div></div><button class="cv" onclick="encToggle(event)" title="${tt('Rozbaliť')}"><svg width="14" height="8" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
@@ -2562,7 +2570,7 @@ const I18N=[
 ["zobraziť →","view all →"],["Filter aktívny — zrušiť ✕","Filter active — clear ✕"],
 ["PLÁNOVANÉ","PLANNED"],["DNES · 17.07.2026","TODAY · 17 Jul 2026"],
 ["Kontrola — diabetológ","Follow-up — diabetologist"],["Diabetologická ambulancia","Diabetology clinic"],
-["Kontrola DM + hypertenzia","DM + hypertension check-up"],["Všeobecná ambulancia · MUDr. Novák","General practice · Dr. Novak"],
+["Kontrola DM + hypertenzia","DM + hypertension check-up"],["MUDr. Novák","Dr. Novak"],["Všeobecná ambulancia · MUDr. Novák","General practice · Dr. Novak"],
 ["Úprava dávkovania Metformínu na 2×1000 mg. TK 138/88 mmHg.","Metformin dose adjusted to 2×1000 mg. BP 138/88 mmHg."],
 ["Odber krvi — kompletný","Blood draw — complete"],["Laboratórium Alpha","Alpha Laboratory"],
 ["Prepúšťacia správa — Interné odd.","Discharge report — Internal med."],["Nemocnica sv. Michala","St. Michael Hospital"],
