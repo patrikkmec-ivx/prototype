@@ -4,8 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v109 (Care plans dropdown: Studio + 4 plány)</title>
+<title>Hilbi Cockpit — v110 (IQ Record Session: capture + SOAP náhľad + Sign na os)</title>
 <!-- CHANGELOG
+v110 (2026-07-21): IQ Record Session prestavaný (iqrec modal). KROK 1 capture: meno
+  pacienta na kontrolu (eRX-štýl), Output format dropdown (SOAP default + VÚSCH +
+  "Create a template" neaktívne), QR na spárovanie s mobilom, record tlačidlo s
+  pauza/pokračovať (pre prerušenie) + timer/waveform + Stop & review. KROK 2: SOAP
+  náhľad v editovateľnom dokumente (eRX UX) — lekár prepíše a/alebo podpíše. Sign →
+  encEvent uloží na časovú os + dekurz. QR faux-SVG (var(--surface-navy)), record =
+  --danger. 0 nových tokenov. IQ button "Record Session" prepnutý z recwrap na irOpen.
 v109 (2026-07-21): Care plans tab v strednej ploche má dropdown (klik na tab/šípku).
   Obsah: Care Plan Studio (authoring, teal) + separátor + SM Care Plan, Dementia Care
   plan, Fabry Care plan, Colorectal Care plan. Náš dizajn (reuse tokenov), chevron
@@ -1091,6 +1098,44 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
 .soapseg button.on[data-s="A"]{background:var(--accent-7-soft);color:var(--accent-7-strong)}
 .soapseg button.on[data-s="P"]{background:var(--accent-1-soft);color:var(--accent-1-strong)}
 .recline{width:100%;box-sizing:border-box;border:1.5px solid var(--border-default);border-radius:10px;padding:11px 13px;font-family:inherit;font-size:14px;color:var(--text-heading);outline:none}
+/* Record session modal */
+.irpat{background:var(--surface-1);border-radius:10px;padding:10px 13px;font-size:13.5px;color:var(--text-muted);margin-bottom:14px}
+.irpat b{color:var(--text-heading)}
+.irfmt{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.irlbl{font-size:13px;font-weight:600;color:var(--text-muted)}
+.irfmtbtn{display:inline-flex;align-items:center;gap:8px;background:var(--surface-white);border:1.5px solid var(--border-default);border-radius:10px;padding:9px 13px;font-size:13.5px;font-weight:700;color:var(--text-heading);cursor:pointer;min-width:150px;justify-content:space-between}
+.irfmtdd .chev svg{transition:transform .18s}
+.irfmtdd.open .chev svg{transform:rotate(180deg)}
+.irfmtdd .cpdrop{right:0;left:auto;min-width:180px}
+.cpdrop .cpdis{color:var(--text-disabled);cursor:not-allowed}
+.cpdrop .cpdis:hover{background:none}
+.irqr{display:flex;align-items:center;gap:14px;background:var(--surface-1);border-radius:12px;padding:14px}
+.irqrbox{width:96px;height:96px;flex:none;background:#fff;border-radius:8px;padding:6px;display:flex}
+.irqrbox svg{width:100%;height:100%}
+.irqrtx b{display:block;font-size:13.5px;color:var(--text-heading);margin-bottom:2px}
+.irqrtx span{font-size:12.5px;color:var(--text-muted);line-height:1.4}
+.irsep{display:flex;align-items:center;gap:10px;color:var(--text-subtle);font-size:12px;margin:16px 0}
+.irsep::before,.irsep::after{content:"";flex:1;height:1px;background:var(--border-default)}
+.irrec{display:flex;flex-direction:column;align-items:center;gap:12px;padding:6px 0 4px}
+.irbtn{width:64px;height:64px;border-radius:50%;background:var(--surface-white);border:2px solid var(--border-strong);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.irbtn .irdot{width:26px;height:26px;border-radius:50%;background:var(--danger);transition:all .15s}
+.irbtn.rec .irdot{width:20px;height:20px;border-radius:5px}
+.irstop{margin-top:2px}
+.irhint{font-size:12px;color:var(--text-subtle);text-align:center;max-width:260px}
+.irtime{font-size:20px;font-weight:800;color:var(--text-heading);font-variant-numeric:tabular-nums}
+.irtime span{color:var(--text-subtle);font-weight:600;font-size:14px}
+.irwave{display:flex;align-items:center;gap:3px;height:26px}
+.irwave i{width:3px;border-radius:2px;background:var(--brand-teal);height:8px;animation:irw 1s ease-in-out infinite}
+.irwave i:nth-child(2n){animation-delay:.15s}.irwave i:nth-child(3n){animation-delay:.3s}.irwave i:nth-child(4n){animation-delay:.45s}
+.irwave.paused i{animation-play-state:paused;background:var(--text-disabled)}
+@keyframes irw{0%,100%{height:8px}50%{height:24px}}
+/* IQ editovateľný náhľad (eRX-štýl dokument) */
+.iqinfo{display:flex;gap:9px;align-items:flex-start;background:var(--brand-cyan-soft);border-radius:10px;padding:11px 13px;margin-bottom:14px;font-size:12.5px;color:var(--text-body);line-height:1.45}
+.iqinfo .ico{color:var(--brand-teal-text);flex:none;margin-top:1px}
+.iqedit{border:1.5px solid var(--border-default);border-radius:12px;padding:16px 18px;font-size:14px;color:var(--text-heading);line-height:1.55;outline:none;min-height:300px;white-space:pre-wrap}
+.iqedit:focus{border-color:var(--brand-teal)}
+.iqedit h4{font-size:13px;color:var(--text-muted);font-weight:700;margin:14px 0 2px}
+.iqedit h4:first-child{margin-top:0}
 .recline:focus{border-color:var(--brand-teal)}
 /* K-17 · dekurz kompilácia + completeness + chat→S — NEW, doplniť do Figmy */
 .scomp{display:flex;gap:14px;align-items:center;margin:2px 0 12px;padding:10px 13px;background:var(--surface-1);border-radius:10px}
@@ -1888,7 +1933,7 @@ body[data-tab="comm"] .timeline{display:none}
     <h3>Opýtajte sa Hilbi IQ</h3>
     <p>Syntéza z osi, care planu a Life ID. Každá odpoveď je označená a odkazuje na zdroje. IQ pripravuje — podpisuje lekár.</p>
     <div class="iqacts">
-      <button class="iqact rec" onclick="document.getElementById('iqmodal').classList.remove('open');mOpen('recwrap')"><svg><use href="#i-mic"/></svg>Record Session</button>
+      <button class="iqact rec" onclick="document.getElementById('iqmodal').classList.remove('open');irOpen()"><svg><use href="#i-mic"/></svg>Record Session</button>
       <button class="iqact dig" onclick="document.getElementById('iqmodal').classList.remove('open');mOpen('fotwrap')"><svg><use href="#i-scan"/></svg>Digitize document</button>
     </div>
     <div class="sug">
@@ -1951,6 +1996,46 @@ body[data-tab="comm"] .timeline{display:none}
   </div>
 </div>
 
+<div class="sheetwrap" id="iqrec"><div class="scrim" onclick="mClose('iqrec')"></div>
+  <div class="sheet">
+    <div class="sh-h"><span class="hic" style="background:linear-gradient(135deg,#1C93AC,#2E5FB5);color:#fff"><svg class="ico s14" aria-hidden="true"><use href="#i-mic"/></svg></span><b>Record session</b><span class="sp" style="flex:1"></span><button class="x" onclick="mClose('iqrec')" title="Zavrieť"><svg class="ico s14" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+    <div class="sh-b">
+      <!-- KROK 1: capture -->
+      <div id="irStep1">
+        <div class="irpat"><span>Patient:</span> <b>Jane Carter</b> · ID 76157 8787</div>
+        <div class="irfmt">
+          <span class="irlbl">Output format</span>
+          <div class="tabdd irfmtdd" id="irFmtDD">
+            <button class="irfmtbtn" onclick="irFmtMenu(event)"><span id="irFmtVal">SOAP</span> <span class="chev"><svg width="12" height="7" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+            <div class="cpdrop" id="irFmtDrop">
+              <button onclick="irFmtPick('SOAP')">SOAP</button>
+              <button onclick="irFmtPick('VÚSCH')">VÚSCH</button>
+              <button class="cpdis" disabled>Create a template</button>
+            </div>
+          </div>
+        </div>
+        <div class="irqr">
+          <div class="irqrbox" id="irQR"></div>
+          <div class="irqrtx"><b>Record on your phone</b><span>Scan to pair this session with your mobile device.</span></div>
+        </div>
+        <div class="irsep"><span>or record here</span></div>
+        <div class="irrec">
+          <div class="irwave" id="irWave" hidden><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="irtime" id="irTime" hidden><b id="irClock">00:00</b><span> / 20:00</span></div>
+          <button class="irbtn" id="irBtn" onclick="irMain()" title="Record"><span class="irdot"></span></button>
+          <button class="pillbtn irstop" id="irStopBtn" hidden onclick="irStop()">Stop &amp; review</button>
+          <div class="irhint" id="irHint">Press to record and speak fluently. Limit 20 minutes.</div>
+        </div>
+      </div>
+      <!-- KROK 2: SOAP náhľad (eRX-štýl, editovateľný) -->
+      <div id="irStep2" hidden>
+        <div class="iqinfo"><svg class="ico s14" aria-hidden="true"><use href="#i-tri"/></svg><span>This draft was generated by Hilbi IQ. Check the content, edit if needed, then sign. You can rewrite anything.</span></div>
+        <div class="iqedit" id="irEdit" contenteditable="true" spellcheck="false"></div>
+      </div>
+    </div>
+    <div class="sh-f" id="irFoot"></div>
+  </div>
+</div>
 <div class="sheetwrap" id="recwrap"><div class="scrim" onclick="mClose('recwrap')"></div>
   <div class="sheet">
     <div class="sh-h"><span class="hic c-note"><svg class="ico s14"><use href="#i-pen"/></svg></span><b>Zaznamenať</b><button class="x" onclick="mClose('recwrap')" title="Zavrieť">✕</button></div>
@@ -3178,6 +3263,66 @@ function renderPHR(){
     +'<div class="ptsub">Records</div>'+RC.map(phrRow).join('');
 }
 renderPHR();
+
+
+/* ═══ IQ Record Session ═══ */
+let irState='idle', irSec=0, irTimer=null, irFmt='SOAP';
+function irQR(){
+  const N=23,cell=5,pad=2,S=N*cell+pad*2;
+  let r='<svg viewBox="0 0 '+S+' '+S+'">';
+  function f(x,y){r+='<rect x="'+(pad+x*cell)+'" y="'+(pad+y*cell)+'" width="'+7*cell+'" height="'+7*cell+'" fill="var(--surface-navy)"/><rect x="'+(pad+(x+1)*cell)+'" y="'+(pad+(y+1)*cell)+'" width="'+5*cell+'" height="'+5*cell+'" fill="#fff"/><rect x="'+(pad+(x+2)*cell)+'" y="'+(pad+(y+2)*cell)+'" width="'+3*cell+'" height="'+3*cell+'" fill="var(--surface-navy)"/>';}
+  f(0,0);f(N-7,0);f(0,N-7);
+  let s=7;const rnd=()=>{s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff;};
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){if((x<8&&y<8)||(x>N-9&&y<8)||(x<8&&y>N-9))continue;if(rnd()>0.55)r+='<rect x="'+(pad+x*cell)+'" y="'+(pad+y*cell)+'" width="'+cell+'" height="'+cell+'" fill="var(--surface-navy)"/>';}
+  return r+'</svg>';
+}
+function irFoot(html){document.getElementById('irFoot').innerHTML=html;}
+function irOpen(){
+  irState='idle';irSec=0;if(irTimer)clearInterval(irTimer);irTimer=null;
+  document.getElementById('irStep1').hidden=false;document.getElementById('irStep2').hidden=true;
+  document.getElementById('irQR').innerHTML=irQR();
+  document.getElementById('irBtn').classList.remove('rec');document.getElementById('irBtn').hidden=false;
+  document.getElementById('irWave').hidden=true;document.getElementById('irTime').hidden=true;
+  document.getElementById('irStopBtn').hidden=true;document.getElementById('irHint').hidden=false;
+  document.getElementById('irClock').textContent='00:00';
+  irFmt='SOAP';document.getElementById('irFmtVal').textContent='SOAP';
+  irFoot('<button class="btn" onclick="mClose(\'iqrec\')">Cancel</button>');
+  mOpen('iqrec');
+}
+function irTick(){irSec++;const m=String(Math.floor(irSec/60)).padStart(2,'0'),s=String(irSec%60).padStart(2,'0');document.getElementById('irClock').textContent=m+':'+s;if(irSec>=1200)irStop();}
+function irMain(){
+  if(irState==='idle'){
+    irState='rec';document.getElementById('irBtn').classList.add('rec');document.getElementById('irHint').hidden=true;
+    document.getElementById('irWave').hidden=false;document.getElementById('irTime').hidden=false;document.getElementById('irStopBtn').hidden=false;
+    document.getElementById('irWave').classList.remove('paused');
+    irTimer=setInterval(irTick,1000);
+    document.getElementById('irBtn').title='Pause';
+  } else if(irState==='rec'){
+    irState='paused';clearInterval(irTimer);document.getElementById('irBtn').classList.remove('rec');
+    document.getElementById('irWave').classList.add('paused');document.getElementById('irBtn').title='Continue';
+  } else { /* paused → continue */
+    irState='rec';document.getElementById('irBtn').classList.add('rec');document.getElementById('irWave').classList.remove('paused');
+    irTimer=setInterval(irTick,1000);document.getElementById('irBtn').title='Pause';
+  }
+}
+const IR_SOAP='<h4>Presenting Complaint</h4>Severe headaches.\n<h4>History of Presenting Complaint</h4>The patient presents with a history of severe, long-term migraines.\n<h4>Past Medical History</h4>No other relevant conditions or prior surgeries reported.\n<h4>Medications</h4>Analgesics as recommended.\n<h4>Allergies</h4>NKDA (No Known Drug Allergies).\n<h4>Examination</h4>No physical findings reported during this consultation.\n<h4>Investigations</h4>A neurological examination has been requested.\n<h4>Clinical Impression / Diagnosis</h4>Chronic migraines (ICD-10: G43.909, ICD-11: 8A85.Z).\n<h4>Management Plan</h4>Continue analgesics for pain management. Referral made for neurological examination to investigate the cause of the severe headaches.';
+function irStop(){
+  if(irTimer)clearInterval(irTimer);irTimer=null;irState='done';
+  document.getElementById('irStep1').hidden=true;document.getElementById('irStep2').hidden=false;
+  document.getElementById('irEdit').innerHTML=IR_SOAP;
+  irFoot('<button class="btn" onclick="irOpen()">Re-record</button><button class="btn primary" onclick="irSign()">Sign</button>');
+}
+function irSign(){
+  const txt=document.getElementById('irEdit').innerText.trim();
+  const first=txt.split('\n').filter(Boolean)[1]||'IQ session';
+  const now=new Date();const tm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  encEvent({slot:'S',icon:'i-mic',title:'IQ session — '+irFmt,sub:'Hilbi IQ · '+irFmt,who:'Hilbi IQ',time:tm,detail:txt});
+  if(typeof dekAddEv==='function')dekAddEv('S','IQ session — '+irFmt,'Hilbi IQ');
+  mClose('iqrec');showToast('Signed — saved to the pathway');
+}
+function irFmtMenu(ev){ev.stopPropagation();document.getElementById('irFmtDD').classList.toggle('open');}
+function irFmtPick(v){irFmt=v;document.getElementById('irFmtVal').textContent=v;document.getElementById('irFmtDD').classList.remove('open');}
+document.addEventListener('click',e=>{const d=document.getElementById('irFmtDD');if(d&&d.classList.contains('open')&&!e.target.closest('#irFmtDD'))d.classList.remove('open');});
 
 /* default EN */
 setLang('en');
