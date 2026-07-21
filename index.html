@@ -4,8 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v103 (Life ID: Behavioral ring — Activity + Vitality)</title>
+<title>Hilbi Cockpit — v104 (Life ID: Personal — náš dizajn, key-value)</title>
 <!-- CHANGELOG
+v104 (2026-07-21): Life ID inkrement 3 — Personal tab v našom dizajne (žiadne nové
+  komponenty). 5 sekcií ako karty: Personal details, Insurance, Others, Address,
+  Contact — key-value riadky (label t-meta muted / hodnota t-body heading). Dáta
+  konzistentné s pacientom Jane Carter (Miami General). i18n SK. Zostáva PHR tab.
 v103 (2026-07-21): Life ID inkrement 2 — Behavioral tab. Nový ring/donut komponent
   (Garmin-style, full-circle progress). Activity: Steps (34%, amber, AppleHealth),
   Sleep (100%, green). Vitality: Stress (Low, green), HRV (45 ms, teal), Oxygen
@@ -671,6 +675,10 @@ body[data-phr="min"] .phr .tabs,body[data-phr="min"] .phr .pbody{display:none}
 .vrfacts div span{display:block;font-size:12px;color:var(--text-muted)}
 .vrfacts div b{font-size:14px;color:var(--text-heading)}
 .vrfacts div b.hl{color:var(--success)}
+.psh{padding:11px 13px;font-size:14px;font-weight:700;color:var(--text-heading)}
+.prow{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 13px;border-top:1px solid var(--border-default)}
+.prow span{font-size:12.5px;color:var(--text-muted);flex:none}
+.prow b{font-size:13.5px;color:var(--text-heading);font-weight:600;text-align:right;word-break:break-word;min-width:0}
 .phrclose{display:none}
 .phrmin{display:none;flex:1;flex-direction:column;align-items:center;gap:6px;padding:12px 0}
 body[data-phr="min"] .phrmin{display:flex}
@@ -2737,7 +2745,7 @@ const I18N=[
 ["zobraziť →","view all →"],["Filter aktívny — zrušiť ✕","Filter active — clear ✕"],
 ["PLÁNOVANÉ","PLANNED"],["DNES · 17.07.2026","TODAY · 17 Jul 2026"],
 ["Kontrola — diabetológ","Follow-up — diabetologist"],["Diabetologická ambulancia","Diabetology clinic"],
-["Kontrola DM + hypertenzia","DM + hypertension check-up"],["MUDr. Novák","Dr. Novak"],["MUDr. Rezník","Dr. Reznik"],["MUDr. Baláž","Dr. Balaz"],["MUDr. Horák","Dr. Horak"],["MUDr. Šimková","Dr. Simkova"],["Jane Carter · pacient","Jane Carter · patient"],["Podpísané","Signed"],["Domov","Home"],["Zoznam pacientov","Patient list"],["Komunikácia","Communications"],["Hromadné oznamy","Group notices"],["Kalendáre","Calendars"],["Online objednávky","Online appointments"],["Úprava objednávok","Edit appointments"],["Zoznam objednávok","List of appointments"],["Neprítomnosti","Absences"],["Ordinačné hodiny","Office hours"],["Zvýšený dopyt","Increased demand"],["Čakárne","Waiting areas"],["Zoznam návštev","List of visits"],["Objednávky","Orders"],["Žiadosti","Requests"],["Balíky","Packages"],["e-Recepty","e-Prescriptions"],["Platby","Payments"],["Transakcie","Transactions"],["Žiadosti o vrátenie","Refund requests"],["Výpisy","Statements"],["Žiadosti o platbu","Payment requests"],["Zdravotnícke zariadenie","Medical Facility"],["Profil zariadenia","Medical Facility profile"],["Nastavenia webu","Website settings"],["Oznamy pre pacientov","Announcements for patients"],["Obchod","Store"],["Vitálne údaje","Vital data"],["Zdravotný profil","Health profile"],["Stav","Status"],["Priemer","Average"],["Záznamy","Records"],["Manuálne","Manually"],["V norme","Normal"],["Zvýšené","Elevated"],["V norme / V norme","Normal / Normal"],["Krvný tlak","Blood pressure"],["Srdcová frekvencia","Heart rate"],["Glukóza","Glucose"],["Dychová frekvencia","Respiratory rate"],["Telesná teplota","Body temperature"],["Obvod pása","Waist circumference"],["BMI index","BMI Index"],["Hmotnosť","Weight"],["Výška","Height"],["v norme","normal"],["zvýšené riziko obezity","increased risk of obesity"],["vysoké riziko obezity","high risk of obesity"],["podváha","underweight"],["predobezita","pre-obesity"],["obezita I","obesity I"],["Behaviorálne údaje","Behavioral data"],["Kroky","Steps"],["Spánok","Sleep"],["Vitalita","Vitality"],["Stres","Stress"],["Saturácia kyslíkom","Oxygen saturation"],["Cieľ","Target"],["Nízky","Low"],["Všeobecná ambulancia","General practice"],["Univerzitná nemocnica akademika Ladislava Dérera, Neurologická klinika SZU","Dérer University Hospital, Neurology Clinic"],["Otvorené slučky (0)","Open loops (0)"],["Minimum pre podpis splnené (A+P)","Sign-off minimum met (A+P)"],["MUDr. Rybár","Dr. Rybar"],["MUDr. Hlavová","Dr. Hlavova"],["MUDr. Karas","Dr. Karas"],["Všeobecná ambulancia · MUDr. Novák","General practice · Dr. Novak"],
+["Kontrola DM + hypertenzia","DM + hypertension check-up"],["MUDr. Novák","Dr. Novak"],["MUDr. Rezník","Dr. Reznik"],["MUDr. Baláž","Dr. Balaz"],["MUDr. Horák","Dr. Horak"],["MUDr. Šimková","Dr. Simkova"],["Jane Carter · pacient","Jane Carter · patient"],["Podpísané","Signed"],["Domov","Home"],["Zoznam pacientov","Patient list"],["Komunikácia","Communications"],["Hromadné oznamy","Group notices"],["Kalendáre","Calendars"],["Online objednávky","Online appointments"],["Úprava objednávok","Edit appointments"],["Zoznam objednávok","List of appointments"],["Neprítomnosti","Absences"],["Ordinačné hodiny","Office hours"],["Zvýšený dopyt","Increased demand"],["Čakárne","Waiting areas"],["Zoznam návštev","List of visits"],["Objednávky","Orders"],["Žiadosti","Requests"],["Balíky","Packages"],["e-Recepty","e-Prescriptions"],["Platby","Payments"],["Transakcie","Transactions"],["Žiadosti o vrátenie","Refund requests"],["Výpisy","Statements"],["Žiadosti o platbu","Payment requests"],["Zdravotnícke zariadenie","Medical Facility"],["Profil zariadenia","Medical Facility profile"],["Nastavenia webu","Website settings"],["Oznamy pre pacientov","Announcements for patients"],["Obchod","Store"],["Vitálne údaje","Vital data"],["Zdravotný profil","Health profile"],["Stav","Status"],["Priemer","Average"],["Záznamy","Records"],["Manuálne","Manually"],["V norme","Normal"],["Zvýšené","Elevated"],["V norme / V norme","Normal / Normal"],["Krvný tlak","Blood pressure"],["Srdcová frekvencia","Heart rate"],["Glukóza","Glucose"],["Dychová frekvencia","Respiratory rate"],["Telesná teplota","Body temperature"],["Obvod pása","Waist circumference"],["BMI index","BMI Index"],["Hmotnosť","Weight"],["Výška","Height"],["v norme","normal"],["zvýšené riziko obezity","increased risk of obesity"],["vysoké riziko obezity","high risk of obesity"],["podváha","underweight"],["predobezita","pre-obesity"],["obezita I","obesity I"],["Behaviorálne údaje","Behavioral data"],["Kroky","Steps"],["Spánok","Sleep"],["Vitalita","Vitality"],["Stres","Stress"],["Saturácia kyslíkom","Oxygen saturation"],["Cieľ","Target"],["Nízky","Low"],["Osobné údaje","Personal data"],["Osobné údaje – detaily","Personal details"],["Pohlavie","Sex"],["Žena","Female"],["Rodné číslo","Birth no."],["Dátum narodenia","Date of birth"],["Vek","Age"],["Poistenie","Insurance"],["Poisťovňa","Insurance company"],["Číslo karty poistenca","Insurance card number"],["Ostatné","Others"],["Krvná skupina","Blood type"],["Fajčiar","Smoker"],["Nie","No"],["Rodinný stav","Marital status"],["Ženatý/vydatá","Married"],["Deti","Children"],["Adresa","Address"],["Ulica a č. domu","Street and house no."],["Mesto","City"],["PSČ","Zip code"],["Krajina","Country"],["Spojené štáty","United States"],["Kontakt","Contact"],["E-mail","E-mail"],["Tel. číslo","Tel. number"],["Všeobecná ambulancia","General practice"],["Univerzitná nemocnica akademika Ladislava Dérera, Neurologická klinika SZU","Dérer University Hospital, Neurology Clinic"],["Otvorené slučky (0)","Open loops (0)"],["Minimum pre podpis splnené (A+P)","Sign-off minimum met (A+P)"],["MUDr. Rybár","Dr. Rybar"],["MUDr. Hlavová","Dr. Hlavova"],["MUDr. Karas","Dr. Karas"],["Všeobecná ambulancia · MUDr. Novák","General practice · Dr. Novak"],
 ["Úprava dávkovania Metformínu na 2×1000 mg. TK 138/88 mmHg.","Metformin dose adjusted to 2×1000 mg. BP 138/88 mmHg."],
 ["Odber krvi — kompletný","Blood draw — complete"],["Laboratórium Alpha","Alpha Laboratory"],
 ["Prepúšťacia správa — Interné odd.","Discharge report — Internal med."],["Nemocnica sv. Michala","St. Michael Hospital"],
@@ -3033,6 +3041,20 @@ function renderBehavioral(){
     +'<div class="ptsub">Vitality</div>'+V.map(vRing).join('');
 }
 renderBehavioral();
+function renderPersonal(){
+  const el=document.getElementById('pt-personal'); if(!el)return;
+  const S=[
+   {h:'Personal details',rows:[['Sex','Female'],['Birth no.','76157 8787'],['Date of birth','12 Mar 1988'],['Age','38']]},
+   {h:'Insurance',rows:[['Insurance company','Florida Blue'],['Insurance card number','FB-4419772']]},
+   {h:'Others',rows:[['Blood type','A+'],['Smoker','No'],['Marital status','Married'],['Children','2']]},
+   {h:'Address',rows:[['Street and house no.','1200 NW 12th Ave'],['City','Miami'],['Zip code','33136'],['Country','United States']]},
+   {h:'Contact',rows:[['E-mail','jane.carter@email.com'],['Tel. number','+1 305 555 0142']]}
+  ];
+  el.innerHTML='<div class="pthead"><b>Personal data</b></div>'+S.map(s=>
+    '<div class="vcard"><div class="psh">'+s.h+'</div>'+s.rows.map(r=>'<div class="prow"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>').join('')+'</div>'
+  ).join('');
+}
+renderPersonal();
 
 /* default EN */
 setLang('en');
