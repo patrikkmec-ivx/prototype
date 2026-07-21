@@ -4,8 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v83 (zarovnanie a pozadie tagov)</title>
+<title>Hilbi Cockpit — v84 (K-26 encounter vrstvenie)</title>
 <!-- CHANGELOG
+v84 (2026-07-21): K-26 — encounter vrstvenie na osi (ENC-01..03, schválené UX:
+  dlaždica → vnorená mini-os → popup detailu). Session logika: prvá akcia otvorí
+  encounter, každá ďalšia (Rx, diagnóza, Record, Order, výsledok) sa pripája
+  automaticky. 1 udalosť = karta udalosti (degenerácia ENC-03); 2+ = súhrnná
+  dlaždica "GP vyšetrenie · Dr. Novak" s časovým rozsahom, agregovaným kľúčovým
+  riadkom (A; P · O), agregovanými SOAP chipmi, stavom Prebieha/Podpísané, počtom
+  udalostí a chevronom → rozbalí mini-os (.subaxis) s riadkami udalostí; klik na
+  riadok otvorí popup detailu (čas, autor, SOAP, plný obsah — pri Rx rozpis liekov
+  s dávkovaním). Podpis vyšetrenia uzavrie encounter (tag → Podpísané). Výsledok
+  orderu sa pripája do encounteru orderu (ENC-04). "Podpísať deň" → "Podpísať
+  vyšetrenie". Plánované follow-upy ostávajú samostatne v PLANNED.
+  NEW do Figmy: enccard/subaxis/subev, detail popup.
 v83 (2026-07-21): Tagy na QR obrazovke — návrh diagnózy zarovnaný vľavo ako ostatný
   obsah (odsadenie 42/38px zrušené aj pre chipy) a všetky tagy (návrhy dg +
   follow-up) dostali pozadie surface-1 (rovnaké ako blok Automatically upon
@@ -877,6 +889,19 @@ body[data-tab="comm"] .timeline{display:none}
 .rxsoap .catchips button,.rxsoap .fuchips button{background:var(--surface-1);border-color:transparent;color:var(--text-heading)}
 .rxsoap .catchips button.on{background:var(--brand-cyan-soft);color:var(--brand-teal-text)}
 .rxsoap .fuchips button.on{background:var(--accent-1-soft);border-color:var(--accent-1-strong);color:var(--accent-1-strong)}
+/* K-26 · encounter vrstvenie (ENC-01..03) — NEW, doplniť do Figmy */
+.subaxis{display:none;margin-top:10px;border-top:1px solid var(--border-default);padding-top:4px}
+.subaxis.on{display:block}
+.subev{display:flex;gap:9px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--border-default);cursor:pointer}
+.subev:last-child{border-bottom:none}
+.subev:hover b{color:var(--brand-teal-text)}
+.subev .tm2{font-size:11.5px;color:var(--text-subtle);width:40px;flex:none}
+.subev b{font-size:13px;font-weight:650;color:var(--text-heading);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46%}
+.subev .s2{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.evdrow{display:flex;gap:14px;padding:9px 0;border-bottom:1px dashed var(--border-default);font-size:13px}
+.evdrow:last-child{border-bottom:none}
+.evdrow span{width:64px;color:var(--text-subtle);flex:none}
+.evdrow b{color:var(--text-heading);font-weight:600}
 .rxsoap .recline{width:100%}
 .rxsoap .catchips button{padding:5px 10px;font-size:12px}
 .rxsoap .fuchips button{padding:5px 11px;font-size:12px}
@@ -1103,6 +1128,11 @@ body[data-tab="comm"] .timeline{display:none}
   .isbar h6{font-size:var(--t-meta)}
   .isbar .ift{font-size:var(--t-label)}
   .aggrow{font-size:var(--t-meta)}
+  /* K-26: mini-os na mobile */
+  .subev b{font-size:var(--t-body)}
+  .subev .s2{font-size:var(--t-meta)}
+  .subev .tm2{font-size:var(--t-label)}
+  .evdrow{font-size:var(--t-body)}
   /* M-18: VŠETKY sheety (Rx, Order, Record, Termín, Foto, Dekurz, Case) full-screen
      — uzatvára dlh M-06; vzor IQ modal/PHR sheet */
   .sheetwrap.open{align-items:stretch;justify-content:stretch}
@@ -1512,6 +1542,18 @@ body[data-tab="comm"] .timeline{display:none}
   </div>
 </div>
 
+<div class="sheetwrap" id="evdwrap"><div class="scrim" onclick="mClose('evdwrap')"></div>
+  <div class="sheet" style="width:440px">
+    <div class="sh-h"><span class="soap sA" id="evd_slotchip" style="width:26px;height:26px;font-size:13px">A</span><b id="evd_title">—</b><button class="x" onclick="mClose('evdwrap')" title="Zavrieť">✕</button></div>
+    <div class="sh-b">
+      <div class="evdrow"><span>Čas</span><b id="evd_time">—</b></div>
+      <div class="evdrow"><span>Autor</span><b id="evd_who">—</b></div>
+      <div class="evdrow"><span>Detail</span><b id="evd_body" style="white-space:pre-line">—</b></div>
+    </div>
+    <div class="sh-f"><button class="btn" onclick="mClose('evdwrap')">Zavrieť</button></div>
+  </div>
+</div>
+
 <div class="biowrap" id="biowrap">
   <div class="biobox" id="biobox">
     <div class="bioface" id="bioface">
@@ -1680,7 +1722,7 @@ body[data-tab="comm"] .timeline{display:none}
       <div class="genrow"><svg class="ico s14"><use href="#i-user"/></svg><span><b>Sumár pre pacienta</b><small>zrozumiteľný jazyk · app / tlač</small></span><button class="btn">Generovať</button></div>
       <div class="genrow"><svg class="ico s14"><use href="#i-dash"/></svg><span><b>Výkaz pre poisťovňu</b><small>projekcia výkonových udalostí · bodovník</small></span><button class="btn">Generovať</button></div>
     </div>
-    <div class="sh-f"><button class="btn" onclick="mClose('dkwrap')">Zavrieť</button><button class="btn primary" onclick="signDay()">Podpísať deň</button></div>
+    <div class="sh-f"><button class="btn" onclick="mClose('dkwrap')">Zavrieť</button><button class="btn primary" onclick="signDay()">Podpísať vyšetrenie</button></div>
   </div>
 </div>
 <div class="toast" id="toast"><svg class="ico s14" aria-hidden="true" style="stroke:var(--success)"><use href="#i-sok"/></svg><span>Zapísané do dekurzu</span></div>
@@ -1759,8 +1801,7 @@ function rxT(sk){return tt(sk)}
 function openRx(){RX={cart:[],edit:-1,done:false};document.getElementById('rxwrap').classList.add('open');document.getElementById('dockmenu').classList.remove('open');rxRender();setTimeout(()=>document.getElementById('rxq').focus(),50)}
 function openRxRepeat(){openRx();const d=DRUGS.find(x=>x.b==="Tecfidera 240");const it={d,sig:d.sig,dur:d.dur,warn:gateWarn(d),ack:false,recEdited:false};it.rec=iqRec(it);RX.cart=[it];rxRender()}
 function closeRx(){document.getElementById('rxwrap').classList.remove('open');
- if(lastRxCard){const c=lastRxCard.querySelector('.card');lastRxCard.scrollIntoView({behavior:'smooth',block:'center'});
-  c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),1900);lastRxCard=null;}}
+ if(ENC&&ENC.row){ENC.row.scrollIntoView({behavior:'smooth',block:'center'})}}
 function gateWarn(d){return PATIENT_ON.includes("warfarin")&&(d.fl.includes("nsaid")||d.fl.includes("antiplatelet"))}
 function qty(sig,dur){if(sig==="SOS")return dur;const p=String(sig).split('-').map(Number);const per=p.length&&p.every(n=>!isNaN(n))?p.reduce((a,b)=>a+b,0):1;return Math.max(1,per)*dur}
 /* K-02 — stabilná farba lieku podľa ATC skupiny (accent paleta DS).
@@ -1903,18 +1944,9 @@ function insertRxCard(){
  const names=RX.cart.map(i=>i.d.b);
  const title=names.length>1?rxT('Preskripcia')+' — '+names.length+' '+rxT('liekov'):rxT('Preskripcia')+' — '+names[0];
  const now=new Date();const tm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
- const chips=RX.cart.map(it=>`<span class="tag clin t-${drugAcc(it.d)}">${escT(it.d.b)}</span>`).join('');
- const row=document.createElement('div');row.className='trow';row.dataset.type='visit';
- row.innerHTML=`<div class="spine"><button class="tico" data-f="visit"><svg class="ico s14"><use href="#i-syr"/></svg></button><div class="line"></div></div>
- <div class="card"><div class="body"><div class="pav ph doc1">N<span class="vb">＋</span></div><div class="cmain">
- <div class="l1"><b>${title}</b><span class="dt"><span class="sdot d-ok"></span><svg class="ico sok"><use href="#i-sok"/></svg>17.07 · ${tm}</span></div>
- <div class="l2">${rxT('vydaný eRecept · kód pacientovi')}</div>
- <div class="crow"><span class="soap sP" title="SOAP · Plán">P</span><span class="tag">${rxT('Ukončené')}</span>${chips}</div>
- </div></div></div>`;
- const t=document.querySelector('.today');t.parentNode.insertBefore(row,t.nextSibling);
- lastRxCard=row;
+ const detail=RX.cart.map(it=>it.d.b+' '+it.d.st+' · '+it.sig+' · '+it.dur+' d').join('\n');
+ encEvent({slot:'P',icon:'i-syr',title,sub:rxT('vydaný eRecept · kód pacientovi'),who:rxT('lekár'),time:tm,detail});
  dekAddEv('P',rxT('eRecept vydaný')+' — '+names.join(', '),rxT('lekár'));
- if(LANG==='en')swapText(SK2EN);
 }
 document.getElementById('rxq').addEventListener('input',renderRes);
 document.getElementById('rxq').addEventListener('keydown',e=>{
@@ -1953,14 +1985,7 @@ function saveRec(){mClose('recwrap');showToast();
   const title=isVit?'Záznam — vitálne funkcie':(note?escT(note):'Poznámka');
   const l2=isVit?'TK 138/88 · pulz 72 · 82 kg':'zápis do dekurzu';
   const icon=recSlot==='O'?'i-act':'i-pen';
-  const r=mkRow(`<div class="spine"><button class="tico" data-f="mon"><svg class="ico s14"><use href="#${icon}"/></svg></button><div class="line"></div></div>
-  <div class="card"><div class="body"><div class="pav ph doc1">N<span class="vb">＋</span></div><div class="cmain">
-  <div class="l1"><b>${title}</b><span class="dt"><span class="sdot d-ok"></span><svg class="ico sok"><use href="#i-sok"/></svg>17.07 · ${tm}</span></div>
-  <div class="l2">${l2}</div>
-  <div class="crow"><span class="soap s${recSlot}" title="${SOAPTITLE[recSlot]}">${recSlot}</span><span class="tag">Ukončené</span></div></div></div></div>`,'mon');
-  const t=document.querySelector('.today');t.parentNode.insertBefore(r,t.nextSibling);
-  const c=r.querySelector('.card');c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),1900);
-  r.scrollIntoView({behavior:'smooth',block:'center'});
+  encEvent({slot:recSlot,icon,title:isVit?tt('Záznam — vitálne funkcie'):(note||tt('Poznámka')),sub:l2,who:tt('lekár'),time:tm,detail:isVit?'TK 138/88 · pulz 72 · 82 kg':note});
   dekAddEv(recSlot,isVit?'TK 138/88 · pulz 72 · 82 kg':(note||'Poznámka'),'lekár');
   document.getElementById('recnote').value='';
   if(LANG==='en')swapText(SK2EN);}
@@ -2001,17 +2026,9 @@ function saveOrd(){
   const catN=ordC==='rad'?'Radiology':'Labs';
   const ind=(document.getElementById('ordind').value||'').trim();
   const now=new Date();const tm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  const chips=items.map(n=>`<span class="tag clin t-a2">${escT(n)}</span>`).join('');
-  const r=mkRow(`<div class="spine"><button class="tico" data-f="doc"><svg class="ico s14"><use href="#i-flask"/></svg></button><div class="line"></div></div>
-  <div class="card"><div class="body"><div class="pav ph doc1">N<span class="vb">＋</span></div><div class="cmain">
-  <div class="l1"><b>Order — ${catN}</b><span class="dt"><span class="sdot d-plan"></span><svg class="ico sok"><use href="#i-sok"/></svg>17.07 · ${tm}</span></div>
-  <div class="l2">${escT(items.join(' · '))}${ind?' · '+escT(ind):''}</div>
-  <div class="crow"><span class="soap sP" title="${SOAPTITLE.P}">P</span><span class="tag st-pend">${tt('Čaká na výsledok')}</span>${chips}</div></div></div></div>`,'doc');
-  const t=document.querySelector('.today');t.parentNode.insertBefore(r,t.nextSibling);
-  const c=r.querySelector('.card');c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),1900);
-  r.scrollIntoView({behavior:'smooth',block:'center'});
+  encEvent({slot:'P',icon:'i-flask',title:'Order — '+catN,sub:items.join(' · ')+(ind?' · '+ind:'')+' · '+tt('Čaká na výsledok'),who:tt('lekár'),time:tm,detail:items.join(', ')+(ind?'\n'+tt('Indikácia')+': '+ind:'')});
   dekAddEv('P','Order '+catN+': '+items.join(', '),tt('lekár'));
-  addPend(catN,items,r);
+  addPend(catN,items,null);
   document.querySelectorAll('#ordcatalog button').forEach(b=>b.classList.remove('on'));
   document.getElementById('ordind').value='';
   showToast('Order odoslaný · čaká na výsledok');
@@ -2027,17 +2044,9 @@ function addPend(catN,items,cardRow){
 }
 function resolvePend(id){
   const row=document.getElementById(id);if(!row)return;
-  const items=row._items,catN=row._cat,cardRow=row._card;
-  const tag=cardRow&&cardRow.querySelector('.tag.st-pend');
-  if(tag){tag.classList.remove('st-pend');tag.textContent=tt('Ukončené')}
+  const items=row._items,catN=row._cat;
   const now=new Date();const tm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  const r=mkRow(`<div class="spine"><button class="tico" data-f="doc"><svg class="ico s14"><use href="#i-act"/></svg></button><div class="line"></div></div>
-  <div class="card"><div class="body"><div class="pav ph doc1">N<span class="vb">＋</span></div><div class="cmain">
-  <div class="l1"><b>${tt('Výsledok')} — ${escT(items[0])}${items.length>1?' +'+(items.length-1):''}</b><span class="dt"><span class="sdot d-ok"></span><svg class="ico sok"><use href="#i-sok"/></svg>17.07 · ${tm}</span></div>
-  <div class="l2">${escT(catN)} · ${tt('výsledok prijatý — zapísaný ako O')}</div>
-  <div class="crow"><span class="soap sO" title="${SOAPTITLE.O}">O</span><span class="tag">${tt('Ukončené')}</span></div></div></div></div>`,'doc');
-  const t=document.querySelector('.today');t.parentNode.insertBefore(r,t.nextSibling);
-  const c=r.querySelector('.card');c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),1900);
+  encEvent({slot:'O',icon:'i-act',title:tt('Výsledok')+' — '+items[0]+(items.length>1?' +'+(items.length-1):''),sub:catN+' · '+tt('výsledok prijatý — zapísaný ako O'),who:catN==='Labs'?tt('Laboratórium Alpha'):tt('Rádiológia'),time:tm,detail:items.join(', ')});
   dekAddEv('O',tt('Výsledok')+' '+catN+': '+items.join(', '),catN==='Labs'?tt('Laboratórium Alpha'):tt('Rádiológia'));
   row.remove();updPendCount();
   showToast('Výsledok zapísaný · O');
@@ -2081,18 +2090,64 @@ function finishRx(){
   const v=(document.getElementById('rxdg').value||'').trim();
   if(v){
     const now=new Date();const tm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-    const r=mkRow(`<div class="spine"><button class="tico" data-f="mon"><svg class="ico s14"><use href="#i-pen"/></svg></button><div class="line"></div></div>
-    <div class="card"><div class="body"><div class="pav ph doc1">N<span class="vb">＋</span></div><div class="cmain">
-    <div class="l1"><b>${escT(v)}</b><span class="dt"><span class="sdot d-ok"></span><svg class="ico sok"><use href="#i-sok"/></svg>17.07 · ${tm}</span></div>
-    <div class="l2">${tt('zápis do dekurzu')}</div>
-    <div class="crow"><span class="soap sA" title="${SOAPTITLE.A}">A</span><span class="tag">${tt('Ukončené')}</span></div></div></div></div>`,'mon');
-    const t=document.querySelector('.today');t.parentNode.insertBefore(r,t.nextSibling);
-    const c=r.querySelector('.card');c.classList.add('flash');setTimeout(()=>c.classList.remove('flash'),1900);
+    encEvent({slot:'A',icon:'i-steth',title:v,sub:tt('zápis do dekurzu'),who:tt('lekár'),time:tm,detail:v});
     dekAddEv('A',v,tt('lekár'));
-    if(LANG==='en')swapText(SK2EN);
   }
   closeRx();
   showToast(v?'Zapísané: Rx (P) + diagnóza (A)':undefined);
+}
+/* K-26: encounter vrstvenie (ENC-01..03) — session skupina, mini-os, detail popup */
+let ENC=null;
+function encEvent(o){if(!ENC)ENC={events:[],row:null,open:true,signed:false};ENC.events.push(o);renderEnc(true);}
+function encAggKey(){
+ const g=s=>ENC.events.filter(e=>e.slot===s).map(e=>e.title);
+ const A=g('A'),P=g('P'),O=g('O'),S=g('S');const parts=[];
+ if(A.length)parts.push(A.join('; '));
+ if(P.length)parts.push(P.join(' · '));
+ if(O.length)parts.push(O.join(' · '));
+ if(S.length&&!A.length)parts.push(S.join(' · '));
+ return parts.join(' — ');
+}
+function renderEnc(flash){
+ if(!ENC||!ENC.events.length)return;
+ const old=ENC.row;const n=ENC.events.length;
+ const first=ENC.events[0],last=ENC.events[n-1];
+ const row=document.createElement('div');row.className='trow';row.dataset.type='visit';
+ if(n===1){
+  const e=first;
+  row.innerHTML=`<div class="spine"><button class="tico" data-f="visit"><svg class="ico s14"><use href="#${e.icon||'i-pen'}"/></svg></button><div class="line"></div></div>
+  <div class="card"><div class="body"><div class="pav ph doc1">N<span class="vb">＋</span></div><div class="cmain">
+  <div class="l1"><b>${escT(e.title)}</b><span class="dt"><span class="sdot d-ok"></span><svg class="ico sok"><use href="#i-sok"/></svg>17.07 · ${e.time}</span></div>
+  <div class="l2">${escT(e.sub||'')}</div>
+  <div class="crow"><span class="soap s${e.slot}" title="${SOAPTITLE[e.slot]}">${e.slot}</span><span class="tag">${tt('Ukončené')}</span></div></div></div></div>`;
+ }else{
+  const slots=[...new Set(ENC.events.map(e=>e.slot))];
+  const chips=slots.map(s=>`<span class="soap s${s}" title="${SOAPTITLE[s]}">${s}</span>`).join('');
+  const subs=ENC.events.map((e,i)=>`<div class="subev" onclick="evDetail(${i})"><span class="tm2">${e.time}</span><span class="soap s${e.slot}" title="${SOAPTITLE[e.slot]}">${e.slot}</span><b>${escT(e.title)}</b><span class="s2">${escT(e.sub||'')}</span></div>`).join('');
+  row.innerHTML=`<div class="spine"><button class="tico" data-f="visit"><svg class="ico s14"><use href="#i-steth"/></svg></button><div class="line"></div></div>
+  <div class="card enccard"><div class="body"><div class="pav ph doc1">N<span class="vb">＋</span></div><div class="cmain">
+  <div class="l1"><b>${tt('GP vyšetrenie')} · Dr. Novak</b><span class="dt"><span class="sdot ${ENC.signed?'d-ok':'d-plan'}"></span><svg class="ico sok"><use href="#i-sok"/></svg>${first.time} – ${last.time}</span></div>
+  <div class="l2">${escT(encAggKey())}</div>
+  <div class="crow">${chips}<span class="tag${ENC.signed?'':' st-plan'}">${ENC.signed?tt('Podpísané'):tt('Prebieha')}</span><span class="tag">${n} ${tt('udalostí')}</span><button class="cv${ENC.open?' open':''}" onclick="encToggle(event)" title="${tt('Rozbaliť')}"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button></div>
+  <div class="subaxis${ENC.open?' on':''}">${subs}</div>
+  </div></div></div>`;
+ }
+ const t=document.querySelector('.today');
+ if(old)old.remove();
+ t.parentNode.insertBefore(row,t.nextSibling);
+ ENC.row=row;
+ if(flash){const cc=row.querySelector('.card');cc.classList.add('flash');setTimeout(()=>cc.classList.remove('flash'),1600);row.scrollIntoView({behavior:'smooth',block:'center'});}
+ if(LANG==='en')swapText(SK2EN);
+}
+function encToggle(ev){ev.stopPropagation();ENC.open=!ENC.open;renderEnc(false);}
+function evDetail(i){
+ const e=ENC.events[i];if(!e)return;
+ document.getElementById('evd_title').textContent=e.title;
+ const sc=document.getElementById('evd_slotchip');sc.className='soap s'+e.slot;sc.textContent=e.slot;sc.title=SOAPTITLE[e.slot];sc.style.cssText='width:26px;height:26px;font-size:13px';
+ document.getElementById('evd_time').textContent='17.07 · '+e.time;
+ document.getElementById('evd_who').textContent=e.who||'—';
+ document.getElementById('evd_body').textContent=e.detail||e.sub||'—';
+ mOpen('evdwrap');
 }
 /* K-21: case vrstva (CASE-01..04) — prehľad epizódy, handoffy, agregovaný účet */
 function caTab(i,btn){
@@ -2230,11 +2285,12 @@ function finalizeSign(){
   const hdr=document.querySelector('#dkwrap .sh-h .tag');
   if(hdr){hdr.classList.remove('st-ver');hdr.innerHTML='✓ '+tt('podpísané')+' · Dr. Novak · '+tm;hdr.style.color='var(--success)'}
   renderOut();dTab(2,document.querySelectorAll('.dtabs button')[2]);
+  if(ENC){ENC.signed=true;renderEnc(false)}
   showToast(MKT[MKTC].tpl==='slip'?'Podpísané · Rx slip pripravený':'Podpísané · správa pripravená');
 }
 document.addEventListener('keydown',e=>{
   const open=id=>document.getElementById(id).classList.contains('open');
-  if(e.key==='Escape'){['recwrap','aptwrap','fotwrap','dkwrap','ordwrap','casewrap'].forEach(id=>{if(open(id))mClose(id)});}
+  if(e.key==='Escape'){['recwrap','aptwrap','fotwrap','dkwrap','ordwrap','casewrap','evdwrap'].forEach(id=>{if(open(id))mClose(id)});}
   if(e.key==='Enter'&&!e.target.matches('textarea')){
     if(open('recwrap')){saveRec();e.preventDefault()}
     else if(open('aptwrap')){saveApt();e.preventDefault()}
@@ -2449,7 +2505,7 @@ const I18N=[
 ["Potvrdenie","Certificate"],["pre pacienta / zamestnávateľa","for patient / employer"],
 ["Sumár pre pacienta","Patient summary"],["zrozumiteľný jazyk · app / tlač","plain language · app / print"],
 ["projekcia výkonových udalostí · bodovník","projection of procedure events · fee schedule"],
-["Zavrieť","Close"],["Podpísať deň","Sign the day"],["Dekurz podpísaný","Progress note signed"],
+["Zavrieť","Close"],["Podpísať deň","Sign the day"],["Podpísať vyšetrenie","Sign the encounter"],["GP vyšetrenie","GP examination"],["Prebieha","In progress"],["udalostí","events"],["Rozbaliť","Expand"],["Čas","Time"],["Autor","Author"],["Detail","Detail"],["Indikácia","Indication"],["Záznam — vitálne funkcie","Record — vital signs"],["Poznámka","Note"],["Dekurz podpísaný","Progress note signed"],
 ["Záznam — vitálne funkcie","Record — vital signs"],["TK 138/88 · pulz 72 · 82 kg","BP 138/88 · pulse 72 · 82 kg"],
 ["Kontrola — všeobecná ambulancia","Follow-up — general practice"],
 ["Preskripcia — Tecfidera 240 mg","Prescription — Tecfidera 240 mg"],
