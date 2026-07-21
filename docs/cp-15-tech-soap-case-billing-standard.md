@@ -1,7 +1,7 @@
 ---
 doc_id: TBD (priradiť podľa gsr-13)
 title: "SOAP jadro, case vrstva a billing derivácia — kokpit"
-version: 1.2-draft
+version: 1.3-draft
 date: 2026-07-20
 authority: "navrhol: Patrik (CEO) · schvaľuje: Roman (CBO) · aplikuje: Dominika/Viktor · kontroluje: Marek"
 type: normative
@@ -43,10 +43,11 @@ nie dátovým modelom.
 
 ## 2b. Normatívne pravidlá — encounter vrstvenie na časovej osi
 
-- **ENC-01** Časová os zobrazuje defaultne granularitu encounteru; atomické udalosti sa vrstvia pod ním (dlaždica → vnorená mini-os → detail).
+- **ENC-01** Časová os zobrazuje defaultne granularitu encounteru; atomické udalosti sa vrstvia pod ním ako SAMOSTATNÉ REDUKOVANÉ KARTY na vnorenej osi (dlaždica → mini-os s kartami → detail). Rovnaký vizuálny jazyk karty na každej úrovni, len menší.
 - **ENC-02** Prvá akcia nad pacientom otvorí encounter; každá ďalšia akcia v seanse sa pripája automaticky. Podpis encounter uzatvára. Zoskupenie je vedľajší produkt práce, nikdy krok navyše.
 - **ENC-03** Encounter s jednou udalosťou sa renderuje ako samotná udalosť (degenerácia — indický Rx-only zápis ostáva jednou kartou).
 - **ENC-04** Asynchrónny výsledok orderu sa pripája k encounteru, z ktorého order vyšiel; slučka sa uzatvára dovnútra skupiny.
+- **ENC-06** Collapse pravidlá dlaždice: počas práce (Prebieha) rozbalená; podpis ju automaticky zbalí na čistý súhrn; historické encountery default zbalené; chevron prepína kedykoľvek.
 - **ENC-05** Typ/názov encounteru sa derivuje z odbornosti lekára (GP vyšetrenie, Ortopedické vyšetrenie…), je editovateľný. Súhrnná dlaždica agreguje kľúčové info čiastkových úkonov (A; P · O) + SOAP chipy + stav + počet.
 
 ## 3. Normatívne pravidlá — billing derivácia
