@@ -4,8 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v87 (sumárna dlaždica zvlášť)</title>
+<title>Hilbi Cockpit — v88 (fix collapse + border len na sumár)</title>
 <!-- CHANGELOG
+v88 (2026-07-21): Fix podľa Patrikovej pripomienky: 1) DEFAULT ZBALENÉ — encounter
+  sa počas práce vytvára zbalený (open:false), rozbalí sa klikom na dlaždicu alebo
+  šípku; 2) chevron šípka zvýraznená (26px dlaždica so surface-1 pozadím, 16px ikona)
+  — už nezaniká medzi tagmi; 3) mini-karty (.subcard) BEZ vlastného borderu (len
+  surface-1 pozadie + sub-spine bodky) — border tak ostáva LEN okolo sumárnej
+  dlaždice, nie okolo celého bloku. Vnorená os je vizuálne jednoznačne podriadená.
 v87 (2026-07-21): Rozdelenie na samostatné komponenty (Patrikova skica): sumárna
   dlaždica encounteru je VLASTNÁ karta a vnorená os s mini-kartami je SAMOSTATNÝ
   blok POD ňou (mimo borderu dlaždice), spolu v .encblock. Collapse: klik na CELÚ
@@ -755,8 +761,9 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
 .cartit .t{display:flex;gap:10px;align-items:center}
 .cartit b{font-size:15.5px;font-weight:800;color:var(--text-heading)}
 .cartit i{font-style:normal;font-size:12px;color:var(--text-muted)}
-.cartit .cv{margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;padding:2px;flex:none}
-.cartit .cv svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
+.cartit .cv{margin-left:auto;background:var(--surface-1);border:none;color:var(--text-heading);cursor:pointer;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;flex:none}
+.cv:hover{background:var(--surface-2)}
+.cartit .cv svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
 .cartit .cv.open svg{transform:rotate(180deg)}
 .cartit .rm{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;flex:none}
 .recbox{margin:8px 0 2px}
@@ -919,13 +926,13 @@ body[data-tab="comm"] .timeline{display:none}
 .subaxis.on{display:flex;flex-direction:column;gap:8px;position:relative;animation:subin .18s ease}
 @keyframes subin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 .subaxis.on::before{content:'';position:absolute;left:8px;top:18px;bottom:14px;width:2px;background:var(--border-strong);border-radius:2px}
-.subcard{position:relative;display:flex;gap:10px;align-items:flex-start;border:1px solid var(--border-default);border-radius:10px;background:var(--surface-white);padding:9px 12px;cursor:pointer;margin-left:20px}
+.subcard{position:relative;display:flex;gap:10px;align-items:flex-start;border-radius:10px;background:var(--surface-1);padding:9px 12px;cursor:pointer;margin-left:20px}
 .subcard::before{content:'';position:absolute;left:-17.5px;top:13px;width:8px;height:8px;border-radius:50%;background:var(--border-strong)}
 .subcard.sS::before{background:var(--accent-2-strong)}
 .subcard.sO::before{background:var(--accent-8-strong)}
 .subcard.sA::before{background:var(--accent-7-strong)}
 .subcard.sP::before{background:var(--accent-1-strong)}
-.subcard:hover{border-color:var(--brand-teal)}
+.subcard:hover{background:var(--surface-2)}
 .subcard .soap{width:18px;height:18px;font-size:10px;flex:none;margin-top:1px}
 .subcard .sc-main{flex:1;min-width:0;display:block}
 .subcard .sc-t{display:flex;gap:8px;align-items:baseline}
@@ -2140,7 +2147,7 @@ function finishRx(){
 }
 /* K-26: encounter vrstvenie (ENC-01..03) — session skupina, mini-os, detail popup */
 let ENC=null;
-function encEvent(o){if(!ENC)ENC={events:[],row:null,open:true,signed:false};ENC.events.push(o);renderEnc(true);}
+function encEvent(o){if(!ENC)ENC={events:[],row:null,open:false,signed:false};ENC.events.push(o);renderEnc(true);}
 function encAggKey(){
  const g=s=>ENC.events.filter(e=>e.slot===s).map(e=>e.title);
  const A=g('A'),P=g('P'),O=g('O'),S=g('S');const parts=[];
