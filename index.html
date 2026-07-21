@@ -4,8 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v95 (profil 2 riadky + gear, dock cleanup)</title>
+<title>Hilbi Cockpit — v96 (profil bez hamburgeru, org switch FN/DFN)</title>
 <!-- CHANGELOG
+v96 (2026-07-21): 1) Profil lekára dole — odstránená hamburger (menu) ikona; ostáva
+  avatar + meno 2 riadky + settings gear vpravo. Pri ZBALENÍ menu: avatar a pod ním
+  ozubené koliesko (stĺpec). 2) Prepínanie poskytovateľa opravené na správne
+  nemocnice: Miami General Hospital / Fakultná nemocnica Trnava (SK, zelené logo FN)
+  / DFN Hospital (SK, fialové logo DF) — s logami a gradientmi; pickOrg funguje.
 v95 (2026-07-21): 1) Profil lekára dole prestavaný: menu ikona vľavo, avatar, meno
   do DVOCH riadkov ("Dr. E. / Rodriguez"), vedľa neho settings ikona (ozubené
   koliesko). Pri zbalení: menu ikona vľavo + malé ozubené koliesko vpravo, meno
@@ -491,6 +496,8 @@ button{font-family:inherit}
 .odlogo.mg{background:linear-gradient(135deg,#1C93AC,#2E5FB5)}
 .odlogo.em{background:linear-gradient(135deg,#2E5FB5,#22346E)}
 .odlogo.ah{background:linear-gradient(135deg,#C6603C,#8A3A2A)}
+.odlogo.fn{background:linear-gradient(135deg,#2E7D5B,#1C5B3E)}
+.odlogo.df{background:linear-gradient(135deg,#7B4FA8,#4A2E6E)}
 .odtxt{display:flex;flex-direction:column;gap:1px;min-width:0}
 .odtxt b{font-size:13px;color:#E6EAF5;font-weight:600}
 .odtxt small{font-size:11px;color:#8891AE}
@@ -521,9 +528,9 @@ body[data-nav="min"] .nav a .nic{width:18px;height:18px}
 body[data-nav="min"] .nav .mark{display:none}
 body[data-nav="min"] .nav .menm{display:none}
 body[data-nav="min"] .menm{display:none}
-body[data-nav="min"] .me{gap:6px;flex-wrap:nowrap}
+body[data-nav="min"] .me{flex-direction:column;gap:8px}
 body[data-nav="min"] .navset{padding:2px}
-body[data-nav="min"] .navset svg{width:14px;height:14px}
+body[data-nav="min"] .navset svg{width:18px;height:18px}
 body[data-nav="min"] .nav .me{justify-content:center}
 .navcol{background:none!important;border:none!important;box-shadow:none!important;color:var(--text-subtle);cursor:pointer;padding:4px;display:flex;align-items:center}
 .org{position:relative}
@@ -1350,8 +1357,8 @@ body[data-tab="comm"] .timeline{display:none}
     </div>
     <div class="orgdrop" id="orgdrop">
       <button onclick="pickOrg('Miami General Hospital','Florida · US','MG',this)"><span class="odlogo mg">MG</span><span class="odtxt"><b>Miami General Hospital</b><small>Florida · US</small></span></button>
-      <button onclick="pickOrg('ExpertMed Clinic','Bratislava · SK','EM',this)"><span class="odlogo em">EM</span><span class="odtxt"><b>ExpertMed Clinic</b><small>Bratislava · SK</small></span></button>
-      <button onclick="pickOrg('Apollo Hospitals','Chennai · IN','AH',this)"><span class="odlogo ah">AH</span><span class="odtxt"><b>Apollo Hospitals</b><small>Chennai · IN</small></span></button>
+      <button onclick="pickOrg('Fakultná nemocnica Trnava','Trnava · SK','FN',this)"><span class="odlogo fn">FN</span><span class="odtxt"><b>Fakultná nemocnica Trnava</b><small>Trnava · SK</small></span></button>
+      <button onclick="pickOrg('DFN Hospital','Bratislava · SK','DF',this)"><span class="odlogo df">DF</span><span class="odtxt"><b>DFN Hospital</b><small>Bratislava · SK</small></span></button>
     </div>
     <button class="navcollapse" id="navToggleTop" title="Hide menu" aria-label="Hide menu"><span class="cvico"><svg width="14" height="8" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="lb">Hide menu</span></button>
     <a href="#"><svg class="ico s14 nic" aria-hidden="true"><use href="#i-dash"/></svg>Overview</a>
@@ -1366,17 +1373,10 @@ body[data-tab="comm"] .timeline{display:none}
       <path fill-rule="evenodd" clip-rule="evenodd" d="M84.7832 0H85.1613H87.7767C112.936 0.842472 136.428 12.7215 151.936 32.4423C167.444 52.1632 173.376 77.7012 168.135 102.189C163.845 121.376 164.278 141.31 169.396 160.296L169.995 162.474L164.118 161.565C145.717 158.826 126.935 160.186 109.127 165.545C92.0954 170.458 73.9676 170.124 57.1302 164.59C31.3229 156.305 11.322 135.838 3.73105 109.946C-13.16 52.4813 29.6507 0.125366 84.7832 0ZM63.1331 145.926C70.1945 148.198 77.5661 149.371 84.9878 149.405C91.2547 149.41 97.4899 148.518 103.502 146.756C117.212 142.66 131.445 140.549 145.761 140.488H145.918C144.801 126.28 145.762 111.986 148.771 98.0518C149.859 92.9494 150.335 87.7361 150.189 82.5221C149.153 48.2999 121.568 20.7623 87.1622 19.6041H85.0033C64.4205 19.5267 45.0259 29.1828 32.7545 45.6175C20.2438 62.2441 16.5882 83.6659 22.686 104.445C28.3901 124.104 43.5517 139.652 63.1331 145.926ZM50.2684 76.7105C47.9603 76.7105 45.7467 77.6228 44.1156 79.2469C42.4828 80.8693 41.5651 83.0707 41.5651 85.3664C41.5651 87.6617 42.4828 89.8631 44.1156 91.4858L79.4576 126.635C82.8556 130.015 88.3652 130.015 91.7635 126.635C95.1615 123.256 95.1615 117.776 91.7635 114.396L56.4212 79.2469C54.79 77.6228 52.5765 76.7105 50.2684 76.7105ZM81.0644 42.5147C82.6956 40.8906 84.9091 39.9783 87.2172 39.9783C89.5253 39.9783 91.7389 40.8906 93.3704 42.5147L128.697 77.6485C132.095 81.0281 132.095 86.5074 128.697 89.8871C125.298 93.2668 119.789 93.2668 116.391 89.8871L81.0644 54.7533C79.4316 53.1309 78.5139 50.9295 78.5139 48.6338C78.5139 46.3385 79.4316 44.1371 81.0644 42.5147ZM90.7651 77.5714C87.5089 76.2302 83.7611 76.9718 81.269 79.4507C79.6197 81.0673 78.6912 83.2745 78.6912 85.5779C78.6912 87.8811 79.6197 90.0882 81.269 91.7049C83.7611 94.1838 87.5089 94.9253 90.7651 93.5842C94.0213 92.243 96.1444 89.083 96.1444 85.5779C96.1444 82.0725 94.0213 78.9126 90.7651 77.5714Z" fill="#F5FEFF" fill-opacity="0.05"/>
     </svg>
     <div class="me">
-      <button class="navcol" id="navToggle" title="Menu" aria-label="Menu"><svg class="ico s18" aria-hidden="true"><use href="#i-menu"/></svg></button>
       <div class="av" style="background:url(data:image/jpeg;base64,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) center/cover;font-size:0">ER</div>
       <div class="menm"><b>Dr. E.<br>Rodriguez</b></div>
       <button class="navset" title="Nastavenia" aria-label="Nastavenia"><svg class="ico s18" aria-hidden="true"><use href="#i-gear"/></svg></button>
     </div>
-  </nav>
-
-  <main class="center">
-    <header class="phead">
-      <div class="prow">
-      <div class="av"></div>
       <div class="who">
         <div class="nrow">
           <h1>Jane Carter</h1>
@@ -2489,13 +2489,13 @@ function pickOrg(name,loc,code,btn){
   document.getElementById('orgLoc').textContent=loc;
   document.getElementById('orgLogo').textContent=code;
   const lg=document.getElementById('orgLogo');
-  const grad={MG:'linear-gradient(135deg,#1C93AC,#2E5FB5)',EM:'linear-gradient(135deg,#2E5FB5,#22346E)',AH:'linear-gradient(135deg,#C6603C,#8A3A2A)'};
+  const grad={MG:'linear-gradient(135deg,#1C93AC,#2E5FB5)',FN:'linear-gradient(135deg,#2E7D5B,#1C5B3E)',DF:'linear-gradient(135deg,#7B4FA8,#4A2E6E)'};
   lg.style.background=grad[code]||grad.MG;
   document.getElementById('orgdrop').classList.remove('on');
   showToast((LANG==='en'?'Facility switched — ':'Zariadenie prepnuté — ')+name);
 }
 document.addEventListener('click',e=>{const d=document.getElementById('orgdrop');if(d&&d.classList.contains('on')&&!e.target.closest('.org')&&!e.target.closest('#orgdrop'))d.classList.remove('on');});
-document.getElementById('navToggle').onclick=navFlip;
+
 document.getElementById('navToggleTop').onclick=navFlip;
 document.getElementById('phrToggle').onclick=()=>{b.dataset.phr='min'};
 document.querySelectorAll('#phrExpand button').forEach((btn,i)=>btn.addEventListener('click',()=>{
