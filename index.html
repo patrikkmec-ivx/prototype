@@ -4,8 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v77 (UX úprava QR obrazovky)</title>
+<title>Hilbi Cockpit — v78 (farebná škála typov záznamov)</title>
 <!-- CHANGELOG
+v78 (2026-07-21): Farebná škála typov záznamov (NEW — doplniť do Figmy), štýl =
+  hlavička Prescription (soft pozadie + ikona v strong farbe):
+  preskripcia = a1 teal · diagnóza/popis = a7 amber (i-steth) · follow-up/termín =
+  a2 blue (i-cal) · order = a4 purple (i-flask) · záznam/poznámka = a8 green (i-pen) ·
+  dokument/správa = a5 pink · epizóda/case = a3 indigo (i-layers).
+  QR obrazovka: sekčné dlaždice cez novú samostatnú triedu .rxic (fix — .hic sa tam
+  nevykresľovala korektne), diagnóza dostala ikonu stetoskopu namiesto pera.
+  Škála aplikovaná aj na hlavičky modalov: Zaznamenať (green), Order (purple),
+  Termín (blue), Odfotiť dokument (pink), Prípad (indigo). Preskripcia a Dekurz
+  ostávajú v core teal.
 v77 (2026-07-21): UX úprava súhrnnej (QR) obrazovky Rx. SOAP completeness riadok
   z tejto obrazovky ODSTRÁNENÝ (v dekurze ostáva). Sekcie "Diagnóza / popis" a
   "Follow-up" dostali sekčné hlavičky v štýle hlavičky modalu Prescription: ikonová
@@ -827,6 +837,18 @@ body[data-tab="comm"] .timeline{display:none}
 .rxsh .hic{width:30px;height:30px;border-radius:9px}
 .rxsh .hic .ico{width:14px;height:14px}
 .rxsh b{font-size:15px;font-weight:800;color:var(--text-heading)}
+/* v78 · farebná škála typov záznamov — NEW, doplniť do Figmy
+   preskripcia=a1 teal · diagnóza=a7 amber · follow-up=a2 blue · order=a4 purple
+   záznam/poznámka=a8 green · dokument/správa=a5 pink · epizóda/case=a3 indigo */
+.rxic{flex:none;width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center}
+.rxic .ico{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.rxic.c-rx,.hic.c-rx{background:var(--accent-1-soft);color:var(--accent-1-strong)}
+.rxic.c-dg,.hic.c-dg{background:var(--accent-7-soft);color:var(--accent-7-strong)}
+.rxic.c-fu,.hic.c-fu{background:var(--accent-2-soft);color:var(--accent-2-strong)}
+.rxic.c-ord,.hic.c-ord{background:var(--accent-4-soft);color:var(--accent-4-strong)}
+.rxic.c-note,.hic.c-note{background:var(--accent-8-soft);color:var(--accent-8-strong)}
+.rxic.c-doc,.hic.c-doc{background:var(--accent-5-soft);color:var(--accent-5-strong)}
+.rxic.c-case,.hic.c-case{background:var(--accent-3-soft);color:var(--accent-3-strong)}
 /* K-21 · case vrstva (EpisodeOfCare) — NEW, doplniť do Figmy */
 .epband{flex:1;border:1px solid var(--accent-3-strong);background:var(--accent-3-soft);border-radius:12px;padding:11px 14px;cursor:pointer}
 .epband .eph{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
@@ -1407,10 +1429,10 @@ body[data-tab="comm"] .timeline{display:none}
         <h3 style="font-size:16px;font-weight:800;color:var(--text-heading);margin-bottom:6px">eRecept pripravený</h3>
         <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:14px">Kód pre pacienta: Z4K-882 · app / SMS / <b>tlač QR</b></div><div style="display:flex;justify-content:center;margin:2px 0 18px"><svg viewBox="0 0 21 21" width="116" height="116" shape-rendering="crispEdges" role="img" aria-label="QR — Z4K-882"><path d="M0 0h7v1H0zM8 0h2v1H8zM11 0h1v1H11zM14 0h7v1H14zM0 1h1v1H0zM6 1h1v1H6zM8 1h4v1H8zM14 1h1v1H14zM20 1h1v1H20zM0 2h1v1H0zM2 2h3v1H2zM6 2h1v1H6zM8 2h1v1H8zM10 2h2v1H10zM14 2h1v1H14zM16 2h3v1H16zM20 2h1v1H20zM0 3h1v1H0zM2 3h3v1H2zM6 3h1v1H6zM9 3h3v1H9zM14 3h1v1H14zM16 3h3v1H16zM20 3h1v1H20zM0 4h1v1H0zM2 4h3v1H2zM6 4h1v1H6zM8 4h3v1H8zM12 4h1v1H12zM14 4h1v1H14zM16 4h3v1H16zM20 4h1v1H20zM0 5h1v1H0zM6 5h1v1H6zM10 5h3v1H10zM14 5h1v1H14zM20 5h1v1H20zM0 6h7v1H0zM8 6h1v1H8zM10 6h1v1H10zM12 6h1v1H12zM14 6h7v1H14zM10 7h3v1H10zM0 8h1v1H0zM3 8h7v1H3zM12 8h2v1H12zM16 8h1v1H16zM18 8h3v1H18zM0 9h5v1H0zM8 9h2v1H8zM12 9h3v1H12zM16 9h4v1H16zM0 10h1v1H0zM2 10h1v1H2zM4 10h1v1H4zM6 10h1v1H6zM8 10h3v1H8zM13 10h2v1H13zM16 10h1v1H16zM19 10h1v1H19zM2 11h2v1H2zM5 11h1v1H5zM11 11h1v1H11zM13 11h1v1H13zM15 11h2v1H15zM18 11h1v1H18zM1 12h1v1H1zM3 12h2v1H3zM6 12h1v1H6zM13 12h1v1H13zM15 12h1v1H15zM19 12h2v1H19zM8 13h3v1H8zM12 13h1v1H12zM15 13h2v1H15zM0 14h7v1H0zM8 14h1v1H8zM10 14h1v1H10zM12 14h3v1H12zM18 14h3v1H18zM0 15h1v1H0zM6 15h1v1H6zM8 15h2v1H8zM12 15h1v1H12zM15 15h3v1H15zM20 15h1v1H20zM0 16h1v1H0zM2 16h3v1H2zM6 16h1v1H6zM8 16h1v1H8zM10 16h1v1H10zM12 16h2v1H12zM16 16h1v1H16zM18 16h1v1H18zM0 17h1v1H0zM2 17h3v1H2zM6 17h1v1H6zM8 17h1v1H8zM10 17h4v1H10zM16 17h1v1H16zM18 17h1v1H18zM0 18h1v1H0zM2 18h3v1H2zM6 18h1v1H6zM9 18h1v1H9zM11 18h5v1H11zM17 18h4v1H17zM0 19h1v1H0zM6 19h1v1H6zM9 19h2v1H9zM12 19h2v1H12zM17 19h1v1H17zM19 19h1v1H19zM0 20h7v1H0zM8 20h1v1H8zM14 20h1v1H14zM16 20h4v1H16z" fill="#1B2340"/></svg></div>
         <div class="rxsoap" style="text-align:left;margin:0 6px 12px">
-          <div class="rxsh"><span class="hic"><svg class="ico"><use href="#i-pen"/></svg></span><b>Diagnóza / popis</b></div>
+          <div class="rxsh"><span class="rxic c-dg"><svg class="ico"><use href="#i-steth"/></svg></span><b>Diagnóza / popis</b></div>
           <input id="rxdg" class="recline" placeholder="Jedna veta stačí — dg. alebo popis…">
           <div class="catchips" id="rxdgsug" style="margin-top:8px"></div>
-          <div class="rxsh"><span class="hic"><svg class="ico"><use href="#i-cal"/></svg></span><b>Follow-up</b></div>
+          <div class="rxsh"><span class="rxic c-fu"><svg class="ico"><use href="#i-cal"/></svg></span><b>Follow-up</b></div>
           <div class="fuchips" style="margin:0">
             <button data-d="3 dni" onclick="fuRx(this)">3 dni</button>
             <button data-d="1 týždeň" onclick="fuRx(this)">1 týždeň</button>
@@ -1433,7 +1455,7 @@ body[data-tab="comm"] .timeline{display:none}
 
 <div class="sheetwrap" id="recwrap"><div class="scrim" onclick="mClose('recwrap')"></div>
   <div class="sheet">
-    <div class="sh-h"><span class="hic"><svg class="ico s14"><use href="#i-pen"/></svg></span><b>Zaznamenať</b><button class="x" onclick="mClose('recwrap')" title="Zavrieť">✕</button></div>
+    <div class="sh-h"><span class="hic c-note"><svg class="ico s14"><use href="#i-pen"/></svg></span><b>Zaznamenať</b><button class="x" onclick="mClose('recwrap')" title="Zavrieť">✕</button></div>
     <div class="sh-b">
       <div class="soapseg" id="soapseg">
         <button data-s="S" title="SOAP · Subjektívne">S</button><button data-s="O" title="SOAP · Objektívne">O</button><button class="on" data-s="A" title="SOAP · Zhodnotenie">A</button><button data-s="P" title="SOAP · Plán">P</button>
@@ -1466,7 +1488,7 @@ body[data-tab="comm"] .timeline{display:none}
 
 <div class="sheetwrap" id="casewrap"><div class="scrim" onclick="mClose('casewrap')"></div>
   <div class="sheet">
-    <div class="sh-h"><span class="hic"><svg class="ico s14"><use href="#i-layers"/></svg></span><b>Prípad — Hypertenzná kríza</b>
+    <div class="sh-h"><span class="hic c-case"><svg class="ico s14"><use href="#i-layers"/></svg></span><b>Prípad — Hypertenzná kríza</b>
       <span class="tag" style="margin-left:4px">EpisodeOfCare · uzavretý 24.06</span>
       <button class="x" onclick="mClose('casewrap')" title="Zavrieť">✕</button></div>
     <div class="dtabs" id="ctabs">
@@ -1513,7 +1535,7 @@ body[data-tab="comm"] .timeline{display:none}
 
 <div class="sheetwrap" id="ordwrap"><div class="scrim" onclick="mClose('ordwrap')"></div>
   <div class="sheet">
-    <div class="sh-h"><span class="hic"><svg class="ico s14"><use href="#i-flask"/></svg></span><b>Order</b><button class="x" onclick="mClose('ordwrap')" title="Zavrieť">✕</button></div>
+    <div class="sh-h"><span class="hic c-ord"><svg class="ico s14"><use href="#i-flask"/></svg></span><b>Order</b><button class="x" onclick="mClose('ordwrap')" title="Zavrieť">✕</button></div>
     <div class="sh-b">
       <div class="typechips" id="ordcat">
         <button class="on" data-c="rad" onclick="ordCat('rad',this)">Radiology</button>
@@ -1529,7 +1551,7 @@ body[data-tab="comm"] .timeline{display:none}
 
 <div class="sheetwrap" id="aptwrap"><div class="scrim" onclick="mClose('aptwrap')"></div>
   <div class="sheet">
-    <div class="sh-h"><span class="hic"><svg class="ico s14"><use href="#i-cal"/></svg></span><b>Termín</b><button class="x" onclick="mClose('aptwrap')" title="Zavrieť">✕</button></div>
+    <div class="sh-h"><span class="hic c-fu"><svg class="ico s14"><use href="#i-cal"/></svg></span><b>Termín</b><button class="x" onclick="mClose('aptwrap')" title="Zavrieť">✕</button></div>
     <div class="sh-b">
       <div class="typechips"><button class="on">Kontrola</button><button>MRI</button><button>Odber</button><button>Tele</button></div>
       <div class="vgrid">
@@ -1545,7 +1567,7 @@ body[data-tab="comm"] .timeline{display:none}
 
 <div class="sheetwrap" id="fotwrap"><div class="scrim" onclick="mClose('fotwrap')"></div>
   <div class="sheet">
-    <div class="sh-h"><span class="hic"><svg class="ico s14"><use href="#i-cam"/></svg></span><b>Odfotiť dokument</b><button class="x" onclick="mClose('fotwrap')" title="Zavrieť">✕</button></div>
+    <div class="sh-h"><span class="hic c-doc"><svg class="ico s14"><use href="#i-cam"/></svg></span><b>Odfotiť dokument</b><button class="x" onclick="mClose('fotwrap')" title="Zavrieť">✕</button></div>
     <div class="sh-b">
       <div class="drop"><svg class="ico" style="width:22px;height:22px;stroke:var(--text-subtle)"><use href="#i-cam"/></svg><div style="margin-top:8px">Pretiahnite súbor alebo odfoťte dokument</div><button class="btn">Vybrať súbor</button></div>
       <div class="gaterow" style="background:var(--warning-soft);color:#7a5416"><svg class="iqmk" aria-hidden="true"><use href="#i-iqmark"/></svg><span>Extrahuje text a založí udalosť v stave „Na overenie“ — do overenia sa nepoužíva v syntéze.</span></div>
