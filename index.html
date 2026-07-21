@@ -4,8 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v107 (Life ID: drag-resize okraja, summary medzera)</title>
+<title>Hilbi Cockpit — v108 (Life ID: summary preč, collapse zmenší + pamätá šírku)</title>
 <!-- CHANGELOG
+v108 (2026-07-21): 1) PHR Summary komponent úplne odstránený — PHR tab = Health data
+  + Records. 2) Collapse fix: pri zbalení sa panel VŽDY zmenší (min rule --phrw:46px
+  !important prebije inline resized šírku), ale naťahaná šírka ostane zapamätaná (inline
+  --phrw sa nemaže) a pri rozbalení sa obnoví. lifeidBtn späť na jednoduchý toggle.
 v107 (2026-07-21): Life ID panel — šírka sa mení DRAGOM (chytenie ľavého okraja myšou
   + ťahanie), widen button odstránený. Grip na ľavej hrane (.phrgrip, ew-resize,
   clamp 260–640px), funguje aj touch. Zosúladené s min-collapse (pri zbalení sa inline
@@ -554,7 +558,7 @@ v40: DS '26 alignment — Rx + dekurz modaly.
 body{font-family:'Mulish',sans-serif;background:var(--surface-2);color:var(--text-body);font-size:14px;line-height:1.45;--navw:208px;--phrw:280px}
 @media (min-width:745px){body{min-width:1100px}}
 body[data-nav="min"]{--navw:64px}
-body[data-phr="min"]{--phrw:46px}
+body[data-phr="min"]{--phrw:46px!important}
 button{font-family:inherit}
 :is(a,button,[tabindex]):focus-visible{outline:2px solid var(--brand-teal);outline-offset:2px;border-radius:8px}
 .app{display:grid;grid-template-columns:var(--navw) minmax(640px,1fr) var(--phrw);gap:14px;max-width:1600px;margin:0 auto;padding:16px;height:100vh}
@@ -2960,10 +2964,7 @@ function setLang(l){
 const MOBQ=window.matchMedia('(max-width:744px)');
 document.getElementById('lifeidBtn').onclick=()=>{
  if(MOBQ.matches){document.body.dataset.phr='';document.body.classList.add('phr-open')}
- else{const toMin=document.body.dataset.phr!=='min';document.body.dataset.phr=toMin?'min':'';
-   if(toMin){document.body.style.removeProperty('--phrw');} /* nech platí CSS 46px */
-   else if(phrW){document.body.style.setProperty('--phrw',phrW+'px');} /* obnoviť resized šírku */
- }
+ else{document.body.dataset.phr=document.body.dataset.phr==='min'?'':'min'}
 };
 MOBQ.addEventListener('change',e=>{if(e.matches){document.body.classList.remove('phr-open')}});
 document.getElementById('drawerScrim').onclick=()=>document.body.classList.remove('drawer-open');
@@ -3141,12 +3142,7 @@ function renderPHR(){
    {name:'Letter of referral',n:1,a:8,icon:'i-clip'},
    {name:'Documents and confirmations',n:1,a:5,icon:'i-file'}
   ];
-  el.innerHTML='<div class="vcard psum"><div class="psh">Summary</div>'
-      +'<div class="prow"><span>Active diagnoses</span><b>Diabetes · Hypertension</b></div>'
-      +'<div class="prow"><span>Current medication</span><b>Metformin · Aspirin</b></div>'
-      +'<div class="prow"><span>Allergies</span><b class="alrg">Penicillin</b></div>'
-    +'</div>'
-    +'<div class="ptsub">Health data</div>'+HD.map(phrRow).join('')
+  el.innerHTML='<div class="ptsub">Health data</div>'+HD.map(phrRow).join('')
     +'<div class="ptsub">Records</div>'+RC.map(phrRow).join('');
 }
 renderPHR();
