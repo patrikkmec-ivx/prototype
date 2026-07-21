@@ -4,8 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v84 (K-26 encounter vrstvenie)</title>
+<title>Hilbi Cockpit — v85 (K-27 historický encounter)</title>
 <!-- CHANGELOG
+v85 (2026-07-21): K-27 — historická karta "Kontrola DM + hypertenzia" (10.07)
+  prevedená na podpísaný encounter s mini-osou: agregovaný kľúčový riadok
+  (Dekompenzácia DM2 — Metformín 2×1000 · TK 138/88), SOAP chipy O/A/P, tag
+  Podpísané + 4 udalostí, chevron rozbalí 4 čiastkové úkony (TK a pulz → fyzikálne
+  vyšetrenie → dekompenzácia DM2 → Metformín úprava), každý klikateľný do popup
+  detailu. Outcome riadok karty odstránený (obsah žije v l2/mini-osi). Nové
+  generické funkcie subToggle/evDetailStatic pre statické enccardy. Efekt
+  vrstvenia je tak viditeľný hneď pri otvorení, bez interakcie.
 v84 (2026-07-21): K-26 — encounter vrstvenie na osi (ENC-01..03, schválené UX:
   dlaždica → vnorená mini-os → popup detailu). Session logika: prvá akcia otvorí
   encounter, každá ďalšia (Rx, diagnóza, Record, Order, výsledok) sa pripája
@@ -1294,16 +1302,21 @@ body[data-tab="comm"] .timeline{display:none}
 
       <div class="trow" data-type="visit">
         <div class="spine"><button class="tico t-cur" data-f="visit"><svg class="ico s14" aria-hidden="true"><use href="#i-steth"/></svg></button><div class="line"></div></div>
-        <div class="card current">
+        <div class="card current enccard">
           <div class="body">
             <div class="pav ph doc1">N<span class="vb">＋</span></div>
             <div class="cmain">
-              <div class="l1"><b>Kontrola DM + hypertenzia</b><span class="dt"><span class="sdot d-now"></span><svg class="ico sok" aria-hidden="true"><use href="#i-sok"/></svg>10.07</span></div>
-              <div class="l2">Všeobecná ambulancia · MUDr. Novák</div>
-              <div class="crow"><span class="tag st-now">Aktuálne</span><span class="tag clin t-a1">Diabetes</span><span class="tag clin t-a6">Hypertenzia</span></div>
+              <div class="l1"><b>Kontrola DM + hypertenzia · MUDr. Novák</b><span class="dt"><span class="sdot d-now"></span><svg class="ico sok" aria-hidden="true"><use href="#i-sok"/></svg>10.07 · 10:07 – 10:31</span></div>
+              <div class="l2">Dekompenzácia DM2 — Metformín 2×1000 mg · TK 138/88 mmHg</div>
+              <div class="crow"><span class="soap sO" title="SOAP · Objektívne">O</span><span class="soap sA" title="SOAP · Zhodnotenie">A</span><span class="soap sP" title="SOAP · Plán">P</span><span class="tag">Podpísané</span><span class="tag">4 udalostí</span><span class="tag clin t-a1">Diabetes</span><span class="tag clin t-a6">Hypertenzia</span><button class="cv" onclick="subToggle(event)" title="Rozbaliť"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button></div>
+              <div class="subaxis">
+                <div class="subev" onclick="evDetailStatic('TK a pulz','O','10.07 · 10:07','sestra','TK 138/88 mmHg · pulz 76/min · SpO2 98 %')"><span class="tm2">10:07</span><span class="soap sO" title="SOAP · Objektívne">O</span><b>TK a pulz</b><span class="s2">138/88 mmHg · 76/min</span></div>
+                <div class="subev" onclick="evDetailStatic('Fyzikálne vyšetrenie','O','10.07 · 10:18','MUDr. Novák','Kardiopulmonálne kompenzovaná, bez opuchov. Akcia srdca pravidelná.')"><span class="tm2">10:18</span><span class="soap sO" title="SOAP · Objektívne">O</span><b>Fyzikálne vyšetrenie</b><span class="s2">bez patologického nálezu</span></div>
+                <div class="subev" onclick="evDetailStatic('Dekompenzácia DM2','A','10.07 · 10:24','MUDr. Novák','Dekompenzácia DM2 pri HbA1c 7,9 % — indikovaná úprava perorálnej liečby.')"><span class="tm2">10:24</span><span class="soap sA" title="SOAP · Zhodnotenie">A</span><b>Dekompenzácia DM2</b><span class="s2">HbA1c 7,9 %</span></div>
+                <div class="subev" onclick="evDetailStatic('Metformín — úprava dávky','P','10.07 · 10:31','MUDr. Novák','Glycomet 500 → 2×1000 mg denne · eRecept vydaný · kontrola o 8 týždňov.')"><span class="tm2">10:31</span><span class="soap sP" title="SOAP · Plán">P</span><b>Metformín — úprava dávky</b><span class="s2">2×1000 mg · eRecept</span></div>
+              </div>
             </div>
           </div>
-          <div class="outcome">Úprava dávkovania Metformínu na 2×1000 mg. TK 138/88 mmHg.</div>
         </div>
       </div>
 
@@ -2140,6 +2153,15 @@ function renderEnc(flash){
  if(LANG==='en')swapText(SK2EN);
 }
 function encToggle(ev){ev.stopPropagation();ENC.open=!ENC.open;renderEnc(false);}
+function subToggle(ev){ev.stopPropagation();const b=ev.currentTarget;const sa=b.closest('.cmain').querySelector('.subaxis');const on=sa.classList.toggle('on');b.classList.toggle('open',on);}
+function evDetailStatic(title,slot,time,who,detail){
+ document.getElementById('evd_title').textContent=title;
+ const sc=document.getElementById('evd_slotchip');sc.className='soap s'+slot;sc.textContent=slot;sc.title=SOAPTITLE[slot];sc.style.cssText='width:26px;height:26px;font-size:13px';
+ document.getElementById('evd_time').textContent=time;
+ document.getElementById('evd_who').textContent=who;
+ document.getElementById('evd_body').textContent=detail;
+ mOpen('evdwrap');
+}
 function evDetail(i){
  const e=ENC.events[i];if(!e)return;
  document.getElementById('evd_title').textContent=e.title;
@@ -2505,7 +2527,7 @@ const I18N=[
 ["Potvrdenie","Certificate"],["pre pacienta / zamestnávateľa","for patient / employer"],
 ["Sumár pre pacienta","Patient summary"],["zrozumiteľný jazyk · app / tlač","plain language · app / print"],
 ["projekcia výkonových udalostí · bodovník","projection of procedure events · fee schedule"],
-["Zavrieť","Close"],["Podpísať deň","Sign the day"],["Podpísať vyšetrenie","Sign the encounter"],["GP vyšetrenie","GP examination"],["Prebieha","In progress"],["udalostí","events"],["Rozbaliť","Expand"],["Čas","Time"],["Autor","Author"],["Detail","Detail"],["Indikácia","Indication"],["Záznam — vitálne funkcie","Record — vital signs"],["Poznámka","Note"],["Dekurz podpísaný","Progress note signed"],
+["Zavrieť","Close"],["Podpísať deň","Sign the day"],["Podpísať vyšetrenie","Sign the encounter"],["Kontrola DM + hypertenzia · MUDr. Novák","DM + hypertension check-up · Dr. Novak"],["Dekompenzácia DM2 — Metformín 2×1000 mg · TK 138/88 mmHg","T2DM decompensation — Metformin 2×1000 mg · BP 138/88 mmHg"],["4 udalostí","4 events"],["TK a pulz","BP and pulse"],["Fyzikálne vyšetrenie","Physical examination"],["bez patologického nálezu","no pathological findings"],["Dekompenzácia DM2","T2DM decompensation"],["Metformín — úprava dávky","Metformin — dose adjustment"],["2×1000 mg · eRecept","2×1000 mg · ePrescription"],["138/88 mmHg · 76/min","138/88 mmHg · 76/min"],["HbA1c 7,9 %","HbA1c 7.9%"],["GP vyšetrenie","GP examination"],["Prebieha","In progress"],["udalostí","events"],["Rozbaliť","Expand"],["Čas","Time"],["Autor","Author"],["Detail","Detail"],["Indikácia","Indication"],["Záznam — vitálne funkcie","Record — vital signs"],["Poznámka","Note"],["Dekurz podpísaný","Progress note signed"],
 ["Záznam — vitálne funkcie","Record — vital signs"],["TK 138/88 · pulz 72 · 82 kg","BP 138/88 · pulse 72 · 82 kg"],
 ["Kontrola — všeobecná ambulancia","Follow-up — general practice"],
 ["Preskripcia — Tecfidera 240 mg","Prescription — Tecfidera 240 mg"],
