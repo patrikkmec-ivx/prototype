@@ -4,8 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v100b (dátum encounter po pravý okraj)</title>
+<title>Hilbi Cockpit — v101 (hierarchické nav menu: skupiny + podpoložky)</title>
 <!-- CHANGELOG
+v101 (2026-07-21): Ľavé nav menu prestavané na hierarchické (podľa produktovej
+  štruktúry ExpertMed, náš navy dizajn). 7 sekcií: Home + rozbaľovacie skupiny
+  Patients / Calendars / Waiting areas / Orders / Payments / Medical Facility, každá
+  s podpoložkami. Skupiny sa rozbaľujú (navGrp, chevron rotuje), výber položky
+  zvýrazní (.active, reuse --nav-active). Zbalený nav = len ikony skupín. EN oprava:
+  "Appointments edit" → "Edit appointments". Nové ikony i-home/i-wait/i-euro (3),
+  reuse i-users/i-cal/i-cliplist/i-bldg. NOVÝ TOKEN --nav-active:#2A3454 (predtým
+  inline). i18n SK páry pre všetky položky. pillbtn pill reuse #6AD5E5→ (pozn.:
+  pill ešte na token --brand-cyan v ďalšom kroku).
 v100 (2026-07-21): 1) Dátumy na kartách zarovnané — collapse chevron encounter
   dlaždice presunutý spod vertikálneho stredu POD dátum (top:38px vpravo), takže
   dátum siaha po pravý okraj ako ostatné karty. 2) Nový LIBRARY komponent .pillbtn
@@ -455,7 +464,7 @@ v40: DS '26 alignment — Rx + dekurz modaly.
   --text-subtle:#8A93A6; --text-disabled:#BCC4D2;
   /* SURFACE */
   --surface-white:#FFFFFF; --surface-1:#F4F7FB; --surface-2:#EEF1F6;
-  --surface-navy:#1B2340; --surface-dark:#222734;
+  --surface-navy:#1B2340;--nav-active:#2A3454; --surface-dark:#222734;
   /* BORDER */
   --border-default:#E7ECF3; --border-strong:#E1E7EF;
   /* SEMANTIC */
@@ -534,7 +543,25 @@ button{font-family:inherit}
 .nav .org .chev{margin-left:auto;font-size:11px}
 .nav a{display:flex;gap:11px;align-items:center;padding:9px 12px;border-radius:8px;font-size:13.5px;color:#B9C0D6;text-decoration:none}
 .nav a .nic{flex:none}
-.nav a.active{background:#2A3454;color:#fff;font-weight:600}
+.nav a.active{background:var(--nav-active);color:#fff;font-weight:600}
+/* Hierarchické nav menu — skupiny + podpoložky (reuse: radius-8, --nav-active, nav farby) */
+.navgrp{display:flex;flex-direction:column}
+.navhead{display:flex;gap:11px;align-items:center;width:100%;padding:9px 12px;border-radius:8px;font-size:13.5px;color:#B9C0D6;background:none;border:none;cursor:pointer;text-align:left;font-family:inherit}
+.navhead .nlb{flex:1;min-width:0}
+.navhead:hover{color:#fff}
+.navchev{display:inline-flex;color:#8A93A6;transition:transform .18s;flex:none}
+.navgrp.open>.navhead{color:#fff}
+.navgrp.open>.navhead .navchev{transform:rotate(180deg)}
+.navsub{display:none;flex-direction:column;gap:1px;padding:2px 0 4px}
+.navgrp.open>.navsub{display:flex}
+.navsub a{display:block;padding:8px 12px 8px 39px;border-radius:8px;font-size:13px;color:#9AA3BC;text-decoration:none;min-height:auto}
+.navsub a:hover{color:#fff}
+.navsub a.active{background:var(--nav-active);color:#fff;font-weight:600}
+/* zbalený nav: len ikony skupín/Home, podpoložky a chevron skryté */
+body[data-nav="min"] .navsub{display:none!important}
+body[data-nav="min"] .navchev,body[data-nav="min"] .navhead .nlb,body[data-nav="min"] .navitem .nlb{display:none}
+body[data-nav="min"] .navhead{justify-content:center;padding:11px 0;gap:0;min-height:44px}
+body[data-nav="min"] .navhead .nic{width:18px;height:18px}
 .nav a.active .nic{stroke:var(--brand-cyan);color:var(--brand-cyan)}
 .nav .mark{position:absolute;left:15px;bottom:78px;width:170px;height:169px;pointer-events:none}
 .nav .me{margin-top:auto;display:flex;gap:8px;align-items:center;padding:6px}
@@ -1376,6 +1403,9 @@ body[data-tab="comm"] .timeline{display:none}
 <symbol id="i-msg" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></symbol>
 <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
 <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/></symbol>
+<symbol id="i-wait" viewBox="0 0 24 24"><path d="M5 11V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3"/><rect x="3" y="11" width="18" height="6" rx="1.5"/><path d="M6 17v3M18 17v3"/></symbol>
+<symbol id="i-euro" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.6a4 4 0 1 0 0 6.8"/><path d="M7 10.8h6.5M7 13.4h5.5"/></symbol>
 <symbol id="i-bldg" viewBox="0 0 24 24"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></symbol>
 <symbol id="i-pill" viewBox="0 0 24 24"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></symbol>
 <symbol id="i-cam" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></symbol>
@@ -1403,14 +1433,59 @@ body[data-tab="comm"] .timeline{display:none}
       </div>
     </div>
     <button class="navcollapse" id="navToggleTop" title="Hide menu" aria-label="Hide menu"><span class="cvico"><svg width="14" height="8" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="lb">Hide menu</span></button>
-    <a href="#"><svg class="ico s14 nic" aria-hidden="true"><use href="#i-dash"/></svg>Overview</a>
-    <a href="#" class="active"><svg class="ico s14 nic" aria-hidden="true"><use href="#i-users"/></svg>Pacienti</a>
-    <a href="#"><svg class="ico s14 nic" aria-hidden="true"><use href="#i-msg"/></svg>Communication</a>
-    <a href="#"><svg class="ico s14 nic" aria-hidden="true"><use href="#i-cal"/></svg>e-Appointments</a>
-    <a href="#"><svg class="ico s14 nic" aria-hidden="true"><use href="#i-pill"/></svg>e-Prescriptions</a>
-    <a href="#"><svg class="ico s14 nic" aria-hidden="true"><use href="#i-bell"/></svg>Notices</a>
-    <a href="#"><svg class="ico s14 nic" aria-hidden="true"><use href="#i-clock"/></svg>Office hours</a>
-    <a href="#"><svg class="ico s14 nic" aria-hidden="true"><use href="#i-bldg"/></svg>Business profile</a>
+    <a href="#" class="navitem" onclick="navPick(event,this)"><svg class="ico s14 nic" aria-hidden="true"><use href="#i-home"/></svg><span class="nlb">Home</span></a>
+    <div class="navgrp open">
+      <button class="navhead" onclick="navGrp(this)"><svg class="ico s14 nic" aria-hidden="true"><use href="#i-users"/></svg><span class="nlb">Patients</span><span class="navchev"><svg width="12" height="7" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+      <div class="navsub">
+        <a href="#" class="navlink active" onclick="navPick(event,this)">Patient list</a>
+        <a href="#" class="navlink" onclick="navPick(event,this)">Communications</a>
+        <a href="#" class="navlink" onclick="navPick(event,this)">Group notices</a>
+      </div>
+    </div>
+    <div class="navgrp">
+      <button class="navhead" onclick="navGrp(this)"><svg class="ico s14 nic" aria-hidden="true"><use href="#i-cal"/></svg><span class="nlb">Calendars</span><span class="navchev"><svg width="12" height="7" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+      <div class="navsub">
+        <a href="#" class="navlink" onclick="navPick(event,this)">Online appointments</a>
+        <a href="#" class="navlink" onclick="navPick(event,this)">Edit appointments</a>
+        <a href="#" class="navlink" onclick="navPick(event,this)">List of appointments</a>
+        <a href="#" class="navlink" onclick="navPick(event,this)">Absences</a>
+        <a href="#" class="navlink" onclick="navPick(event,this)">Office hours</a>
+        <a href="#" class="navlink" onclick="navPick(event,this)">Increased demand</a>
+      </div>
+    </div>
+    <div class="navgrp">
+      <button class="navhead" onclick="navGrp(this)"><svg class="ico s14 nic" aria-hidden="true"><use href="#i-wait"/></svg><span class="nlb">Waiting areas</span><span class="navchev"><svg width="12" height="7" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+      <div class="navsub">
+        <a href="#" class="navlink" onclick="navPick(event,this)">Waiting areas</a>
+        <a href="#" class="navlink" onclick="navPick(event,this)">List of visits</a>
+      </div>
+    </div>
+    <div class="navgrp">
+      <button class="navhead" onclick="navGrp(this)"><svg class="ico s14 nic" aria-hidden="true"><use href="#i-cliplist"/></svg><span class="nlb">Orders</span><span class="navchev"><svg width="12" height="7" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+      <div class="navsub">
+        <a href="#" class="navlink" onclick="navPick(event,this)">Requests</a>
+        <a href="#" class="navlink" onclick="navPick(event,this)">Packages</a>
+        <a href="#" class="navlink" onclick="navPick(event,this)">e-Prescriptions</a>
+      </div>
+    </div>
+    <div class="navgrp">
+      <button class="navhead" onclick="navGrp(this)"><svg class="ico s14 nic" aria-hidden="true"><use href="#i-euro"/></svg><span class="nlb">Payments</span><span class="navchev"><svg width="12" height="7" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+      <div class="navsub">
+        <a href="#" class="navlink" onclick="navPick(event,this)">Transactions</a>
+        <a href="#" class="navlink" onclick="navPick(event,this)">Refund requests</a>
+        <a href="#" class="navlink" onclick="navPick(event,this)">Statements</a>
+        <a href="#" class="navlink" onclick="navPick(event,this)">Payment requests</a>
+      </div>
+    </div>
+    <div class="navgrp">
+      <button class="navhead" onclick="navGrp(this)"><svg class="ico s14 nic" aria-hidden="true"><use href="#i-bldg"/></svg><span class="nlb">Medical Facility</span><span class="navchev"><svg width="12" height="7" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+      <div class="navsub">
+        <a href="#" class="navlink" onclick="navPick(event,this)">Medical Facility profile</a>
+        <a href="#" class="navlink" onclick="navPick(event,this)">Website settings</a>
+        <a href="#" class="navlink" onclick="navPick(event,this)">Announcements for patients</a>
+        <a href="#" class="navlink" onclick="navPick(event,this)">Store</a>
+      </div>
+    </div>
     <svg class="mark" viewBox="0 0 170 169" aria-hidden="true">
       <path fill-rule="evenodd" clip-rule="evenodd" d="M84.7832 0H85.1613H87.7767C112.936 0.842472 136.428 12.7215 151.936 32.4423C167.444 52.1632 173.376 77.7012 168.135 102.189C163.845 121.376 164.278 141.31 169.396 160.296L169.995 162.474L164.118 161.565C145.717 158.826 126.935 160.186 109.127 165.545C92.0954 170.458 73.9676 170.124 57.1302 164.59C31.3229 156.305 11.322 135.838 3.73105 109.946C-13.16 52.4813 29.6507 0.125366 84.7832 0ZM63.1331 145.926C70.1945 148.198 77.5661 149.371 84.9878 149.405C91.2547 149.41 97.4899 148.518 103.502 146.756C117.212 142.66 131.445 140.549 145.761 140.488H145.918C144.801 126.28 145.762 111.986 148.771 98.0518C149.859 92.9494 150.335 87.7361 150.189 82.5221C149.153 48.2999 121.568 20.7623 87.1622 19.6041H85.0033C64.4205 19.5267 45.0259 29.1828 32.7545 45.6175C20.2438 62.2441 16.5882 83.6659 22.686 104.445C28.3901 124.104 43.5517 139.652 63.1331 145.926ZM50.2684 76.7105C47.9603 76.7105 45.7467 77.6228 44.1156 79.2469C42.4828 80.8693 41.5651 83.0707 41.5651 85.3664C41.5651 87.6617 42.4828 89.8631 44.1156 91.4858L79.4576 126.635C82.8556 130.015 88.3652 130.015 91.7635 126.635C95.1615 123.256 95.1615 117.776 91.7635 114.396L56.4212 79.2469C54.79 77.6228 52.5765 76.7105 50.2684 76.7105ZM81.0644 42.5147C82.6956 40.8906 84.9091 39.9783 87.2172 39.9783C89.5253 39.9783 91.7389 40.8906 93.3704 42.5147L128.697 77.6485C132.095 81.0281 132.095 86.5074 128.697 89.8871C125.298 93.2668 119.789 93.2668 116.391 89.8871L81.0644 54.7533C79.4316 53.1309 78.5139 50.9295 78.5139 48.6338C78.5139 46.3385 79.4316 44.1371 81.0644 42.5147ZM90.7651 77.5714C87.5089 76.2302 83.7611 76.9718 81.269 79.4507C79.6197 81.0673 78.6912 83.2745 78.6912 85.5779C78.6912 87.8811 79.6197 90.0882 81.269 91.7049C83.7611 94.1838 87.5089 94.9253 90.7651 93.5842C94.0213 92.243 96.1444 89.083 96.1444 85.5779C96.1444 82.0725 94.0213 78.9126 90.7651 77.5714Z" fill="#F5FEFF" fill-opacity="0.05"/>
     </svg>
@@ -2531,6 +2606,8 @@ function clearFilter(){activeF=null;document.querySelectorAll('.trow').forEach(r
 function navFlip(){b.dataset.nav=b.dataset.nav==='min'?'':'min';const m=b.dataset.nav==='min';
 const lb=document.querySelector('#navToggleTop .lb');if(lb)lb.textContent=m?'':(LANG==='en'?'Show menu':'Zobraziť menu');
 document.getElementById('navToggleTop').title=m?(LANG==='en'?'Show menu':'Zobraziť menu'):(LANG==='en'?'Hide menu':'Skryť menu');}
+function navGrp(btn){const g=btn.closest('.navgrp');const willOpen=!g.classList.contains('open');g.classList.toggle('open');if(willOpen&&MOBQ.matches){/* mobil: necháme viac otvorených */}}
+function navPick(ev,a){ev.preventDefault();document.querySelectorAll('.nav .navsub a.active,.nav .navitem.active').forEach(x=>x.classList.remove('active'));a.classList.add('active');if(typeof MOBQ!=='undefined'&&MOBQ.matches)document.body.classList.remove('drawer-open');}
 function orgSwitch(ev){ev.stopPropagation();const d=document.getElementById('orgdrop');const on=d.classList.toggle('on');document.querySelector('.org').classList.toggle('open',on);}
 function pickOrg(name,loc,code,btn){
   document.getElementById('orgName').textContent=name;
@@ -2596,7 +2673,7 @@ const I18N=[
 ["zobraziť →","view all →"],["Filter aktívny — zrušiť ✕","Filter active — clear ✕"],
 ["PLÁNOVANÉ","PLANNED"],["DNES · 17.07.2026","TODAY · 17 Jul 2026"],
 ["Kontrola — diabetológ","Follow-up — diabetologist"],["Diabetologická ambulancia","Diabetology clinic"],
-["Kontrola DM + hypertenzia","DM + hypertension check-up"],["MUDr. Novák","Dr. Novak"],["MUDr. Rezník","Dr. Reznik"],["MUDr. Baláž","Dr. Balaz"],["MUDr. Horák","Dr. Horak"],["MUDr. Šimková","Dr. Simkova"],["Jane Carter · pacient","Jane Carter · patient"],["Podpísané","Signed"],["Všeobecná ambulancia","General practice"],["Univerzitná nemocnica akademika Ladislava Dérera, Neurologická klinika SZU","Dérer University Hospital, Neurology Clinic"],["Otvorené slučky (0)","Open loops (0)"],["Minimum pre podpis splnené (A+P)","Sign-off minimum met (A+P)"],["MUDr. Rybár","Dr. Rybar"],["MUDr. Hlavová","Dr. Hlavova"],["MUDr. Karas","Dr. Karas"],["Všeobecná ambulancia · MUDr. Novák","General practice · Dr. Novak"],
+["Kontrola DM + hypertenzia","DM + hypertension check-up"],["MUDr. Novák","Dr. Novak"],["MUDr. Rezník","Dr. Reznik"],["MUDr. Baláž","Dr. Balaz"],["MUDr. Horák","Dr. Horak"],["MUDr. Šimková","Dr. Simkova"],["Jane Carter · pacient","Jane Carter · patient"],["Podpísané","Signed"],["Domov","Home"],["Zoznam pacientov","Patient list"],["Komunikácia","Communications"],["Hromadné oznamy","Group notices"],["Kalendáre","Calendars"],["Online objednávky","Online appointments"],["Úprava objednávok","Edit appointments"],["Zoznam objednávok","List of appointments"],["Neprítomnosti","Absences"],["Ordinačné hodiny","Office hours"],["Zvýšený dopyt","Increased demand"],["Čakárne","Waiting areas"],["Zoznam návštev","List of visits"],["Objednávky","Orders"],["Žiadosti","Requests"],["Balíky","Packages"],["e-Recepty","e-Prescriptions"],["Platby","Payments"],["Transakcie","Transactions"],["Žiadosti o vrátenie","Refund requests"],["Výpisy","Statements"],["Žiadosti o platbu","Payment requests"],["Zdravotnícke zariadenie","Medical Facility"],["Profil zariadenia","Medical Facility profile"],["Nastavenia webu","Website settings"],["Oznamy pre pacientov","Announcements for patients"],["Obchod","Store"],["Všeobecná ambulancia","General practice"],["Univerzitná nemocnica akademika Ladislava Dérera, Neurologická klinika SZU","Dérer University Hospital, Neurology Clinic"],["Otvorené slučky (0)","Open loops (0)"],["Minimum pre podpis splnené (A+P)","Sign-off minimum met (A+P)"],["MUDr. Rybár","Dr. Rybar"],["MUDr. Hlavová","Dr. Hlavova"],["MUDr. Karas","Dr. Karas"],["Všeobecná ambulancia · MUDr. Novák","General practice · Dr. Novak"],
 ["Úprava dávkovania Metformínu na 2×1000 mg. TK 138/88 mmHg.","Metformin dose adjusted to 2×1000 mg. BP 138/88 mmHg."],
 ["Odber krvi — kompletný","Blood draw — complete"],["Laboratórium Alpha","Alpha Laboratory"],
 ["Prepúšťacia správa — Interné odd.","Discharge report — Internal med."],["Nemocnica sv. Michala","St. Michael Hospital"],
