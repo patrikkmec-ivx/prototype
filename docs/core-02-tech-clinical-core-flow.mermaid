@@ -1,45 +1,58 @@
-%% CORE-TECH-CLINICAL-CORE — service topology & data flow (v0.9, 2026-07-21)
-%% Normative source: core-01-tech-clinical-core-standard.md (this file is an informative mirror)
+%% CORE-TECH-CLINICAL-CORE — service topology & data flow (v2 / core-01 v0.10, 2026-07-21)
+%% Normative source: core-01-tech-clinical-core-standard.md + core-07/08/09 pack scopes
+%% (this file is an informative mirror)
 flowchart LR
   subgraph AUTH["Authoring (global artifacts)"]
-    GH["GitHub<br/>domain packs + templates<br/>PlanDefinition · StructureDefinition<br/>Library · StructureMap · bodies"]
-    CI["CI validation<br/>schema + refs + region compat"]
+    GH["GitHub<br/>domain packs + templates + region packs<br/>PlanDefinition · StructureDefinition<br/>Library · StructureMap · bodies"]
+    CI["CI validation<br/>schema + refs + region compat<br/>E-CONF-01..08"]
     GH --> CI
   end
 
-  subgraph PLANE["Regional data plane (EU / US / IN — isolated)"]
+  subgraph PLANE["Regional data plane (EU / US / IN — isolated, G2)"]
     FHIR[("FHIR R4 store<br/>CLINICAL TRUTH<br/>Observation · Condition · Encounter<br/>Immunization · DocumentReference<br/>CarePlan · Composition · Provenance")]
     ENG["@hilbi/summary-engine<br/>(library, stateless)<br/>resources + template → Composition"]
-    RP["Region pack<br/>US Core / EHDS / ABDM<br/>profiles + ConceptMaps + adapters"]
     FHIR --- ENG
-    RP -. "boundary mapping only" .- FHIR
   end
 
   CI -- "publish (FHIR artifacts)" --> FHIR
 
-  subgraph PROD["Producers (C1 write contract + Provenance)"]
+  subgraph PROD["Producers (C1 contract · C7 offline queue + replay)"]
     MAN["Manual entry<br/>source=manual"]
     OCR["OCR digitize<br/>source=ocr · preliminary"]
-    SPK["IQ speech-to-note<br/>source=speech · preliminary → sign → final"]
+    SPK["IQ speech-to-note<br/>source=speech · preliminary → sign(C6) → final"]
     DEV["Life ID device feeds<br/>source=device"]
     IMP["Imports / vaccination<br/>source=import"]
-    PRED["IQ predictions<br/>RiskAssessment · preliminary"]
+    PRED["IQ predictions<br/>RiskAssessment · preliminary (O8 gate)"]
   end
   MAN & OCR & SPK & DEV & IMP & PRED -- "FHIR REST" --> FHIR
 
-  subgraph DOM["Domain microservices"]
+  subgraph DOM["Domain microservices (data packs, E2)"]
     SM["SM Care Plan+<br/>protocol logic · no clinical store<br/>(sm_* → migrated per Part I)"]
   end
   SM <-- "FHIR REST only" --> FHIR
 
+  subgraph PACKS["Region packs = BE microservices at the boundary (A6/G1/G3)"]
+    direction TB
+    USP["US pack · mode: COMPANION<br/>smart-client (g10 host API) · writeback<br/>NCPDP eRx · DS4P/Part-2 · MPI"]
+    EUP["EU pack · mode: per state<br/>base: EEHRxF · logging · conformity · erasure<br/>sub-packs: SK ezdravie/NCZI · DE ISiK/ePA"]
+    INP["IN pack · mode: PRIMARY<br/>ABDM HIP+HIU Gateway · Consent Manager (H5)<br/>record types (D6) · NHCX · DPDP/SDF"]
+  end
+  FHIR <-- "boundary only — model never forks (G1)" --> PACKS
+  USP -. "write-back: master EHR = system of record (A6)" .-> EXT["External certified EHR<br/>(Epic · athena · NIS)"]
+
   subgraph OUT["Renders & surfaces (projections)"]
     DK["Dekurz (SOAP)<br/>Composition"]
-    RPT["Reports: AOS · VÚSCH · discharge<br/>Composition → DocumentReference"]
-    TL["Patient timeline<br/>read projection"]
+    RPT["Reports: AOS · VÚSCH · discharge<br/>Composition"]
+    DX["Regional exposure (D6)<br/>US Core DocumentReference<br/>ABDM record types · EEHRxF"]
+    TL["Patient timeline / pathway<br/>read projection (F1)"]
   end
   ENG --> DK & RPT
+  DK & RPT -- "dual-expose" --> DX
   FHIR --> TL
 
   NOTE1["Core NEVER calls GitHub (D2)"]:::rule
-  NOTE2["preliminary excluded from final renders (B4)"]:::rule
+  NOTE2["preliminary excluded from final renders & outbound bundles (B4)"]:::rule
+  NOTE3["purpose-of-use checked at read vs active Consent; revocation halts flows (H5)"]:::rule
+  NOTE4["read/export audited with recipient — EHDS logging + HIPAA accounting (H2)"]:::rule
+  NOTE5["erasure = adjudication → crypto-shred/tombstones → cascade (H6)"]:::rule
   classDef rule fill:#FCE7F0,stroke:#E0568E,color:#46506B;
