@@ -4,8 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v80 (vzduch na QR obrazovke)</title>
+<title>Hilbi Cockpit — v81 (skica z Figmy)</title>
 <!-- CHANGELOG
+v81 (2026-07-21): Zapracovanie Patrikovej skice z Figmy (frame eRX/02) — presne:
+  1) pod titulkom MENO pacienta namiesto kódu; 2) inputy na PLNÚ šírku (fix aj
+  pretŕčania), 42px odsadenie len chipom; 3) Follow-up má vlastné jednoriadkové
+  pole nad chipmi (#rxfunote; placeholder je môj návrh — v skici skopírovaný z dg)
+  — poznámka sa pri výbere chipu prenesie do P udalosti aj plánovanej karty;
+  4) auto-list podľa skice: Epizóda na osi · Riadok dekurzu · Pay & Synch QR ·
+  Notifikácia pacientovi · Follow-up (zmienka o výkaze-kandidátovi z UI vypadla —
+  BILL-02 mechanika beží ďalej); 5) "Podpísať/Sign" bez ⏎ badge.
+  Pozn.: predchádzajúci commit f74b3e69 obsahoval len časť 1/2/4 — tento ho dopĺňa.
 v80 (2026-07-21): Väčšie vertikálne medzery na QR obrazovke — rxsh margin 24/12,
   medzera QR → sekcie 16px, sekcie → auto-list 16px, návrhy 10px pod poľom,
   input padding 12×14, auto-list padding 16×18. Obsah dýcha.
@@ -1775,7 +1784,7 @@ function rxRender(){
  cnt.style.display=RX.cart.length&&!RX.done?'inline-flex':'none';cnt.textContent=rxT('Recept')+' ('+RX.cart.length+')';
  const f=document.getElementById('rxfoot');f.innerHTML='';
  const btn=(txt,cls,fn,kbd)=>{const b=document.createElement('button');b.className='btn '+cls;b.textContent=txt;if(kbd){const k=document.createElement('span');k.className='kb2';k.textContent='⏎';b.appendChild(k)}b.onclick=fn;f.appendChild(b);return b};
- if(RX.done){btn(rxT('Podpísať'),'primary',signFinal,true)}
+ if(RX.done){btn(rxT('Podpísať'),'primary',signFinal)}
  else{
    const note=document.createElement('span');
    note.style.cssText='margin-right:auto;font-size:10.5px;color:var(--text-subtle);align-self:center;max-width:200px;line-height:1.35';
@@ -2046,12 +2055,13 @@ function dgPick(btn){
 function fuRx(btn){
   btn.closest('.fuchips').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===btn));
   FUsel=btn.dataset.d;
+  const fnEl=document.getElementById('rxfunote');const fnote=fnEl?(fnEl.value||'').trim():'';
   if(!fuDone){fuDone=true;
-    dekAddEv('P','Follow-up — '+FUsel,tt('lekár'));
+    dekAddEv('P','Follow-up — '+FUsel+(fnote?' · '+fnote:''),tt('lekár'));
     const r=mkRow(`<div class="spine"><button class="tico t-plan" data-f="visit"><svg class="ico s14"><use href="#i-steth"/></svg></button><div class="line"></div></div>
     <div class="card planned"><div class="body"><div class="pav ph doc1">N<span class="vb">＋</span></div><div class="cmain">
     <div class="l1"><b>${tt('Follow-up — kontrola')}</b><span class="dt"><span class="sdot d-plan"></span><svg class="ico sok"><use href="#i-sok"/></svg>+${escT(FUsel)}</span></div>
-    <div class="l2">${tt('naplánované jedným klikom pri podpise')}</div>
+    <div class="l2">${fnote?escT(fnote):tt('naplánované jedným klikom pri podpise')}</div>
     <div class="crow"><span class="soap sP" title="${SOAPTITLE.P}">P</span><span class="tag st-plan">${tt('Plánované')}</span></div></div></div></div>`,'visit');
     const t=document.querySelector('.today');t.parentNode.insertBefore(r,t);
     showToast('Follow-up naplánovaný · P');
@@ -2384,6 +2394,7 @@ const I18N=[
 ["Overenie tvárou…","Face verification…"],["pozrite sa do kamery","look at the camera"],["Overené","Verified"],["kvalifikovaný podpis pripojený","qualified signature attached"],
 ["Dokončiť","Finish"],["PO PODPISE AUTOMATICKY","AUTOMATICALLY UPON SIGNING"],
 ["Diagnóza / popis","Diagnosis / description"],["Follow-up","Follow-up"],
+["Pacient: Jane Carter · app / SMS /","Patient: Jane Carter · app / SMS /"],["Poznámka ku kontrole (voliteľné)…","Follow-up note (optional)…"],["Pay & Synch QR","Pay & Synch QR"],["Notifikácia pacientovi","Patient notification"],
 ["Prípad — Hypertenzná kríza","Case — Hypertensive crisis"],["EpisodeOfCare · 3 encountery:","EpisodeOfCare · 3 encounters:"],
 ["EpisodeOfCare · uzavretý 24.06","EpisodeOfCare · closed 24 Jun"],["Handoffy (2)","Handoffs (2)"],["Účet prípadu · 9 položiek","Case bill · 9 items"],
 ["Prehľad","Overview"],["Handoffy","Handoffs"],["Účet","Bill"],
