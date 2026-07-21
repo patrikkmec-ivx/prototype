@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v100 (dátumy zarovnané, chevron pod dátum, pill button)</title>
+<title>Hilbi Cockpit — v100b (dátum encounter po pravý okraj)</title>
 <!-- CHANGELOG
 v100 (2026-07-21): 1) Dátumy na kartách zarovnané — collapse chevron encounter
   dlaždice presunutý spod vertikálneho stredu POD dátum (top:38px vpravo), takže
@@ -1048,7 +1048,7 @@ body[data-tab="comm"] .timeline{display:none}
 /* K-26 · encounter vrstvenie (ENC-01..03) — NEW, doplniť do Figmy */
 .encblock{min-width:0;display:flex;flex-direction:column;gap:8px}
 .enccard{cursor:pointer;position:relative}
-.enccard .body{padding-right:44px}
+.enccard .body{padding-right:13px}
 .enccard>.cv{position:absolute;right:12px;top:38px;transform:none;margin:0;background:none!important;border:none!important;box-shadow:none!important;outline:none!important;border-radius:0!important;width:auto;height:auto;padding:6px}
 .enccard>.cv svg{transition:transform .15s}
 .enccard.op>.cv svg{transform:rotate(180deg)}
