@@ -4,8 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v89 (default rozbalené, čistá šípka, zarovnaná os)</title>
+<title>Hilbi Cockpit — v90 (šípka vpravo, presná os)</title>
 <!-- CHANGELOG
+v90 (2026-07-21): 1) chevron šípka presunutá NAPRAVO celého komponentu, vertikálne
+  v strede výšky (position absolute, right:12, top:50%), rovnaká šípka ako doteraz,
+  otáča sa pri open (.enccard.op); presunutá z riadku tagov na úroveň karty pre
+  živý renderEnc aj statickú DM kartu; 2) sub-spine PRESNE zarovnaná — čiara sa
+  kreslí per-segment (subcard::after spája stred bodky s bodkou ďalšej karty),
+  takže drží stred bodiek bez ohľadu na výšku mini-kariet. Bodky z-index nad čiarou.
 v89 (2026-07-21): 1) DEFAULT ROZBALENÉ (open:true) — encounter sa hneď zobrazuje
   s vnorenou osou, chevron/klik zbaľuje; 2) šípka chevronu bez sivého pozadia (holá
   ikona vpravo v komponente, hover stmavne) — zmizla "sivá plocha za 2 events";
@@ -924,15 +930,20 @@ body[data-tab="comm"] .timeline{display:none}
 .rxsoap .fuchips button.on{background:var(--accent-1-soft);border-color:var(--accent-1-strong);color:var(--accent-1-strong)}
 /* K-26 · encounter vrstvenie (ENC-01..03) — NEW, doplniť do Figmy */
 .encblock{min-width:0;display:flex;flex-direction:column;gap:8px}
-.enccard{cursor:pointer}
+.enccard{cursor:pointer;position:relative}
+.enccard .body{padding-right:44px}
+.enccard>.cv{position:absolute;right:12px;top:50%;transform:translateY(-50%);margin:0}
+.enccard>.cv svg{transition:transform .15s}
+.enccard.op>.cv svg{transform:rotate(180deg)}
 .subaxis{display:none;margin:0;padding-left:6px;position:relative}
 .subaxis.on{display:block}
 /* K-28: redukované samostatné karty na vnorenej osi */
 .subaxis.on{display:flex;flex-direction:column;gap:8px;position:relative;animation:subin .18s ease}
 @keyframes subin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
-.subaxis.on::before{content:'';position:absolute;left:11.5px;top:18px;bottom:18px;width:2px;background:var(--border-strong);border-radius:2px}
+/* čiara sa kreslí per-segment cez subcard::after (spojnica k ďalšej bodke) */
 .subcard{position:relative;display:flex;gap:10px;align-items:flex-start;border-radius:10px;background:var(--surface-1);padding:9px 12px;cursor:pointer;margin-left:20px}
-.subcard::before{content:'';position:absolute;left:-17.5px;top:calc(50% - 4px);width:8px;height:8px;border-radius:50%;background:var(--border-strong)}
+.subcard::before{content:'';position:absolute;left:-17.5px;top:calc(50% - 4px);width:8px;height:8px;border-radius:50%;background:var(--border-strong);z-index:1}
+.subcard:not(:last-child)::after{content:'';position:absolute;left:-14.5px;top:calc(50% + 4px);height:calc(50% + 8px + 4px);width:2px;background:var(--border-strong)}
 .subcard.sS::before{background:var(--accent-2-strong)}
 .subcard.sO::before{background:var(--accent-8-strong)}
 .subcard.sA::before{background:var(--accent-7-strong)}
@@ -1342,16 +1353,15 @@ body[data-tab="comm"] .timeline{display:none}
       <div class="trow" data-type="visit">
         <div class="spine"><button class="tico t-cur" data-f="visit"><svg class="ico s14" aria-hidden="true"><use href="#i-steth"/></svg></button><div class="line"></div></div>
         <div class="encblock">
-        <div class="card current enccard" onclick="subToggle(event)">
+        <div class="card current enccard op" onclick="subToggle(event)">
           <div class="body">
             <div class="pav ph doc1">N<span class="vb">＋</span></div>
             <div class="cmain">
               <div class="l1"><b>Kontrola DM + hypertenzia · MUDr. Novák</b><span class="dt"><span class="sdot d-now"></span><svg class="ico sok" aria-hidden="true"><use href="#i-sok"/></svg>10.07 · 10:07 – 10:31</span></div>
               <div class="l2">Dekompenzácia DM2 — Metformín 2×1000 mg · TK 138/88 mmHg</div>
-              <div class="crow"><span class="soap sO" title="SOAP · Objektívne">O</span><span class="soap sA" title="SOAP · Zhodnotenie">A</span><span class="soap sP" title="SOAP · Plán">P</span><span class="tag">Podpísané</span><span class="tag">4 udalostí</span><span class="tag clin t-a1">Diabetes</span><span class="tag clin t-a6">Hypertenzia</span><button class="cv" onclick="subToggle(event)" title="Rozbaliť"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button></div>
+              <div class="crow"><span class="soap sO" title="SOAP · Objektívne">O</span><span class="soap sA" title="SOAP · Zhodnotenie">A</span><span class="soap sP" title="SOAP · Plán">P</span><span class="tag">Podpísané</span><span class="tag">4 udalostí</span><span class="tag clin t-a1">Diabetes</span><span class="tag clin t-a6">Hypertenzia</span></div>
             </div>
-          </div>
-        </div>
+          </div><button class="cv" onclick="subToggle(event)" title="Rozbaliť"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button></div>
               <div class="subaxis">
                 <div class="subcard sO" onclick="evDetailStatic('TK a pulz','O','10.07 · 10:07','sestra','TK 138/88 mmHg · pulz 76/min · SpO2 98 %')"><span class="soap sO" title="SOAP · Objektívne">O</span><span class="sc-main"><span class="sc-t"><b>TK a pulz</b><span class="tm2">10:07</span></span><span class="sc-m">138/88 mmHg · 76/min</span></span></div>
                 <div class="subcard sO" onclick="evDetailStatic('Fyzikálne vyšetrenie','O','10.07 · 10:18','MUDr. Novák','Kardiopulmonálne kompenzovaná, bez opuchov. Akcia srdca pravidelná.')"><span class="soap sO" title="SOAP · Objektívne">O</span><span class="sc-main"><span class="sc-t"><b>Fyzikálne vyšetrenie</b><span class="tm2">10:18</span></span><span class="sc-m">bez patologického nálezu</span></span></div>
@@ -2180,11 +2190,11 @@ function renderEnc(flash){
   const subs=ENC.events.map((e,i)=>`<div class="subcard s${e.slot}" onclick="evDetail(${i})"><span class="soap s${e.slot}" title="${SOAPTITLE[e.slot]}">${e.slot}</span><span class="sc-main"><span class="sc-t"><b>${escT(e.title)}</b><span class="tm2">${e.time}</span></span><span class="sc-m">${escT(e.sub||'')}</span></span></div>`).join('');
   row.innerHTML=`<div class="spine"><button class="tico" data-f="visit"><svg class="ico s14"><use href="#i-steth"/></svg></button><div class="line"></div></div>
   <div class="encblock">
-  <div class="card enccard" onclick="encToggle(event)"><div class="body"><div class="pav ph doc1">N<span class="vb">＋</span></div><div class="cmain">
+  <div class="card enccard${ENC.open?' op':''}" onclick="encToggle(event)"><div class="body"><div class="pav ph doc1">N<span class="vb">＋</span></div><div class="cmain">
   <div class="l1"><b>${tt('GP vyšetrenie')} · Dr. Novak</b><span class="dt"><span class="sdot ${ENC.signed?'d-ok':'d-plan'}"></span><svg class="ico sok"><use href="#i-sok"/></svg>${first.time} – ${last.time}</span></div>
   <div class="l2">${escT(encAggKey())}</div>
-  <div class="crow">${chips}<span class="tag${ENC.signed?'':' st-plan'}">${ENC.signed?tt('Podpísané'):tt('Prebieha')}</span><span class="tag">${n} ${tt('udalostí')}</span><button class="cv${ENC.open?' open':''}" onclick="encToggle(event)" title="${tt('Rozbaliť')}"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button></div>
-  </div></div></div>
+  <div class="crow">${chips}<span class="tag${ENC.signed?'':' st-plan'}">${ENC.signed?tt('Podpísané'):tt('Prebieha')}</span><span class="tag">${n} ${tt('udalostí')}</span></div>
+  </div></div><button class="cv" onclick="encToggle(event)" title="${tt('Rozbaliť')}"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button></div>
   <div class="subaxis${ENC.open?' on':''}">${subs}</div>
   </div>`;
  }
@@ -2196,7 +2206,7 @@ function renderEnc(flash){
  if(LANG==='en')swapText(SK2EN);
 }
 function encToggle(ev){ev.stopPropagation();ENC.open=!ENC.open;renderEnc(false);}
-function subToggle(ev){ev.stopPropagation();const blk=ev.currentTarget.closest('.encblock');const sa=blk.querySelector('.subaxis');const on=sa.classList.toggle('on');const cv=blk.querySelector('.cv');if(cv)cv.classList.toggle('open',on);}
+function subToggle(ev){ev.stopPropagation();const blk=ev.currentTarget.closest('.encblock');const sa=blk.querySelector('.subaxis');const on=sa.classList.toggle('on');const card=blk.querySelector('.enccard');if(card)card.classList.toggle('op',on);}
 function evDetailStatic(title,slot,time,who,detail){
  document.getElementById('evd_title').textContent=title;
  const sc=document.getElementById('evd_slotchip');sc.className='soap s'+slot;sc.textContent=slot;sc.title=SOAPTITLE[slot];sc.style.cssText='width:26px;height:26px;font-size:13px';
