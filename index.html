@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v92 (chevron sivý outline)</title>
+<title>Hilbi Cockpit — v92c (chevron focus/active bez rámika)</title>
 <!-- CHANGELOG
 v92 (2026-07-21): Collapse chevron — bez pozadia, bez okraja (background/border/
   box-shadow none !important), sivý (text-subtle) ako outline; hover jemne stmavne.
@@ -940,6 +940,7 @@ body[data-tab="comm"] .timeline{display:none}
 .enccard>.cv{position:absolute;right:12px;top:50%;transform:translateY(-50%);margin:0;background:none!important;border:none!important;box-shadow:none!important;outline:none!important;border-radius:0!important;width:auto;height:auto;padding:6px}
 .enccard>.cv svg{transition:transform .15s}
 .enccard.op>.cv svg{transform:rotate(180deg)}
+.enccard>.cv:focus,.enccard>.cv:focus-visible,.enccard>.cv:active{outline:none!important;border:none!important;background:none!important;box-shadow:none!important}
 .subaxis{display:none;margin:0;padding-left:6px;position:relative}
 .subaxis.on{display:block}
 /* K-28: redukované samostatné karty na vnorenej osi */
