@@ -4,8 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v110b (Record Session: hidden fix, QR väčší, SOAP štruktúra)</title>
+<title>Hilbi Cockpit — v111 (Record: QR collapse + mobile hide; PHR scroll fix)</title>
 <!-- CHANGELOG
+v111 (2026-07-22): Record Session — record button viditeľný bez scrollu: QR sekcia
+  zbalená za "Record via mobile device" toggle (lazy reveal), na mobile (≤744px) QR
+  párovanie úplne skryté (.irqronly). PHR pravý panel — fix nescrollovateľného vrchu:
+  duplicitné .phr .pbody pravidlo s justify-content:center (placeholder z prvej verzie)
+  prebíjalo flex-start layout → obsah odstredený, vrch pod tabmi; zredukované na flex:1.
 v110 (2026-07-21): IQ Record Session prestavaný (iqrec modal). KROK 1 capture: meno
   pacienta na kontrolu (eRX-štýl), Output format dropdown (SOAP default + VÚSCH +
   "Create a template" neaktívne), QR na spárovanie s mobilom, record tlačidlo s
@@ -932,7 +937,7 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
 /* PHR */
 .phr{background:var(--surface-white);border-radius:16px;display:flex;flex-direction:column;overflow:hidden;position:relative}
 .phr .tabs{gap:20px;padding:0 20px}
-.phr .pbody{flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:14px}
+.phr .pbody{flex:1}
 
 /* Dock */
 
@@ -1117,6 +1122,13 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
 .irqrtx span{font-size:12.5px;color:var(--text-muted);line-height:1.4}
 .irsep{display:flex;align-items:center;gap:10px;color:var(--text-subtle);font-size:12px;margin:16px 0}
 .irsep::before,.irsep::after{content:"";flex:1;height:1px;background:var(--border-default)}
+.irqrtgl{display:flex;align-items:center;gap:8px;margin:0 auto;background:var(--surface-1);border:1px solid var(--border-default);border-radius:12px;padding:9px 14px;font-size:13px;font-weight:600;color:var(--text-heading);cursor:pointer}
+.irqrtgl:hover{border-color:var(--border-strong)}
+.irqrtgl .chev{display:inline-flex}
+.irqrtgl .chev svg{transition:transform .15s}
+.irqrtgl.on .chev svg{transform:rotate(180deg)}
+.irqr{margin-top:12px}
+@media (max-width:744px){.irqronly{display:none!important}}
 .irrec{display:flex;flex-direction:column;align-items:center;gap:12px;padding:6px 0 4px}
 .irbtn{width:64px;height:64px;border-radius:50%;background:var(--surface-white);border:2px solid var(--border-strong);cursor:pointer;display:flex;align-items:center;justify-content:center}
 .irbtn .irdot{width:26px;height:26px;border-radius:50%;background:var(--danger);transition:all .15s}
@@ -2018,17 +2030,18 @@ body[data-tab="comm"] .timeline{display:none}
             </div>
           </div>
         </div>
-        <div class="irqr">
-          <div class="irqrbox" id="irQR"></div>
-          <div class="irqrtx"><b>Record on your phone</b><span>Scan to pair this session with your mobile device.</span></div>
-        </div>
-        <div class="irsep"><span>or record here</span></div>
         <div class="irrec">
           <div class="irwave" id="irWave" hidden><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
           <div class="irtime" id="irTime" hidden><b id="irClock">00:00</b><span> / 20:00</span></div>
           <button class="irbtn" id="irBtn" onclick="irMain()" title="Record"><span class="irdot"></span></button>
           <button class="pillbtn irstop" id="irStopBtn" hidden onclick="irStop()">Stop &amp; review</button>
           <div class="irhint" id="irHint">Press to record and speak fluently. Limit 20 minutes.</div>
+        </div>
+        <div class="irsep irqronly"><span>or</span></div>
+        <button class="irqrtgl irqronly" id="irQrTgl" onclick="irQrToggle()"><svg class="ico s14" aria-hidden="true"><use href="#i-phone"/></svg><span>Record via mobile device</span><span class="chev"><svg width="12" height="7" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+        <div class="irqr irqronly" id="irQrWrap" hidden>
+          <div class="irqrbox" id="irQR"></div>
+          <div class="irqrtx"><b>Record on your phone</b><span>Scan to pair this session with your mobile device.</span></div>
         </div>
       </div>
       <!-- KROK 2: SOAP náhľad (eRX-štýl, editovateľný) -->
@@ -3281,10 +3294,12 @@ function irQR(){
   return r+'</svg>';
 }
 function irFoot(html){document.getElementById('irFoot').innerHTML=html;}
+function irQrToggle(){const w=document.getElementById('irQrWrap'),b=document.getElementById('irQrTgl');const show=w.hidden;w.hidden=!show;b.classList.toggle('on',show);}
 function irOpen(){
   irState='idle';irSec=0;if(irTimer)clearInterval(irTimer);irTimer=null;
   document.getElementById('irStep1').hidden=false;document.getElementById('irStep2').hidden=true;
   document.getElementById('irQR').innerHTML=irQR();
+  document.getElementById('irQrWrap').hidden=true;const _t=document.getElementById('irQrTgl');if(_t)_t.classList.remove('on');
   document.getElementById('irBtn').classList.remove('rec');document.getElementById('irBtn').hidden=false;
   document.getElementById('irWave').hidden=true;document.getElementById('irTime').hidden=true;
   document.getElementById('irStopBtn').hidden=true;document.getElementById('irHint').hidden=false;
