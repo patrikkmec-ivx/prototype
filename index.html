@@ -4,8 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v116 (QR auto-scroll pri rozbalení)</title>
+<title>Hilbi Cockpit — v117 (Jednotný podpis: osobný PIN všade)</title>
 <!-- CHANGELOG
+v117 (2026-07-22): JEDNOTNÉ PODPISOVÉ GESTO = OSOBNÝ PIN (Patrik). Nový pinwrap
+  modal: 4-miestny PIN (dot boxy, auto-advance, Backspace, Enter, klávesnica aj
+  klik), label akcie, hint "PIN autorizuje podpis podľa pravidiel trhu (C6)".
+  Demo PIN: ľubovoľné 4 číslice → check animácia → callback. Nasadené na VŠETKY
+  podpisy: eRX signFinal (nahrádza biometriu/biowrap — markup+CSS ODSTRÁNENÉ),
+  dekurz finalizeSign (Podpísať deň / vyšetrenie), IQ irSign. pinSign(label,cb)
+  = jediné API. i18n páry. Pozn.: PIN je autorizačné gesto, úroveň podpisu
+  (simple/AdES/QES/EPCS) rieši region pack pod ním — core-01 C6/D7.
 v116 (2026-07-22): Record Session — po kliknutí na "Record via mobile device" sa
   telo modalu samo plynulo poscrolluje na QR (scrollIntoView smooth po requestAnimationFrame),
   bez manuálneho scrollovania.
@@ -1249,15 +1257,21 @@ body[data-tab="comm"] .timeline{display:none}
 /* v75 · biometrické overenie pri podpise Rx (simulácia) — NEW, doplniť do Figmy */
 .biowrap{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;background:rgba(27,35,64,.45);backdrop-filter:blur(4px)}
 .biowrap.open{display:flex}
-.biobox{background:#fff;border-radius:20px;padding:28px 36px;text-align:center;box-shadow:0 24px 60px rgba(27,35,64,.35);min-width:220px}
-.bioface{width:76px;height:76px;margin:0 auto 14px;position:relative;color:var(--brand-teal)}
-.bioface svg{width:76px;height:76px;stroke:currentColor}
-.bioface .scanline{position:absolute;left:14px;right:14px;height:2px;border-radius:2px;background:var(--brand-teal);opacity:.85;top:12px;animation:bioscan 1.1s ease-in-out infinite alternate}
+.pinbox{background:var(--surface-white);border-radius:18px;padding:26px 30px 22px;display:flex;flex-direction:column;align-items:center;gap:12px;box-shadow:0 24px 60px rgba(27,35,64,.3);min-width:290px}
+.pintitle{font-size:15px;font-weight:800;color:var(--text-heading)}
+.pinlabel{font-size:12.5px;color:var(--text-muted);margin-top:-6px}
+.pindots{display:flex;gap:12px;margin:4px 0}
+.pindots i{width:44px;height:52px;border:1.5px solid var(--border-strong);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:var(--text-heading);font-style:normal}
+.pindots i.f{border-color:var(--brand-teal);background:var(--brand-cyan-soft)}
+.pindots.ok i{border-color:var(--ok,#2E7D5B);background:#E7F5EE}
+.pinpad{display:grid;grid-template-columns:repeat(3,64px);gap:8px}
+.pinpad button{height:44px;border:1px solid var(--border-default);border-radius:10px;background:var(--surface-white);font-size:17px;font-weight:700;color:var(--text-heading);cursor:pointer}
+.pinpad button:hover{background:var(--surface-1)}
+.pinpad button.pz{grid-column:2}
+.pinhint{font-size:11.5px;color:var(--text-subtle)}
+.pincancel{margin-top:2px}
+
 @keyframes bioscan{from{top:14px}to{top:60px}}
-.biobox.ok .bioface{color:var(--success)}
-.biobox.ok .scanline{display:none}
-.biotxt{font-size:14px;font-weight:700;color:var(--text-heading)}
-.biosub{font-size:11.5px;color:var(--text-muted);margin-top:3px}
 /* v77 · sekčné hlavičky na QR obrazovke (štýl = hlavička modalu) */
 .rxsh{display:flex;gap:12px;align-items:center;margin:16px 0 9px}
 .rxsh .hic{width:30px;height:30px;border-radius:9px}
@@ -2114,17 +2128,14 @@ body[data-tab="comm"] .timeline{display:none}
   </div>
 </div>
 
-<div class="biowrap" id="biowrap">
-  <div class="biobox" id="biobox">
-    <div class="bioface" id="bioface">
-      <svg viewBox="0 0 76 76" fill="none" stroke-width="4" stroke-linecap="round" id="biofsvg">
-        <path d="M10 24V16a6 6 0 0 1 6-6h8M52 10h8a6 6 0 0 1 6 6v8M66 52v8a6 6 0 0 1-6 6h-8M24 66h-8a6 6 0 0 1-6-6v-8"/>
-        <path d="M28 32v6M48 32v6M38 34v10h-3M28 52c2.8 3 6.2 4.5 10 4.5s7.2-1.5 10-4.5" stroke-width="3.5"/>
-      </svg>
-      <div class="scanline"></div>
-    </div>
-    <div class="biotxt" id="biotxt">Overenie tvárou…</div>
-    <div class="biosub" id="biosub">pozrite sa do kamery</div>
+<div class="biowrap" id="pinwrap">
+  <div class="pinbox" id="pinbox">
+    <div class="pintitle">Podpis — osobný PIN</div>
+    <div class="pinlabel" id="pinLabel"></div>
+    <div class="pindots" id="pinDots"><i></i><i></i><i></i><i></i></div>
+    <div class="pinpad" id="pinPad"></div>
+    <div class="pinhint">PIN autorizuje podpis podľa pravidiel trhu</div>
+    <button class="btn pincancel" onclick="pinCancel()">Zrušiť</button>
   </div>
 </div>
 
@@ -2472,30 +2483,12 @@ function renderRes(){
 }
 function ackW(i){RX.cart[i].ack=true;rxRender()}
 function rmCart(i){RX.cart.splice(i,1);rxRender()}
-let bioBusy=false;
 function finishStep1(){
  if(!RX.cart.length)return;
  if(RX.cart.some(it=>it.warn&&!it.ack)){rxRender();return}
  RX.done=true;rxRender();renderRxSoap();
 }
-function signFinal(){
- if(bioBusy)return;bioBusy=true;
- const w=document.getElementById('biowrap'),b=document.getElementById('biobox');
- b.classList.remove('ok');
- document.getElementById('biotxt').textContent=tt('Overenie tvárou…');
- document.getElementById('biosub').textContent=tt('pozrite sa do kamery');
- w.classList.add('open');
- setTimeout(()=>{
-   b.classList.add('ok');
-   const f=document.getElementById('biofsvg');f.innerHTML='<path d="M10 24V16a6 6 0 0 1 6-6h8M52 10h8a6 6 0 0 1 6 6v8M66 52v8a6 6 0 0 1-6 6h-8M24 66h-8a6 6 0 0 1-6-6v-8"/><path d="m26 39 8 8 16-16" stroke-width="5"/>';
-   document.getElementById('biotxt').textContent=tt('Overené');
-   document.getElementById('biosub').textContent=tt('kvalifikovaný podpis pripojený');
-   setTimeout(()=>{w.classList.remove('open');bioBusy=false;
-     insertRxCard();finishRx();
-     const f2=document.getElementById('biofsvg');f2.innerHTML='<path d="M10 24V16a6 6 0 0 1 6-6h8M52 10h8a6 6 0 0 1 6 6v8M66 52v8a6 6 0 0 1-6 6h-8M24 66h-8a6 6 0 0 1-6-6v-8"/><path d="M28 32v6M48 32v6M38 34v10h-3M28 52c2.8 3 6.2 4.5 10 4.5s7.2-1.5 10-4.5" stroke-width="3.5"/>';
-   },650);
- },1300);
-}
+function signFinal(){pinSign(rxT('Podpísať recept'),()=>{insertRxCard();finishRx();});}
 function doSign(){RX.done?signFinal():finishStep1()}
 let lastRxCard=null;
 function insertRxCard(){
@@ -2852,7 +2845,7 @@ function signDay(){
   if(!document.getElementById('billbox').classList.contains('show')){
     buildBill();dTab(2,document.querySelectorAll('.dtabs button')[2]);
     showToast('Skontrolujte návrh výkazu');return}
-  finalizeSign();
+  pinSign(tt('Podpísať vyšetrenie'),finalizeSign);
 }
 function finalizeSign(){
   BILLN=document.querySelectorAll('#billrows input:checked').length;
@@ -2926,6 +2919,7 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
+["Podpis — osobný PIN","Signature — personal PIN"],["PIN autorizuje podpis podľa pravidiel trhu","PIN authorizes the signature per market rules"],
 ["Celá os","Full axis"],["Mílniky","Milestones"],["Mílniky = index, klik otvára zdroj","Milestones = index, click opens the source"],
 ["Mílnik — zmena liečby","Milestone — treatment change"],["Mílnik — hospitalizácia","Milestone — hospitalization"],["Mílnik — relaps / eskalácia","Milestone — relapse / escalation"],
 ["Nahrajte na svojom telefóne","Record on your phone"],["Naskenujte a spárujte túto reláciu s mobilným zariadením.","Scan to pair this session with your mobile device."],
@@ -3328,6 +3322,29 @@ function irQR(){
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){if((x<8&&y<8)||(x>N-9&&y<8)||(x<8&&y>N-9))continue;if(rnd()>0.55)r+='<rect x="'+(pad+x*cell)+'" y="'+(pad+y*cell)+'" width="'+cell+'" height="'+cell+'" fill="var(--surface-navy)"/>';}
   return r+'</svg>';
 }
+let PIN='',PINCB=null;
+function pinSign(label,cb){
+  PIN='';PINCB=cb;
+  document.getElementById('pinLabel').textContent=label||'';
+  pinDraw();
+  const pad=document.getElementById('pinPad');
+  pad.innerHTML=[1,2,3,4,5,6,7,8,9,0].map(n=>'<button '+(n===0?'class="pz" ':'')+'onclick="pinKey('+n+')">'+n+'</button>').join('');
+  document.getElementById('pinDots').classList.remove('ok');
+  document.getElementById('pinwrap').classList.add('open');
+}
+function pinDraw(){const d=document.querySelectorAll('#pinDots i');d.forEach((el,i)=>{el.textContent=PIN[i]?'•':'';el.classList.toggle('f',!!PIN[i]);});}
+function pinKey(n){if(PIN.length>=4)return;PIN+=n;pinDraw();if(PIN.length===4)pinDone();}
+function pinDone(){
+  document.getElementById('pinDots').classList.add('ok');
+  setTimeout(()=>{document.getElementById('pinwrap').classList.remove('open');const cb=PINCB;PINCB=null;PIN='';if(cb)cb();},420);
+}
+function pinCancel(){PIN='';PINCB=null;document.getElementById('pinwrap').classList.remove('open');}
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('pinwrap').classList.contains('open'))return;
+  if(/^[0-9]$/.test(e.key)){pinKey(+e.key);e.preventDefault();}
+  else if(e.key==='Backspace'){PIN=PIN.slice(0,-1);pinDraw();e.preventDefault();}
+  else if(e.key==='Escape'){pinCancel();}
+});
 function pwMenu(ev){ev.stopPropagation();ev.preventDefault();document.getElementById('pwdd').classList.toggle('open');}
 function axMode(m){const ms=m==='ms';document.body.dataset.ax=ms?'ms':'';document.getElementById('axFull').classList.toggle('on',!ms);document.getElementById('axMs').classList.toggle('on',ms);document.getElementById('pwdd').classList.remove('open');}
 function msJump(e){e.stopPropagation();const row=e.currentTarget.closest('.trow');const card=row&&row.querySelector('.card');if(card)card.click();}
@@ -3380,7 +3397,8 @@ function irStop(){
   document.getElementById('irEdit').innerHTML=IR_SOAP.map(s=>'<div class="iqsec"><div class="iqsh"><svg class="ico" aria-hidden="true"><use href="#'+s.ic+'"/></svg>'+s.h+'</div><div class="iqtx" contenteditable="true" spellcheck="false">'+s.t+'</div></div>').join('');
   irFoot('<button class="btn" onclick="irOpen()">Re-record</button><button class="btn primary" onclick="irSign()">Sign</button>');
 }
-function irSign(){
+function irSign(){pinSign('Sign — IQ session',irSignDo);}
+function irSignDo(){
   const secs=[...document.querySelectorAll('#irEdit .iqsec')].map(s=>s.querySelector('.iqsh').innerText.trim()+': '+s.querySelector('.iqtx').innerText.trim());
   const txt=secs.join('\n');
   const now=new Date();const tm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
