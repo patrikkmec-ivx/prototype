@@ -6,7 +6,7 @@ area: tech
 type: spec
 owner: patrik
 status: draft-for-approval
-version: 0.1
+version: 0.2
 created: 2026-07-21
 updated: 2026-07-21
 review_due: 2026-10-21
@@ -16,7 +16,7 @@ iso_controls: [A.8.1]
 classification: Dôverné — interné
 ---
 
-# Care Plans × Patient Pathway × Clinical Core — Binding Map v0.1
+# Care Plans × Patient Pathway × Clinical Core — Binding Map v0.2
 
 > **Authority: NORMATIVE for the bindings** listed here (MAP-* rules and the tables).
 > Everything else is informative glue. Sources of truth remain: CORE-TECH-CLINICAL-CORE
@@ -46,8 +46,7 @@ classification: Dôverné — interné
 | **Care plans tab** (plan detail + control, variance curve) | `CarePlan` instance over `PlanDefinition`; step completion **derived** from existence of the mapped resource, never stored | CP D15, Core F1, MAP-03 |
 | **Records tab** (clinician-authored folders) | `Composition` renders + `DocumentReference` exposures (D6) | A3, D4, D6 |
 | **Communication tab** (chat/video with patient) | `Communication` (patient-bound); education/consent via CP card catalog | CP D16, B2 |
-| **Notes tab** (internal notes) | `Communication` with internal-note category + data-class tag excluding it from patient surfaces and exports | H1, MAP-05 |
-| **Consilium tab** (peer consults) | `Communication` practitioner↔practitioner; handoff summary = IQ ISBAR draft, confirmed → event on the axis | CASE-03 |
+| **Multidisciplinary panel** (replaces Notes + Consilium tabs — UX decision 2026-07-21) | Discussion: `Communication` practitioner↔practitioner, data-class `internal-panel` — retained as physician-protective history, NEVER transferred to EHR/write-back, patient surfaces, D6 exposures or exports. **Conclusion:** authored by the responsible physician (another physician MAY decide — author recorded); the conclusion is the clinical record that enters the Core and the timeline. ISBAR handoff per CASE-03 | H1, MAP-05, CASE-03 |
 | **Dekurz modal** (central overlay) | Continuous background compilation of the encounter into `Composition` with SOAP-coded sections; sign per C6 → `final` | SOAP-03/04, D5, C6 |
 | **Life ID / PHR panel** (right rail) | Patient-compartment read projection; external documents referenced/imported with provenance, verification badge = `Provenance` state | A2, F2 |
 | **IQ widget / Record Session** | Producers C3 (speech-to-note) + C4 gate; predictions `RiskAssessment`, `preliminary` (O8) | C3, C4, H4 |
@@ -69,7 +68,10 @@ Only these event classes enter the pathway; everything else lives one level down
 | Key imaging | `ImagingStudy` + `DiagnosticReport` flagged key per domain pack |
 | Report issued | `Composition` → `DocumentReference` (final) |
 
-Extension of this list is allowed **per care plan** (domain pack artifact), never ad hoc in UI.
+Extension of this list is allowed **per care plan** (domain pack artifact), never ad hoc in
+UI. **Mechanism (default, Patrik to confirm):** `milestone: true` flag on the plan
+step/phase in the manifest; the sync event carries the flag + class (core-12 S3). A
+manifest MAY additionally declare standalone milestones not bound to a step.
 
 ## M4. Binding rules
 
@@ -83,8 +85,11 @@ Extension of this list is allowed **per care plan** (domain pack artifact), neve
 - **MAP-04 — One event, many views.** The same resource may appear on the pathway (if M3),
   the encounter mini-axis, the care-plan detail and in a Composition — it exists once (B2:
   one FHIR home per concept).
-- **MAP-05 — Internal notes never leak.** Notes-tab content carries a data-class tag that
-  excludes it from patient surfaces, D6 exposures, exports and IQ patient-facing synthesis.
+- **MAP-05 — Panel discussion never leaks.** Multidisciplinary-panel discussion carries the
+  `internal-panel` data-class tag excluding it from patient surfaces, EHR write-back (US
+  companion mode included), D6 exposures, exports and IQ patient-facing synthesis. It is
+  retained as physician-protective history per retention rules (Marek, M-O1). Only the
+  physician-authored **conclusion** is a clinical record.
 - **MAP-06 — Variance curve lives in Care plans.** The norm/regression/progression curve is
   a care-plan-detail visualization (needs an active plan); the pathway stays a clean
   milestone spine.
@@ -107,11 +112,33 @@ flowchart LR
   CORE -- "derived completion (MAP-03)" --> CPT["Care plans tab<br/>+ variance curve (MAP-06)"]
 ```
 
+## M7. Records tab — fixed folder taxonomy (gold standard)
+
+Structure is FIXED (Patrik decision 2026-07-21) — derived from US (USCDI note classes),
+EU (EHDS/EEHRxF priority categories, IPS sections) and Asia (ABDM record types) best
+practice. Folder names localize per market; the set does not:
+
+| # | Folder | Maps to |
+|---|---|---|
+| 1 | Clinical notes (dekurzy) | dekurz.soap Compositions / OPConsultRecord |
+| 2 | Reports & discharge | report.* Compositions / DischargeSummaryRecord / EEHRxF discharge |
+| 3 | Imaging | ImagingStudy + DiagnosticReport / DiagnosticReportRecord |
+| 4 | Laboratory | lab DiagnosticReport + Observations / EEHRxF lab category |
+| 5 | Medications & prescriptions | MedicationRequest/Statement / Prescription / eP |
+| 6 | Orders & referrals | ServiceRequest / referral Compositions |
+| 7 | Vaccinations | Immunization / ImmunizationRecord |
+| 8 | Consents & confirmations | Consent + per-country confirmation datasets (D7/O10) |
+| 9 | External & patient-provided | DocumentReference imports (A2) / HealthDocumentRecord |
+
+Providers do not create top-level folders; sub-foldering inside a folder MAY be permitted
+later via K35. Per-country confirmation datasets (folder 8) live in country settings,
+standard-approved, provider-editable as D7 templates.
+
 ## M6. Open decisions
 
-| # | Decision | Owner |
+| # | Decision | Status |
 |---|---|---|
-| M-O1 | Internal-note category coding + retention class (MAP-05) | Patrik → Marek |
-| M-O2 | Per-plan milestone extensions format in the domain pack (M3) | Patrik → CP standard rev |
-| M-O3 | Consilium: is a consult a billable event (BILL hook)? | Roman |
-| M-O4 | Relapse/escalation flag definition per domain (SM first) | domain author + controller |
+| M-O1 | `internal-panel` retention class — model decided (physician-protective history, no EHR transfer); retention length + legal review | → Marek |
+| M-O2 | Milestone extension format | DECIDED (default): flag on step + optional standalone in manifest — Patrik one-word confirm |
+| M-O3 | Panel conclusion as billable event (ChargeItem candidate per BILL-02)? | → Roman |
+| M-O4 | Relapse flag | DECIDED: domain logic defines; Core receives only the flagged sync event (core-12 S3) |
