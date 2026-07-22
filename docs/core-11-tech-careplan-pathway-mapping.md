@@ -69,7 +69,7 @@ Only these event classes enter the pathway; everything else lives one level down
 | Report issued | `Composition` → `DocumentReference` (final) |
 
 Extension of this list is allowed **per care plan** (domain pack artifact), never ad hoc in
-UI. **Mechanism (default, Patrik to confirm):** `milestone: true` flag on the plan
+UI. **Mechanism (CONFIRMED, Patrik 2026-07-21):** `milestone: true` flag on the plan
 step/phase in the manifest; the sync event carries the flag + class (core-12 S3). A
 manifest MAY additionally declare standalone milestones not bound to a step.
 
@@ -139,6 +139,6 @@ standard-approved, provider-editable as D7 templates.
 | # | Decision | Status |
 |---|---|---|
 | M-O1 | `internal-panel` retention class — model decided (physician-protective history, no EHR transfer); retention length + legal review | → Marek |
-| M-O2 | Milestone extension format | DECIDED (default): flag on step + optional standalone in manifest — Patrik one-word confirm |
+| M-O2 | Milestone extension format | CLOSED: flag on step + optional standalone in manifest (Patrik 2026-07-21) |
 | M-O3 | Panel conclusion as billable event (ChargeItem candidate per BILL-02)? | → Roman |
 | M-O4 | Relapse flag | DECIDED: domain logic defines; Core receives only the flagged sync event (core-12 S3) |
