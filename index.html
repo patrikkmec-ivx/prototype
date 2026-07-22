@@ -2860,9 +2860,9 @@ function saveFot(){mClose('fotwrap');showToast('Nahrané — čaká na overenie'
   if(LANG==='en')swapText(SK2EN);}
 /* K-19: podpis & render — market_rules (SOAP-06/08/09), Flow A vs B */
 const MKT={
- IN:{min:['A','P'],tpl:'slip',lbl:'min. podpis: A+P · render: Rx slip'},
- EU:{min:['A','P'],tpl:'full',lbl:'min. podpis: A+P (S/O odporúčané) · render: plná správa'},
- US:{min:['A','P'],tpl:'full',lbl:'min. podpis: A+P (MDM) · render: plná správa'}
+ IN:{min:['A','P'],tpl:'slip',lbl:'min. podpis: A+P · render: Rx slip',doc:'ABDM Prescription',sig:'IT Act e-sign',idlbl:'ABHA'},
+ EU:{min:['A','P'],tpl:'full',lbl:'min. podpis: A+P (S/O odporúčané) · render: plná správa',doc:'EEHRxF / OpConsult',sig:'eIDAS QES',idlbl:'EHR-ID'},
+ US:{min:['A','P'],tpl:'full',lbl:'min. podpis: A+P (MDM) · render: plná správa',doc:'US Core / C-CDA',sig:'HIPAA e-sign',idlbl:'MRN'}
 };
 let MKTC='EU',FUsel=null,fuDone=false;
 function setMkt(m,btn){MKTC=m;document.querySelectorAll('#mktseg button').forEach(b=>b.classList.toggle('on',b===btn));
@@ -2890,29 +2890,38 @@ function fuPick(btn){
   }
   if(document.getElementById('rendout').classList.contains('show'))renderOut();
 }
+/* Report identity — z kontextu (seam: nesie ABHA/HPR/HFR · NPI · EÚ ID), nie hardcoded */
+const RPT_ID={patient:'Jane Carter',pid:'76157 8787',clinician:'Dr. Novak',org:'ExpertMed',date:'17.07.2026'};
+/* Report mód: overlay = kompilácia, autoritatívny záznam drží host EHR · core = Hilbi je system of record */
+let RPT_MODE='overlay';
+function rptModeNote(){return RPT_MODE==='core'?tt('autoritatívny záznam (Hilbi = system of record)'):tt('kompilácia — zápis do zdrojového systému (system of record: host EHR)');}
+function rptIdLine(){const m=MKT[MKTC];return escT(RPT_ID.patient)+' · '+m.idlbl+' '+escT(RPT_ID.pid)+' · '+escT(RPT_ID.date);}
+/* Jednotný report-shell: hlavička + telo + pätka RAZ (SOAP-08: jeden objekt, žiadne duplikované chrome) */
+function reportShell(title,bodyHTML){
+  const m=MKT[MKTC];
+  const bill=BILLN?'<br>'+tt('Výkaz potvrdený')+': '+BILLN+' '+tt('položiek')+' · '+billArtifact():'';
+  return `<h4>${escT(title)} · ${escT(RPT_ID.org)}</h4>
+  <div class="rsec">${rptIdLine()} · ${escT(RPT_ID.clinician)}</div>
+  ${bodyHTML}
+  <div class="rft">${tt('podpis')}: ${escT(RPT_ID.clinician)} · ${m.sig} · ${tt('profil')}: ${escT(m.doc)} · ${rptModeNote()} · Composition.status: final${bill}</div>`;
+}
 function renderOut(){
   const ro=document.getElementById('rendout');ro.classList.add('show');
   const A=slotTexts('A'),S=slotTexts('S'),O=slotTexts('O'),P=slotTexts('P');
   const rx=P.filter(t=>/eRecept|ePrescription/i.test(t));
   const fu=FUsel?(tt('Kontrola o')+' '+tt(FUsel)):null;const dash='—';
+  /* data-coding = terminologický seam (SNOMED/ICD/LOINC/RxNorm) — pripravené na binding, zatiaľ inertné */
+  const sec=(l,arr,code)=>`<div class="rsec" data-coding="${code||''}"><b>${l}:</b> ${arr.length?arr.map(escT).join('; '):dash}</div>`;
+  let body;
   if(MKT[MKTC].tpl==='slip'){
-    ro.innerHTML=`<h4>Rx slip · ExpertMed</h4>
-    <div class="rsec">Jane Carter · ID 76157 8787 · 17.07.2026</div>
-    <div class="rsec"><b>Dg:</b> ${A.length?A.map(escT).join('; '):dash}</div>
-    <div class="rsec"><b>Rx:</b> ${rx.length?rx.map(escT).join('; '):dash}</div>
-    <div class="rsec"><b>Follow-up:</b> ${fu?escT(fu):dash}</div>
-    <div class="rft">${tt('podpis')}: Dr. Novak · ${tt('elektronicky')} · market_rules: IN${BILLN?'<br>'+tt('Výkaz potvrdený')+': '+BILLN+' '+tt('položiek')+' · '+billArtifact():''}</div>`;
+    body=sec('Dg',A,'ICD/SNOMED')+sec('Rx',rx,'RxNorm/ATC')+sec('Follow-up',fu?[fu]:[]);
   }else{
-    const sec=(l,arr)=>`<div class="rsec"><b>${l}:</b> ${arr.length?arr.map(escT).join('; '):dash}</div>`;
     const narrEl=document.querySelector('#dsec0 .narr textarea');const narr=narrEl?narrEl.value:'';
-    ro.innerHTML=`<h4>${tt('Lekárska správa')} · ExpertMed</h4>
-    <div class="rsec">Jane Carter · ID 76157 8787 · 17.07.2026 · Dr. Novak</div>
-    ${sec('S',S)}${sec('O',O)}${sec('A',A)}${sec('P',P)}
-    <div class="rsec"><b>eRx:</b> ${rx.length?rx.map(escT).join('; '):dash}</div>
-    <div class="rsec"><b>Follow-up:</b> ${fu?escT(fu):dash}</div>
-    ${narr?`<div class="rsec"><b>${tt('Naratív')}:</b> ${escT(narr)}</div>`:''}
-    <div class="rft">${tt('podpis')}: Dr. Novak · ${tt('elektronicky')} · market_rules: ${MKTC}${BILLN?'<br>'+tt('Výkaz potvrdený')+': '+BILLN+' '+tt('položiek')+' · '+billArtifact():''}</div>`;
+    body=sec('S',S,'SNOMED')+sec('O',O,'LOINC')+sec('A',A,'ICD/SNOMED')+sec('P',P,'SNOMED')
+      +sec('eRx',rx,'RxNorm/ATC')+sec('Follow-up',fu?[fu]:[])
+      +(narr?sec(tt('Naratív'),[narr]):'');
   }
+  ro.innerHTML=reportShell(MKT[MKTC].tpl==='slip'?'Rx slip':tt('Lekárska správa'),body);
 }
 /* K-20: billing derivation (BILL-01..04) — suggestion engine, lekár potvrdzuje */
 let BILLN=0,EMsel='';
