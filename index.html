@@ -4,8 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v119 (Zelené success toasty po podpise)</title>
+<title>Hilbi Cockpit — v120 (Next step — zjednotený flow termín/order/referral)</title>
 <!-- CHANGELOG
+v120 (2026-07-22): ZJEDNOTENIE termín + order + interné odoslanie do JEDNÉHO
+  modalu "Next step" (nswrap), 1 vstup cez +. Typová os (FHIR mapovanie):
+  Follow-up/Tele=Appointment (date/time), Specialist/Hospitalization=ServiceRequest
+  referral (department→clinician, reason), Radiology/Lab test=ServiceRequest
+  order (catalog+reason). Where/who = 2-stupňový dropdown Department→Clinician
+  (performer/participant). Polia adaptívne per typ. Staré ordwrap+aptwrap modaly
+  a 2 dock položky ODSTRÁNENÉ, nahradené 1× "Next step". EN + štandardné názvy.
+  Reuse: typechips/vgrid/catchips/gaterow/recline, encEvent, addPend, dekAddEv.
 v119 (2026-07-22): showToast(msg, kind): kind='ok' → .toast.ok (pozadie --success,
   biely text a check). Zelené pri všetkých podpisoch: finalizeSign (dekurz/výkaz),
   irSign (IQ session), a save/sent akcie ostávajú navy. 0 nových tokenov.
@@ -1377,6 +1385,16 @@ body[data-tab="comm"] .timeline{display:none}
 .aggrow.tot{border-bottom:none;font-weight:800;color:var(--text-heading)}
 .typechips button.on{background:var(--brand-cyan-soft);border:2px solid var(--brand-cyan);padding:7.5px 13.5px;color:#0E7D92}
 .vbox input{border:none;outline:none;font-family:inherit;font-size:14px;font-weight:700;color:var(--text-heading);width:100%;background:none}
+.nsrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.nsdd{position:relative}
+.nsdd label{display:block;font-size:11px;color:var(--text-muted);margin-bottom:4px}
+.nsdd .ddbtn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;border:1.5px solid var(--border-default);border-radius:10px;padding:10px 12px;background:#fff;font-family:inherit;font-size:14px;font-weight:700;color:var(--text-heading);cursor:pointer}
+.nsdd .ddbtn svg{color:var(--text-muted);flex:none}
+.nsdd .ddmenu{display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--surface-white);border:1px solid var(--border-default);border-radius:12px;box-shadow:0 14px 34px rgba(27,35,64,.16);z-index:70;padding:6px;flex-direction:column;gap:1px;max-height:210px;overflow-y:auto}
+.nsdd.open .ddmenu{display:flex}
+.nsdd .ddmenu button{text-align:left;background:none;border:none;border-radius:8px;padding:9px 11px;font-size:13.5px;font-weight:600;color:var(--text-heading);cursor:pointer}
+.nsdd .ddmenu button:hover{background:var(--surface-1)}
+.nsdd .ddmenu button.on{background:var(--brand-cyan-soft);color:var(--brand-teal-text)}
 .drop{border:1.5px dashed var(--border-strong);border-radius:12px;padding:26px;text-align:center;color:var(--text-muted);font-size:13px;margin-bottom:12px}
 .drop .btn{margin-top:12px}
 
@@ -2213,35 +2231,37 @@ body[data-tab="comm"] .timeline{display:none}
   </div>
 </div>
 
-<div class="sheetwrap" id="ordwrap"><div class="scrim" onclick="mClose('ordwrap')"></div>
+<div class="sheetwrap" id="nswrap"><div class="scrim" onclick="mClose('nswrap')"></div>
   <div class="sheet">
-    <div class="sh-h"><span class="hic c-ord"><svg class="ico s14"><use href="#i-flask"/></svg></span><b>Order</b><button class="x" onclick="mClose('ordwrap')" title="Zavrieť">✕</button></div>
+    <div class="sh-h"><span class="hic c-fu"><svg class="ico s14"><use href="#i-cal"/></svg></span><b>Next step</b><button class="x" onclick="mClose('nswrap')" title="Close">✕</button></div>
     <div class="sh-b">
-      <div class="typechips" id="ordcat">
-        <button class="on" data-c="rad" onclick="ordCat('rad',this)">Radiology</button>
-        <button data-c="lab" onclick="ordCat('lab',this)">Labs</button>
+      <div class="typechips" id="nstype">
+        <button class="on" data-t="followup" onclick="nsType('followup',this)">Follow-up</button>
+        <button data-t="specialist" onclick="nsType('specialist',this)">Specialist</button>
+        <button data-t="radiology" onclick="nsType('radiology',this)">Radiology</button>
+        <button data-t="lab" onclick="nsType('lab',this)">Lab test</button>
+        <button data-t="hospital" onclick="nsType('hospital',this)">Hospitalization</button>
+        <button data-t="tele" onclick="nsType('tele',this)">Tele</button>
       </div>
-      <div class="catchips" id="ordcatalog"></div>
-      <input id="ordind" class="recline" style="margin-top:12px" placeholder="Indikácia (voliteľné)…">
-      <div class="gaterow" style="background:var(--surface-1);color:var(--text-muted);margin-top:10px"><svg class="ico s14" style="flex:none"><use href="#i-flask"/></svg><span>Vytvorí požiadavku (P) a otvorenú slučku — výsledok sa zapíše ako O.</span></div>
-    </div>
-    <div class="sh-f"><button class="btn" onclick="mClose('ordwrap')">Zrušiť</button><button class="btn primary" onclick="saveOrd()">Odoslať order<span class="kb2">⏎</span></button></div>
-  </div>
-</div>
 
-<div class="sheetwrap" id="aptwrap"><div class="scrim" onclick="mClose('aptwrap')"></div>
-  <div class="sheet">
-    <div class="sh-h"><span class="hic c-fu"><svg class="ico s14"><use href="#i-cal"/></svg></span><b>Termín</b><button class="x" onclick="mClose('aptwrap')" title="Zavrieť">✕</button></div>
-    <div class="sh-b">
-      <div class="typechips"><button class="on">Kontrola</button><button>MRI</button><button>Odber</button><button>Tele</button></div>
-      <div class="vgrid">
-        <div class="vbox"><label>Dátum</label><input value="24.09.2026"></div>
-        <div class="vbox"><label>Čas</label><input value="09:30"></div>
-        <div class="vbox"><label>Miesto</label><input value="Ambulancia"></div>
+      <div class="nsrow"><div class="nsdd" id="nsDeptDD"><label>Department</label><button class="ddbtn" onclick="nsDD('nsDeptDD',event)"><span id="nsDeptVal">Neurology</span><svg width="12" height="7" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="ddmenu" id="nsDeptMenu"></div></div>
+      <div class="nsdd" id="nsDocDD"><label>Clinician</label><button class="ddbtn" onclick="nsDD('nsDocDD',event)"><span id="nsDocVal">Dr. Novak</span><svg width="12" height="7" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="ddmenu" id="nsDocMenu"></div></div>
       </div>
-      <div class="gaterow" style="background:var(--surface-1);color:var(--text-muted)"><svg class="ico s14" style="flex:none"><use href="#i-cal"/></svg><span>Zapíše sa do sekcie PLÁNOVANÉ na osi a pacientovi do aplikácie.</span></div>
+
+      <div id="nsWhen">
+        <div class="vgrid">
+          <div class="vbox"><label>Date</label><input value="24.09.2026"></div>
+          <div class="vbox"><label>Time</label><input value="09:30"></div>
+          <div class="vbox"><label>Place</label><input value="Clinic"></div>
+        </div>
+      </div>
+
+      <div class="catchips" id="nsCatalog" hidden></div>
+
+      <input id="nsReason" class="recline" style="margin-top:12px" placeholder="Reason / indication (optional)…">
+      <div class="gaterow" id="nsGate" style="background:var(--surface-1);color:var(--text-muted);margin-top:10px"><svg class="ico s14" style="flex:none"><use href="#i-cal"/></svg><span id="nsGateTxt">Appears in the PLANNED section of the pathway and in the patient app.</span></div>
     </div>
-    <div class="sh-f"><button class="btn" onclick="mClose('aptwrap')">Zrušiť</button><button class="btn primary" onclick="saveApt()">Vytvoriť termín<span class="kb2">⏎</span></button></div>
+    <div class="sh-f"><button class="btn" onclick="mClose('nswrap')">Cancel</button><button class="btn primary" id="nsSubmit" onclick="nsSave()">Create<span class="kb2">⏎</span></button></div>
   </div>
 </div>
 
@@ -2330,9 +2350,8 @@ body[data-tab="comm"] .timeline{display:none}
     <div class="sep"></div>
     <button onclick="openRx()"><svg class="ico s14" aria-hidden="true"><use href="#i-syr"/></svg> Preskripcia <kbd class="kb">R</kbd></button>
     <button onclick="mOpen('recwrap')"><svg class="ico s14" aria-hidden="true"><use href="#i-pen"/></svg> Zaznamenať <kbd class="kb">N</kbd></button>
-    <button onclick="mOpen('ordwrap')"><svg class="ico s14" aria-hidden="true"><use href="#i-flask"/></svg> Order — Radiology / Labs <kbd class="kb">O</kbd></button>
+    <button onclick="nsOpen()"><svg class="ico s14" aria-hidden="true"><use href="#i-cal"/></svg> Next step — appointment / order / referral <kbd class="kb">T</kbd></button>
     <button onclick="mOpen('dkwrap');dTab(2,document.querySelectorAll('.dtabs button')[2])"><svg class="ico s14" aria-hidden="true"><use href="#i-file"/></svg> Generovať správu <kbd class="kb">S</kbd></button>
-    <button onclick="mOpen('aptwrap')"><svg class="ico s14" aria-hidden="true"><use href="#i-cal"/></svg> Termín <kbd class="kb">T</kbd></button>
   </div>
   <div class="dock">
     <button class="mnav" data-tip="Menu" aria-label="Menu" onclick="document.body.classList.toggle('drawer-open')"><svg class="ico s18" aria-hidden="true"><use href="#i-menu"/></svg></button>
@@ -2545,7 +2564,7 @@ function mOpen(id){if(id==='dkwrap')dTab(0,document.querySelectorAll('.dtabs but
 function mClose(id){document.getElementById(id).classList.remove('open')}
 function dTab(i,btn){document.querySelectorAll('.dtabs button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
   [0,1,2].forEach(n=>document.getElementById('dsec'+n).classList.toggle('on',n===i));}
-let recIns=false,aptIns=false,fotIns=false;
+let recIns=false,fotIns=false;
 function mkRow(html,type){const r=document.createElement('div');r.className='trow';r.dataset.type=type;r.innerHTML=html;return r}
 /* K-16: SOAP segment — default A; vitály viditeľné len pri O */
 let recSlot='A';
@@ -2600,26 +2619,89 @@ function chat2S(btn){
   showToast('Zapísané do dekurzu · S');
 }
 /* K-18: ordery Radiology/Labs (SOAP-07) + pending slučky */
-const ORDCAT={rad:['MRI mozgu','CT hrudníka','RTG chrbtice','USG abdomenu'],lab:['Krvný obraz','HbA1c','Lipidový profil','CRP','Kreatinín']};
-let ordC='rad',pendN=0;
-function ordCat(c,btn){ordC=c;document.querySelectorAll('#ordcat button').forEach(b=>b.classList.toggle('on',b===btn));ordRender()}
-function ordRender(){document.getElementById('ordcatalog').innerHTML=ORDCAT[ordC].map(n=>`<button onclick="this.classList.toggle('on')">${tt(n)}</button>`).join('')}
-document.getElementById('ordind').addEventListener('keydown',e=>{if(e.key==='Enter'){saveOrd();e.preventDefault()}});
-function saveOrd(){
-  const items=Array.from(document.querySelectorAll('#ordcatalog button.on')).map(b=>b.textContent);
-  if(!items.length){showToast('Vyberte aspoň jednu položku');return}
-  mClose('ordwrap');
-  const catN=ordC==='rad'?'Radiology':'Labs';
-  const ind=(document.getElementById('ordind').value||'').trim();
+let pendN=0;
+// ── NEXT STEP (unified appointment / order / referral) ──
+const NS_DEPT={
+  Neurology:['Dr. Novak','Dr. Reznik','Dr. Balaz'],
+  Cardiology:['Dr. Simkova','Dr. Horak'],
+  'Internal medicine':['Dr. Rybar','Dr. Hlavova'],
+  Radiology:['Radiology dept.'],
+  Laboratory:['Laboratory dept.'],
+  Surgery:['Dr. Karas']
+};
+const NS_CAT={radiology:['Brain MRI','Chest CT','Spine X-ray','Abdominal US'],lab:['CBC','HbA1c','Lipid panel','CRP','Creatinine']};
+const NS_CFG={
+  followup:{mode:'appt',depts:['Neurology','Cardiology','Internal medicine','Surgery'],when:true,cat:false,gate:'Appears in the PLANNED section of the pathway and in the patient app.',ev:{slot:'P',icon:'i-steth',label:'Follow-up'}},
+  tele:{mode:'appt',depts:['Neurology','Cardiology','Internal medicine'],when:true,cat:false,gate:'Virtual appointment — appears in PLANNED and in the patient app.',ev:{slot:'P',icon:'i-steth',label:'Tele follow-up'}},
+  specialist:{mode:'referral',depts:['Neurology','Cardiology','Internal medicine','Surgery'],when:false,cat:false,gate:'Internal referral — creates a request; the target department schedules the slot.',ev:{slot:'P',icon:'i-route',label:'Referral'}},
+  hospital:{mode:'referral',depts:['Internal medicine','Surgery','Cardiology'],when:false,cat:false,gate:'Admission referral — creates a request and an open loop.',ev:{slot:'P',icon:'i-layers',label:'Admission'}},
+  radiology:{mode:'order',depts:['Radiology'],when:false,cat:'radiology',gate:'Creates a request (P) and an open loop — the result is recorded as O.',ev:{slot:'P',icon:'i-flask',label:'Radiology'}},
+  lab:{mode:'order',depts:['Laboratory'],when:false,cat:'lab',gate:'Creates a request (P) and an open loop — the result is recorded as O.',ev:{slot:'P',icon:'i-flask',label:'Lab test'}}
+};
+let nsT='followup';
+function nsOpen(){nsT='followup';document.querySelectorAll('#nstype button').forEach(b=>b.classList.toggle('on',b.dataset.t==='followup'));nsApply();mOpen('nswrap');}
+function nsType(t,btn){nsT=t;document.querySelectorAll('#nstype button').forEach(b=>b.classList.toggle('on',b===btn));nsApply();}
+function nsApply(){
+  const c=NS_CFG[nsT];
+  document.getElementById('nsWhen').hidden=!c.when;
+  const cat=document.getElementById('nsCatalog');cat.hidden=!c.cat;
+  if(c.cat){cat.innerHTML=NS_CAT[c.cat].map(n=>`<button onclick="this.classList.toggle('on')">${n}</button>`).join('');}
+  // department options for this type
+  const dm=document.getElementById('nsDeptMenu');
+  dm.innerHTML=c.depts.map(d=>`<button onclick="nsPickDept('${d}')">${d}</button>`).join('');
+  nsPickDept(c.depts[0]);
+  document.getElementById('nsGateTxt').textContent=c.gate;
+  document.getElementById('nsSubmit').firstChild.textContent=(c.mode==='appt'?'Create appointment':c.mode==='referral'?'Send referral':'Send order');
+}
+function nsDD(id,e){e.stopPropagation();const el=document.getElementById(id);document.querySelectorAll('.nsdd.open').forEach(x=>{if(x!==el)x.classList.remove('open')});el.classList.toggle('open');}
+function nsPickDept(d){
+  document.getElementById('nsDeptVal').textContent=d;document.getElementById('nsDeptDD').classList.remove('open');
+  const docs=NS_DEPT[d]||[];
+  document.getElementById('nsDocMenu').innerHTML=docs.map(x=>`<button onclick="nsPickDoc('${x}')">${x}</button>`).join('');
+  nsPickDoc(docs[0]);
+}
+function nsPickDoc(x){document.getElementById('nsDocVal').textContent=x;document.getElementById('nsDocDD').classList.remove('open');}
+document.addEventListener('click',e=>{if(!e.target.closest('.nsdd'))document.querySelectorAll('.nsdd.open').forEach(x=>x.classList.remove('open'));});
+function nsSave(){
+  const c=NS_CFG[nsT];
+  const dept=document.getElementById('nsDeptVal').textContent;
+  const who=document.getElementById('nsDocVal').textContent;
+  const reason=(document.getElementById('nsReason').value||'').trim();
   const now=new Date();const tm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  encEvent({slot:'P',icon:'i-flask',title:'Order — '+catN,sub:items.join(' · ')+(ind?' · '+ind:'')+' · '+tt('Čaká na výsledok'),who:tt('lekár'),time:tm,detail:items.join(', ')+(ind?'\n'+tt('Indikácia')+': '+ind:'')});
-  dekAddEv('P','Order '+catN+': '+items.join(', '),tt('lekár'));
-  addPend(catN,items,null);
-  document.querySelectorAll('#ordcatalog button').forEach(b=>b.classList.remove('on'));
-  document.getElementById('ordind').value='';
-  showToast('Order odoslaný · čaká na výsledok');
+  if(c.mode==='order'){
+    const items=Array.from(document.querySelectorAll('#nsCatalog button.on')).map(b=>b.textContent);
+    if(!items.length){showToast('Select at least one item');return}
+    mClose('nswrap');
+    encEvent({slot:'P',icon:'i-flask',title:'Order — '+c.ev.label,sub:items.join(' · ')+(reason?' · '+reason:'')+' · '+tt('Čaká na výsledok'),who:tt('lekár'),time:tm,detail:items.join(', ')+(reason?'\n'+tt('Indikácia')+': '+reason:'')});
+    dekAddEv('P','Order '+c.ev.label+': '+items.join(', '),tt('lekár'));
+    if(typeof addPend==='function')addPend(c.ev.label,items,null);
+    showToast('Order sent · '+c.ev.label,'ok');
+  } else if(c.mode==='referral'){
+    mClose('nswrap');
+    encEvent({slot:'P',icon:c.ev.icon,title:c.ev.label+' — '+dept,sub:who+(reason?' · '+reason:'')+' · '+tt('Čaká na výsledok'),who:tt('lekár'),time:tm,detail:'Department: '+dept+' · Clinician: '+who+(reason?'\nReason: '+reason:'')});
+    dekAddEv('P',c.ev.label+': '+dept+' ('+who+')',tt('lekár'));
+    nsInsertPlanned(c.ev.label+' — '+dept, who, '');
+    showToast('Referral sent · '+dept,'ok');
+  } else {
+    mClose('nswrap');
+    const boxes=document.querySelectorAll('#nsWhen .vbox input');
+    const date=boxes[0].value, time=boxes[1].value, place=boxes[2].value;
+    nsInsertPlanned((nsT==='tele'?'Tele — ':'Follow-up — ')+dept, who, date+' · '+time+(place?' · '+place:''));
+    showToast('Appointment created · '+date,'ok');
+  }
+  document.getElementById('nsReason').value='';
+}
+function nsInsertPlanned(title, who, meta){
+  const initials=(who||'—').split(' ').map(s=>s[0]).slice(-1).join('')||'N';
+  const r=mkRow(`<div class="spine"><button class="tico t-plan" data-f="visit"><svg class="ico s14"><use href="#i-steth"/></svg></button><div class="line"></div></div>
+  <div class="card planned"><div class="body"><div class="pav ph doc1" data-tip="${who}" tabindex="0">${initials}<span class="vb">＋</span></div><div class="cmain">
+  <div class="l1"><b>${title}</b><span class="dt"><span class="sdot d-plan"></span>${meta||'to be scheduled'}</span></div>
+  <div class="l2">${who}</div>
+  <div class="crow"><span class="tag st-plan">${tt('Plánované')}</span></div></div></div></div>`,'visit');
+  const sep=document.querySelector('.ssep');if(sep)sep.parentNode.insertBefore(r,sep.nextSibling);
   if(LANG==='en')swapText(SK2EN);
 }
+document.getElementById('nsReason').addEventListener('keydown',e=>{if(e.key==='Enter'){nsSave();e.preventDefault()}});
 function addPend(catN,items,cardRow){
   const box=document.getElementById('pendbox');
   const id='pend'+(++pendN);
@@ -2752,15 +2834,7 @@ function caTab(i,btn){
   [0,1,2].forEach(n=>document.getElementById('csec'+n).classList.toggle('on',n===i));
 }
 function openCase(i){mOpen('casewrap');caTab(i,document.querySelectorAll('#ctabs button')[i]);}
-function saveApt(){mClose('aptwrap');showToast('Termín vytvorený');
-  if(aptIns)return;aptIns=true;
-  const r=mkRow(`<div class="spine"><button class="tico t-plan" data-f="visit"><svg class="ico s14"><use href="#i-steth"/></svg></button><div class="line"></div></div>
-  <div class="card planned"><div class="body"><div class="pav ph doc1" data-tip="MUDr. Novák" tabindex="0">N<span class="vb">＋</span></div><div class="cmain">
-  <div class="l1"><b>Kontrola — všeobecná ambulancia</b><span class="dt"><span class="sdot d-plan"></span>24.09.2026 · 09:30</span></div>
-  <div class="l2">Všeobecná ambulancia</div>
-  <div class="crow"><span class="tag st-plan">Plánované</span></div></div></div></div>`,'visit');
-  const sep=document.querySelector('.ssep');sep.parentNode.insertBefore(r,sep.nextSibling);
-  if(LANG==='en')swapText(SK2EN);}
+// saveApt() removed — merged into nsSave() v120
 function saveFot(){mClose('fotwrap');showToast('Nahrané — čaká na overenie');
   if(fotIns)return;fotIns=true;
   const r=mkRow(`<div class="spine"><button class="tico t-warn" data-f="doc"><svg class="ico s14"><use href="#i-file"/></svg></button><div class="line"></div></div>
@@ -2887,10 +2961,10 @@ function finalizeSign(){
 }
 document.addEventListener('keydown',e=>{
   const open=id=>document.getElementById(id).classList.contains('open');
-  if(e.key==='Escape'){['recwrap','aptwrap','fotwrap','dkwrap','ordwrap','casewrap','evdwrap'].forEach(id=>{if(open(id))mClose(id)});}
+  if(e.key==='Escape'){['recwrap','nswrap','fotwrap','dkwrap','casewrap','evdwrap'].forEach(id=>{if(open(id))mClose(id)});}
   if(e.key==='Enter'&&!e.target.matches('textarea')){
     if(open('recwrap')){saveRec();e.preventDefault()}
-    else if(open('aptwrap')){saveApt();e.preventDefault()}
+    else if(open('nswrap')){nsSave();e.preventDefault()}
     else if(open('fotwrap')){saveFot();e.preventDefault()}
     else if(open('dkwrap')){signDay();e.preventDefault()}
   }
@@ -2934,8 +3008,8 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='Enter'&&kIdx>=0){cs[kIdx].classList.toggle('expanded');return}
   else if(['r','R'].includes(e.key)){openRx();return}
   else if(['n','N'].includes(e.key)){mOpen('recwrap');return}
-  else if(['o','O'].includes(e.key)){mOpen('ordwrap');return}
-  else if(['t','T'].includes(e.key)){mOpen('aptwrap');return}
+  else if(['o','O'].includes(e.key)){nsOpen();return}
+  else if(['t','T'].includes(e.key)){nsOpen();return}
   else if(['f','F'].includes(e.key)){mOpen('fotwrap');return}
   else if(['s','S'].includes(e.key)){mOpen('dkwrap');dTab(2,document.querySelectorAll('.dtabs button')[2]);return}
   else if(['d','D'].includes(e.key)){mOpen('dkwrap');return}
@@ -3442,7 +3516,6 @@ setLang('en');
 
 /* v72 hotfix: inicializácie závislé na LANG/i18n MUSIA bežať až tu (po deklaráciách) */
 updComp();
-ordRender();
 
 /* M-17: mobil — tap rozbalí orezanú poznámku karty a attention banner */
 document.addEventListener('click',e=>{
