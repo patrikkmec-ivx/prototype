@@ -6,7 +6,7 @@ area: tech
 type: spec
 owner: patrik
 status: draft-for-approval
-version: 0.10
+version: 0.11
 created: 2026-07-21
 updated: 2026-07-21
 review_due: 2026-10-21
@@ -16,7 +16,7 @@ iso_controls: [A.8.1, A.5.12, A.8.11]
 classification: Dôverné — interné
 ---
 
-# Hilbi Clinical Core (EHR Engine) — Standard v0.10
+# Hilbi Clinical Core (EHR Engine) — Standard v0.11
 
 > **Authority: NORMATIVE.** This document is the Single Source of Truth (SSOT) for the Hilbi
 > Clinical Core — the domain-agnostic clinical record engine of the platform. Every clinical
@@ -300,6 +300,25 @@ regional exposures are derived and MUST reference it. Seed mappings: dekurz →
 US Core `DocumentReference` / ABDM `OPConsultRecord`; discharge report →
 `DischargeSummaryRecord` / EEHRxF discharge category.
 
+### D7. Template governance: system → provider → physician (Patrik decision 2026-07-21)
+**Description:** Three tiers. **System templates** — the Hilbi-authored seed set, published
+via D2. **Provider templates** — a registered provider (tenant) may clone, edit, create and
+**version** templates; provider templates are available to every physician of that provider
+and carry the provider's header/footer, including informed-consent and per-country
+confirmation blocks. **Physician assets** — stamp and signature image stored in the
+physician profile, used in print/export renders only.
+**Requirements:** Provider templates flow through the same D2 pipeline mechanics with a
+tenant scope tag; they MUST NOT weaken normative constraints of the underlying Composition
+profile (SOAP section codes, D5). Per-country confirmation/consent datasets are
+standard-approved artifacts configured in country settings and provider-editable as
+templates. The stamp/signature image is presentation only and NEVER substitutes the C6
+digital signature (timestamp / eID / biometrics / PIN per the pack-required level).
+**Version lifecycle:** running `CarePlan` instances stay **pinned** to the
+PlanDefinition version they were started on; activating a newer version is an explicit
+clinician action, never automatic. Rendered Compositions never retro-change (D2).
+**Language:** the canonical template source is **English**; market translations are
+localization layers in the region pack and MUST NOT fork the template.
+
 ---
 
 ## PART E — Service topology and domain contract
@@ -309,7 +328,9 @@ US Core `DocumentReference` / ABDM `OPConsultRecord`; discharge report →
 profiles. Domain microservices (SM+ first) = protocol logic, domain UX, domain packs. IQ =
 producer + consumer services. All exchange exclusively over FHIR.
 **Requirements:** A domain microservice MUST NOT own a clinical store; its private storage is
-limited to non-clinical operational state (UI prefs, cache with TTL). SM+ `sm_*` tables MUST
+limited to non-clinical operational state (UI prefs, cache with TTL) **and domain protocol
+state** (running-plan orchestration — separate database permitted, Patrik decision
+2026-07-21). Clinical facts MUST NOT live only in a domain database (E3). SM+ `sm_*` tables MUST
 be migrated to Core resources per B2 (migration plan is a separate deliverable).
 
 ### E2. Domain pack (registration contract)
@@ -320,6 +341,16 @@ through the D2 pipeline.
 **Requirements:** A pack MUST pass CI conformance (schema + reference resolution + region-pack
 compatibility) before publish. Packs are additive; breaking changes require a new major
 version and K35.
+
+### E3. Domain ↔ Core sync contract
+**Description:** A domain microservice (Care Plans first) runs its own logic and protocol
+database; the Core receives synced clinical facts and **timeline events** — not every
+internal detail of the plan. The full contract is CORE-SYNC-STANDARD (core-12).
+**Requirements:** Transport is FHIR R4 REST only (E1); the Core never reads a domain
+database and the domain never bypasses the FHIR API. Every clinical fact produced in the
+domain MUST write to the Core via C1 (Provenance agent = the domain service). Timeline
+events carry a `milestone` flag only for pack-declared milestone classes (MAP/M3); the
+patient pathway consumes flagged events, the plan detail stays in the domain surface.
 
 ### E-CONF Conformance tests
 **Requirements:** E-CONF-01: every producer write carries C1 metadata (reject otherwise).
@@ -469,6 +500,7 @@ conflicts resolve in favor of the Core. Cut-over completion is an E-CONF gated m
 | O7 | Signature-level matrix per document class per country (C6) | Marek |
 | O8 | MDR / AI Act qualification of IQ predictions (MDCG 2019-11; until resolved predictions stay `preliminary`, labelled, non-prescriptive) | Marek |
 | O9 | Deployment-mode declaration per market (A6): US=companion, IN=primary, EU=per member state | Patrik → Roman |
+| O10 | Per-country confirmation/consent dataset catalog (D7) — standard approval | Marek |
 
 ---
 
@@ -497,4 +529,8 @@ document dual-expose; G1 role/exchange modules as BE microservices; G3 pack comp
 EU national sub-packs; H2 read/export audit (EHDS logging + HIPAA disclosures); H5 consent
 lifecycle & purpose-of-use; H6 erasure/restriction/legal-hold design (**closes EU-02, the
 v1.0 gate**); E-CONF-06..08; open items O6–O9.
+**v0.11 (2026-07-21)** — Patrik decisions: D7 template governance (system/provider/
+physician tiers, provider versioning, EN canonical + localization, pinned running plans,
+stamp = presentation only); E1 domain protocol DB permitted; E3 domain↔Core sync contract
+(→ core-12); O10.
 **v0.9 (2026-07-21)** — initial draft.
