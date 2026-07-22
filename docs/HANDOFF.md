@@ -74,8 +74,11 @@ SM sa stane mikroslužbou čo si vymieňa dáta s core cez FHIR.
   kanonický je .md v repe. POZOR: /mnt/project/hilbi-template-vseobecny.docx v project
   knowledge je len TEXTOVÁ extrakcia — docx generovať pandoc + python-docx.
 
-## 3. ĎALŠÍ KROK (po schválení Romanom+Marekom)
-1. v1.0 tag core-01 + status active.
+## 3. ĎALŠÍ KROK
+0. HOTOVÉ 2026-07-22: core-01 v1.0 ACTIVE (Roman+Marek sign-off) · core-11 v0.2 (panel,
+   fixné foldre, M-O2 closed) · core-12 sync štandard · D7 template governance.
+1. Prototyp HTML: 6 rozpracovaných desktop/nav zmien + premietnutie MAP pravidiel
+   (pathway click-through MAP-01, milestone flag S3).
 2. Dev plán mikroslužieb z core-07/08/09 (Dominika rozdelí, Viktor vedie) — gsr-08 tracker.
 3. Mapovací dokument: Care Plans doména (E2) + patient pathway z kokpitu (F1) → Core.
 4. Otvorené: O1 store (Juraj), O2/O6 retencia + O7 podpisy + O8 MDR/IQ (Marek),
