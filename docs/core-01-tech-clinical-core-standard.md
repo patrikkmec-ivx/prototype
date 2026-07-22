@@ -5,8 +5,8 @@ collection: core
 area: tech
 type: spec
 owner: patrik
-status: draft-for-approval
-version: 0.11
+status: active
+version: 1.0
 created: 2026-07-21
 updated: 2026-07-21
 review_due: 2026-10-21
@@ -16,7 +16,7 @@ iso_controls: [A.8.1, A.5.12, A.8.11]
 classification: Dôverné — interné
 ---
 
-# Hilbi Clinical Core (EHR Engine) — Standard v0.11
+# Hilbi Clinical Core (EHR Engine) — Standard v1.0
 
 > **Authority: NORMATIVE.** This document is the Single Source of Truth (SSOT) for the Hilbi
 > Clinical Core — the domain-agnostic clinical record engine of the platform. Every clinical
@@ -30,10 +30,9 @@ classification: Dôverné — interné
 > language (see CP-TECH-STANDARD D17).
 > **Anchored in:** HL7 FHIR R4, HL7 IPS, US Core / USCDI, EU EHDS, India ABDM (FHIR IN),
 > ISO/IEC 27001 + 27799, ISO 13606, IEC 62304 — see Normative references.
-> **Status:** draft v0.10 — v0.9 + the seven convergent audit clauses (CORE-AUDIT-CONSOLIDATION)
-> and the deployment-mode clause A6, all additive. For approval by Roman (business) and Marek
-> (compliance) via K35 change control; becomes `active` v1.0 upon sign-off. The single remaining
-> v1.0 design gate (EU-02 erasure) is closed by H6.
+> **Status:** **ACTIVE v1.0** — signed off by Roman (business) and Marek (compliance),
+> 2026-07-22, via K35. All audit gates closed (EU-02 by H6). Changes from here are additive
+> via K35 only.
 
 ---
 
@@ -529,6 +528,7 @@ document dual-expose; G1 role/exchange modules as BE microservices; G3 pack comp
 EU national sub-packs; H2 read/export audit (EHDS logging + HIPAA disclosures); H5 consent
 lifecycle & purpose-of-use; H6 erasure/restriction/legal-hold design (**closes EU-02, the
 v1.0 gate**); E-CONF-06..08; open items O6–O9.
+**v1.0 (2026-07-22)** — sign-off Roman + Marek; status active. No content change vs v0.11.
 **v0.11 (2026-07-21)** — Patrik decisions: D7 template governance (system/provider/
 physician tiers, provider versioning, EN canonical + localization, pinned running plans,
 stamp = presentation only); E1 domain protocol DB permitted; E3 domain↔Core sync contract
