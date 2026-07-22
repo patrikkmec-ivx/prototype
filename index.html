@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v114 (Attn banner odstránený z osi)</title>
+<title>Hilbi Cockpit — v115 (Tesnejšia medzera taby → os)</title>
 <!-- CHANGELOG
+v115 (2026-07-22): Medzera medzi tabmi a osou (PLÁNOVANÉ) zmenšená: .scroll
+  padding-top 14→6, .ssep margin-top 2→0.
 v114 (2026-07-22): "Vyžaduje pozornosť" (.attn) banner ODSTRÁNENÝ z časovej osi —
   riadok uvoľnený, upozornenia sa vyriešia iným mechanizmom neskôr (Patrik).
   CSS .attn ponechané (neškodí, možný reuse).
@@ -830,7 +832,7 @@ body[data-phr="min"] .phrmin{display:flex}
 body[data-state="offline"] .offbar{display:flex}
 
 /* Timeline */
-.scroll{overflow-y:auto;padding:14px 24px 110px;flex:1}
+.scroll{overflow-y:auto;padding:6px 24px 110px;flex:1}
 .filterbar{display:none;margin:0 0 12px}
 .filterbar .pill{display:inline-flex;gap:8px;align-items:center;background:var(--brand-cyan-soft);color:var(--brand-teal);font-size:12.5px;font-weight:700;padding:5px 12px;border-radius:999px;border:none;cursor:pointer}
 .trow{display:grid;grid-template-columns:24px 1fr;gap:13px}
@@ -913,7 +915,7 @@ body[data-state="offline"] .offbar{display:flex}
 .card.planned .l1 b{color:var(--text-muted)}
 .ysep,.ssep{display:flex;gap:12px;align-items:center;margin:18px 0 12px;color:var(--text-subtle);font-size:11.5px;font-weight:600;letter-spacing:.6px}
 .ysep::before,.ssep::before,.ysep::after,.ssep::after{content:'';flex:1;height:1px;background:var(--border-default)}
-.ssep{margin-top:2px}
+.ssep{margin-top:0}
 .today{display:flex;align-items:center;justify-content:center;margin:20px 0 18px;position:relative}
 .today .tline{position:absolute;left:0;right:0;top:50%;height:1px;background:var(--border-strong)}
 .today .pill{position:relative;z-index:1;background:var(--surface-white);border:1px solid var(--border-strong);color:var(--text-heading);font-size:11.5px;font-weight:700;padding:3px 12px;border-radius:999px}
