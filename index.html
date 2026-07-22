@@ -1394,7 +1394,11 @@ body[data-tab="comm"] .timeline{display:none}
 .nsdd.open .ddmenu{display:flex}
 .nsdd .ddmenu button{display:flex;align-items:center;gap:9px;text-align:left;background:none;border:none;border-radius:8px;padding:7px 9px;font-size:13.5px;font-weight:600;color:var(--text-heading);cursor:pointer}
 .nsdd .docval{display:flex;align-items:center;gap:9px;min-width:0}
-.nsdd .docval .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nsdd .docval .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--brand-accent);font-weight:700}
+.nsdd .ddmenu button .nm{color:var(--brand-accent);font-weight:700}
+.l2.expl{display:flex;align-items:center;gap:6px;overflow:visible;white-space:normal}
+.l2 .exnm{color:var(--brand-accent);font-weight:700}
+.l2 .spec{background:var(--surface-1);color:var(--text-muted);border-radius:999px;padding:2px 8px;font-size:11px;font-weight:600;white-space:nowrap}
 .nsdd .pav{width:22px;height:22px;font-size:9px}
 .nsdd .deptav{background:var(--brand-cyan-soft);color:var(--brand-teal-text);border:none}
 .nsdd .deptav svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none}
@@ -2635,6 +2639,7 @@ const NS_DEPT={
   Surgery:['Dr. Karas']
 };
 const NS_AV={'Dr. Novak':'doc1','Dr. Reznik':'doc3','Dr. Balaz':'doc5','Dr. Simkova':'doc2','Dr. Horak':'doc1','Dr. Rybar':'doc3','Dr. Hlavova':'doc4','Dr. Karas':'doc5'};
+const NS_SPEC={'Dr. Novak':'Neurology','Dr. Reznik':'Neurology','Dr. Balaz':'Neurology','Dr. Simkova':'Cardiology','Dr. Horak':'Cardiology','Dr. Rybar':'Internal medicine','Dr. Hlavova':'Internal medicine','Dr. Karas':'Surgery'};
 function nsAvHtml(x){const a=NS_AV[x];return a?`<span class="pav ph ${a}"></span>`:`<span class="pav deptav"><svg viewBox="0 0 24 24"><path d="M10 2v6.3L4.6 18a2 2 0 0 0 1.8 3h11.2a2 2 0 0 0 1.8-3L14 8.3V2M8.5 2h7M7 15h10"/></svg></span>`;}
 const NS_CAT={radiology:['Brain MRI','Chest CT','Spine X-ray','Abdominal US'],lab:['CBC','HbA1c','Lipid panel','CRP','Creatinine']};
 const NS_CFG={
@@ -2703,7 +2708,7 @@ function nsInsertPlanned(title, who, meta){
   const r=mkRow(`<div class="spine"><button class="tico t-plan" data-f="visit"><svg class="ico s14"><use href="#i-steth"/></svg></button><div class="line"></div></div>
   <div class="card planned"><div class="body"><div class="pav ph ${av}" data-tip="${who}" tabindex="0"><span class="vb">＋</span></div><div class="cmain">
   <div class="l1"><b>${title}</b><span class="dt"><span class="sdot d-plan"></span>${meta||'to be scheduled'}</span></div>
-  <div class="l2">${who}</div>
+  <div class="l2 expl"><span class="exnm">${who}</span>${NS_SPEC[who]?`<span class="spec">${NS_SPEC[who]}</span>`:''}</div>
   <div class="crow"><span class="tag st-plan">${tt('Plánované')}</span></div></div></div></div>`,'visit');
   const sep=document.querySelector('.ssep');if(sep)sep.parentNode.insertBefore(r,sep.nextSibling);
   if(LANG==='en')swapText(SK2EN);
