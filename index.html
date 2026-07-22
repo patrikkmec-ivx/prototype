@@ -1394,11 +1394,12 @@ body[data-tab="comm"] .timeline{display:none}
 .nsdd.open .ddmenu{display:flex}
 .nsdd .ddmenu button{display:flex;align-items:center;gap:9px;text-align:left;background:none;border:none;border-radius:8px;padding:7px 9px;font-size:13.5px;font-weight:600;color:var(--text-heading);cursor:pointer}
 .nsdd .docval{display:flex;align-items:center;gap:9px;min-width:0}
-.nsdd .docval .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--brand-accent);font-weight:700}
-.nsdd .ddmenu button .nm{color:var(--brand-accent);font-weight:700}
+.nsdd .docval .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-heading);font-weight:700}
+.nsdd .ddmenu button .nm{color:var(--text-heading);font-weight:700}
 .l2.expl{display:flex;align-items:center;gap:6px;overflow:visible;white-space:normal}
-.l2 .exnm{color:var(--brand-accent);font-weight:700}
-.l2 .spec{background:var(--surface-1);color:var(--text-muted);border-radius:999px;padding:2px 8px;font-size:11px;font-weight:600;white-space:nowrap}
+.l2 .exnm{color:var(--text-heading);font-weight:700}
+.spec{background:var(--surface-1);color:var(--text-muted);border-radius:999px;padding:2px 8px;font-size:11px;font-weight:600;white-space:nowrap;flex:none}
+.nsdd .ddmenu button .spec{margin-left:auto}
 .nsdd .pav{width:22px;height:22px;font-size:9px}
 .nsdd .deptav{background:var(--brand-cyan-soft);color:var(--brand-teal-text);border:none}
 .nsdd .deptav svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none}
@@ -2669,15 +2670,15 @@ function nsDD(id,e){e.stopPropagation();const el=document.getElementById(id);doc
 function nsPickDept(d){
   document.getElementById('nsDeptVal').textContent=d;document.getElementById('nsDeptDD').classList.remove('open');
   const docs=NS_DEPT[d]||[];
-  document.getElementById('nsDocMenu').innerHTML=docs.map(x=>`<button onclick="nsPickDoc('${x}')">${nsAvHtml(x)}<span class="nm">${x}</span></button>`).join('');
+  document.getElementById('nsDocMenu').innerHTML=docs.map(x=>`<button onclick="nsPickDoc('${x}')">${nsAvHtml(x)}<span class="nm">${x}</span>${NS_SPEC[x]?`<span class="spec">${NS_SPEC[x]}</span>`:''}</button>`).join('');
   nsPickDoc(docs[0]);
 }
-function nsPickDoc(x){document.getElementById('nsDocVal').innerHTML=nsAvHtml(x)+`<span class="nm">${x}</span>`;document.getElementById('nsDocDD').classList.remove('open');}
+function nsPickDoc(x){document.getElementById('nsDocVal').innerHTML=nsAvHtml(x)+`<span class="nm">${x}</span>`+(NS_SPEC[x]?`<span class="spec">${NS_SPEC[x]}</span>`:'');document.getElementById('nsDocDD').classList.remove('open');}
 document.addEventListener('click',e=>{if(!e.target.closest('.nsdd'))document.querySelectorAll('.nsdd.open').forEach(x=>x.classList.remove('open'));});
 function nsSave(){
   const c=NS_CFG[nsT];
   const dept=document.getElementById('nsDeptVal').textContent;
-  const who=document.getElementById('nsDocVal').textContent;
+  const who=(document.querySelector('#nsDocVal .nm')||document.getElementById('nsDocVal')).textContent;
   const reason=(document.getElementById('nsReason').value||'').trim();
   const now=new Date();const tm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   if(c.mode==='order'){
