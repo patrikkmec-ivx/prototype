@@ -1392,7 +1392,12 @@ body[data-tab="comm"] .timeline{display:none}
 .nsdd .ddbtn svg{color:var(--text-muted);flex:none}
 .nsdd .ddmenu{display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--surface-white);border:1px solid var(--border-default);border-radius:12px;box-shadow:0 14px 34px rgba(27,35,64,.16);z-index:70;padding:6px;flex-direction:column;gap:1px;max-height:210px;overflow-y:auto}
 .nsdd.open .ddmenu{display:flex}
-.nsdd .ddmenu button{text-align:left;background:none;border:none;border-radius:8px;padding:9px 11px;font-size:13.5px;font-weight:600;color:var(--text-heading);cursor:pointer}
+.nsdd .ddmenu button{display:flex;align-items:center;gap:9px;text-align:left;background:none;border:none;border-radius:8px;padding:7px 9px;font-size:13.5px;font-weight:600;color:var(--text-heading);cursor:pointer}
+.nsdd .docval{display:flex;align-items:center;gap:9px;min-width:0}
+.nsdd .docval .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nsdd .pav{width:22px;height:22px;font-size:9px}
+.nsdd .deptav{background:var(--brand-cyan-soft);color:var(--brand-teal-text);border:none}
+.nsdd .deptav svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none}
 .nsdd .ddmenu button:hover{background:var(--surface-1)}
 .nsdd .ddmenu button.on{background:var(--brand-cyan-soft);color:var(--brand-teal-text)}
 .drop{border:1.5px dashed var(--border-strong);border-radius:12px;padding:26px;text-align:center;color:var(--text-muted);font-size:13px;margin-bottom:12px}
@@ -2155,7 +2160,7 @@ body[data-tab="comm"] .timeline{display:none}
       </div>
       <div class="gaterow" style="background:var(--surface-1);color:var(--text-muted);margin-top:10px"><svg class="ico s14" style="flex:none"><use href="#i-pen"/></svg><span>Zapíše sa do dekurzu do zvoleného SOAP slotu.</span></div>
     </div>
-    <div class="sh-f"><button class="btn" onclick="mClose('recwrap')">Zrušiť</button><button class="btn primary" onclick="saveRec()">Uložiť<span class="kb2">⏎</span></button></div>
+    <div class="sh-f"><button class="btn" onclick="mClose('recwrap')">Zrušiť</button><button class="btn primary" onclick="saveRec()">Uložiť</button></div>
   </div>
 </div>
 
@@ -2245,7 +2250,7 @@ body[data-tab="comm"] .timeline{display:none}
       </div>
 
       <div class="nsrow"><div class="nsdd" id="nsDeptDD"><label>Department</label><button class="ddbtn" onclick="nsDD('nsDeptDD',event)"><span id="nsDeptVal">Neurology</span><svg width="12" height="7" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="ddmenu" id="nsDeptMenu"></div></div>
-      <div class="nsdd" id="nsDocDD"><label>Clinician</label><button class="ddbtn" onclick="nsDD('nsDocDD',event)"><span id="nsDocVal">Dr. Novak</span><svg width="12" height="7" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="ddmenu" id="nsDocMenu"></div></div>
+      <div class="nsdd" id="nsDocDD"><label>Clinician</label><button class="ddbtn" onclick="nsDD('nsDocDD',event)"><span class="docval" id="nsDocVal">Dr. Novak</span><svg width="12" height="7" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="ddmenu" id="nsDocMenu"></div></div>
       </div>
 
       <div id="nsWhen">
@@ -2261,7 +2266,7 @@ body[data-tab="comm"] .timeline{display:none}
       <input id="nsReason" class="recline" style="margin-top:12px" placeholder="Reason / indication (optional)…">
       <div class="gaterow" id="nsGate" style="background:var(--surface-1);color:var(--text-muted);margin-top:10px"><svg class="ico s14" style="flex:none"><use href="#i-cal"/></svg><span id="nsGateTxt">Appears in the PLANNED section of the pathway and in the patient app.</span></div>
     </div>
-    <div class="sh-f"><button class="btn" onclick="mClose('nswrap')">Cancel</button><button class="btn primary" id="nsSubmit" onclick="nsSave()">Create<span class="kb2">⏎</span></button></div>
+    <div class="sh-f"><button class="btn" onclick="mClose('nswrap')">Cancel</button><button class="btn primary" id="nsSubmit" onclick="nsSave()">Create</button></div>
   </div>
 </div>
 
@@ -2272,7 +2277,7 @@ body[data-tab="comm"] .timeline{display:none}
       <div class="drop"><svg class="ico" style="width:22px;height:22px;stroke:var(--text-subtle)"><use href="#i-cam"/></svg><div style="margin-top:8px">Pretiahnite súbor alebo odfoťte dokument</div><button class="btn">Vybrať súbor</button></div>
       <div class="gaterow" style="background:var(--warning-soft);color:#7a5416"><svg class="iqmk" aria-hidden="true"><use href="#i-iqmark"/></svg><span>Extrahuje text a založí udalosť v stave „Na overenie“ — do overenia sa nepoužíva v syntéze.</span></div>
     </div>
-    <div class="sh-f"><button class="btn" onclick="mClose('fotwrap')">Zrušiť</button><button class="btn primary" onclick="saveFot()">Nahrať<span class="kb2">⏎</span></button></div>
+    <div class="sh-f"><button class="btn" onclick="mClose('fotwrap')">Zrušiť</button><button class="btn primary" onclick="saveFot()">Nahrať</button></div>
   </div>
 </div>
 
@@ -2629,6 +2634,8 @@ const NS_DEPT={
   Laboratory:['Laboratory dept.'],
   Surgery:['Dr. Karas']
 };
+const NS_AV={'Dr. Novak':'doc1','Dr. Reznik':'doc3','Dr. Balaz':'doc5','Dr. Simkova':'doc2','Dr. Horak':'doc1','Dr. Rybar':'doc3','Dr. Hlavova':'doc4','Dr. Karas':'doc5'};
+function nsAvHtml(x){const a=NS_AV[x];return a?`<span class="pav ph ${a}"></span>`:`<span class="pav deptav"><svg viewBox="0 0 24 24"><path d="M10 2v6.3L4.6 18a2 2 0 0 0 1.8 3h11.2a2 2 0 0 0 1.8-3L14 8.3V2M8.5 2h7M7 15h10"/></svg></span>`;}
 const NS_CAT={radiology:['Brain MRI','Chest CT','Spine X-ray','Abdominal US'],lab:['CBC','HbA1c','Lipid panel','CRP','Creatinine']};
 const NS_CFG={
   followup:{mode:'appt',depts:['Neurology','Cardiology','Internal medicine','Surgery'],when:true,cat:false,gate:'Appears in the PLANNED section of the pathway and in the patient app.',ev:{slot:'P',icon:'i-steth',label:'Follow-up'}},
@@ -2657,10 +2664,10 @@ function nsDD(id,e){e.stopPropagation();const el=document.getElementById(id);doc
 function nsPickDept(d){
   document.getElementById('nsDeptVal').textContent=d;document.getElementById('nsDeptDD').classList.remove('open');
   const docs=NS_DEPT[d]||[];
-  document.getElementById('nsDocMenu').innerHTML=docs.map(x=>`<button onclick="nsPickDoc('${x}')">${x}</button>`).join('');
+  document.getElementById('nsDocMenu').innerHTML=docs.map(x=>`<button onclick="nsPickDoc('${x}')">${nsAvHtml(x)}<span class="nm">${x}</span></button>`).join('');
   nsPickDoc(docs[0]);
 }
-function nsPickDoc(x){document.getElementById('nsDocVal').textContent=x;document.getElementById('nsDocDD').classList.remove('open');}
+function nsPickDoc(x){document.getElementById('nsDocVal').innerHTML=nsAvHtml(x)+`<span class="nm">${x}</span>`;document.getElementById('nsDocDD').classList.remove('open');}
 document.addEventListener('click',e=>{if(!e.target.closest('.nsdd'))document.querySelectorAll('.nsdd.open').forEach(x=>x.classList.remove('open'));});
 function nsSave(){
   const c=NS_CFG[nsT];
@@ -2692,9 +2699,9 @@ function nsSave(){
   document.getElementById('nsReason').value='';
 }
 function nsInsertPlanned(title, who, meta){
-  const initials=(who||'—').split(' ').map(s=>s[0]).slice(-1).join('')||'N';
+  const av=NS_AV[who]||'doc1';
   const r=mkRow(`<div class="spine"><button class="tico t-plan" data-f="visit"><svg class="ico s14"><use href="#i-steth"/></svg></button><div class="line"></div></div>
-  <div class="card planned"><div class="body"><div class="pav ph doc1" data-tip="${who}" tabindex="0">${initials}<span class="vb">＋</span></div><div class="cmain">
+  <div class="card planned"><div class="body"><div class="pav ph ${av}" data-tip="${who}" tabindex="0"><span class="vb">＋</span></div><div class="cmain">
   <div class="l1"><b>${title}</b><span class="dt"><span class="sdot d-plan"></span>${meta||'to be scheduled'}</span></div>
   <div class="l2">${who}</div>
   <div class="crow"><span class="tag st-plan">${tt('Plánované')}</span></div></div></div></div>`,'visit');
