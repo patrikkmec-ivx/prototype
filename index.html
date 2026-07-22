@@ -4,8 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v117 (Jednotný podpis: osobný PIN všade)</title>
+<title>Hilbi Cockpit — v118 (PIN: security badge + väčší mobil)</title>
 <!-- CHANGELOG
+v118 (2026-07-22): PIN modal — 1) security badge: štítová ikona (nový symbol
+  i-shield s fajkou) v teal kruhu nad titulkom + chip "Zabezpečený podpis" pod
+  hintom (lock mikro-ikona). 2) Mobil (≤744px): pinbox širší (min(92vw,380px)),
+  väčšie dot boxy (54×64, font 26), klávesnica 1fr na plnú šírku, výška 56,
+  font 20 — pohodlné palce.
 v117 (2026-07-22): JEDNOTNÉ PODPISOVÉ GESTO = OSOBNÝ PIN (Patrik). Nový pinwrap
   modal: 4-miestny PIN (dot boxy, auto-advance, Backspace, Enter, klávesnica aj
   klik), label akcie, hint "PIN autorizuje podpis podľa pravidiel trhu (C6)".
@@ -1270,6 +1275,19 @@ body[data-tab="comm"] .timeline{display:none}
 .pinpad button.pz{grid-column:2}
 .pinhint{font-size:11.5px;color:var(--text-subtle)}
 .pincancel{margin-top:2px}
+.pinshield{width:52px;height:52px;border-radius:50%;background:var(--brand-cyan-soft);display:flex;align-items:center;justify-content:center;margin-bottom:-2px}
+.pinshield .ico{width:26px;height:26px;color:var(--brand-teal);stroke:var(--brand-teal);fill:none;stroke-width:2}
+.pinsec{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--brand-teal-text);background:var(--brand-cyan-soft);border-radius:12px;padding:4px 10px}
+.pinsec .ico{width:12px;height:12px;stroke:var(--brand-teal-text);fill:none;stroke-width:2.4}
+@media (max-width:744px){
+  .pinbox{min-width:0;width:min(92vw,380px);padding:28px 22px 24px;gap:14px}
+  .pindots{gap:14px}
+  .pindots i{width:54px;height:64px;font-size:26px;border-radius:14px}
+  .pinpad{grid-template-columns:repeat(3,1fr);width:100%;gap:10px}
+  .pinpad button{height:56px;font-size:20px;border-radius:12px}
+  .pintitle{font-size:17px}
+  .pinlabel{font-size:13.5px}
+}
 
 @keyframes bioscan{from{top:14px}to{top:60px}}
 /* v77 · sekčné hlavičky na QR obrazovke (štýl = hlavička modalu) */
@@ -1613,6 +1631,8 @@ body[data-tab="comm"] .timeline{display:none}
 <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
 <symbol id="i-clip" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></symbol>
 <symbol id="i-slide" viewBox="0 0 24 24"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
 <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V4s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></symbol>
 <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
 <symbol id="i-video" viewBox="0 0 24 24"><path d="m16 13 5.2 3.5a.5.5 0 0 0 .8-.4V7.9a.5.5 0 0 0-.8-.4L16 11"/><rect x="2" y="6" width="14" height="12" rx="2"/></symbol>
@@ -2130,11 +2150,13 @@ body[data-tab="comm"] .timeline{display:none}
 
 <div class="biowrap" id="pinwrap">
   <div class="pinbox" id="pinbox">
+    <div class="pinshield"><svg class="ico" aria-hidden="true"><use href="#i-shield"/></svg></div>
     <div class="pintitle">Podpis — osobný PIN</div>
     <div class="pinlabel" id="pinLabel"></div>
     <div class="pindots" id="pinDots"><i></i><i></i><i></i><i></i></div>
     <div class="pinpad" id="pinPad"></div>
     <div class="pinhint">PIN autorizuje podpis podľa pravidiel trhu</div>
+    <div class="pinsec"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg> Zabezpečený podpis · šifrované</div>
     <button class="btn pincancel" onclick="pinCancel()">Zrušiť</button>
   </div>
 </div>
@@ -2919,7 +2941,7 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
-["Podpis — osobný PIN","Signature — personal PIN"],["PIN autorizuje podpis podľa pravidiel trhu","PIN authorizes the signature per market rules"],
+["Podpis — osobný PIN","Signature — personal PIN"],["Zabezpečený podpis · šifrované","Secure signature · encrypted"],["PIN autorizuje podpis podľa pravidiel trhu","PIN authorizes the signature per market rules"],
 ["Celá os","Full axis"],["Mílniky","Milestones"],["Mílniky = index, klik otvára zdroj","Milestones = index, click opens the source"],
 ["Mílnik — zmena liečby","Milestone — treatment change"],["Mílnik — hospitalizácia","Milestone — hospitalization"],["Mílnik — relaps / eskalácia","Milestone — relapse / escalation"],
 ["Nahrajte na svojom telefóne","Record on your phone"],["Naskenujte a spárujte túto reláciu s mobilným zariadením.","Scan to pair this session with your mobile device."],
