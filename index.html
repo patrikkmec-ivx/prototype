@@ -4,8 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v113 (Zjednotené zobrazenia: Pathway dropdown os+hustota)</title>
+<title>Hilbi Cockpit — v114 (Attn banner odstránený z osi)</title>
 <!-- CHANGELOG
+v114 (2026-07-22): "Vyžaduje pozornosť" (.attn) banner ODSTRÁNENÝ z časovej osi —
+  riadok uvoľnený, upozornenia sa vyriešia iným mechanizmom neskôr (Patrik).
+  CSS .attn ponechané (neškodí, možný reuse).
 v113 (2026-07-22): ZJEDNOTENIE 4 zobrazení do JEDNÉHO dropdownu na tabe Patient
   pathway (vzor Care plans: .tabdd + .cpdrop + chev). Obsah: Celá os / Mílniky
   (axmode) + separator + Komfortný / Kompaktný režim (presunuté z hamburger menu;
@@ -1769,12 +1772,6 @@ body[data-tab="comm"] .timeline{display:none}
       <div class="state-loading"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
 
       <div class="timeline">
-
-      <div class="attn" role="status">
-        <svg class="ico s14" aria-hidden="true"><use href="#i-tri"/></svg>
-        <span><b>Vyžaduje pozornosť (3):</b> 1× dokument na overenie · TK nad cieľom (dnes) · dekurz nepodpísaný</span>
-        <button class="go">zobraziť →</button>
-      </div>
 
       <div class="ssep">PLÁNOVANÉ</div>
 
