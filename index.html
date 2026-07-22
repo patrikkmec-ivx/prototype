@@ -2640,7 +2640,8 @@ const NS_DEPT={
   Surgery:['Dr. Karas']
 };
 const NS_AV={'Dr. Novak':'doc1','Dr. Reznik':'doc3','Dr. Balaz':'doc5','Dr. Simkova':'doc2','Dr. Horak':'doc1','Dr. Rybar':'doc3','Dr. Hlavova':'doc4','Dr. Karas':'doc5'};
-const NS_SPEC={'Dr. Novak':'Neurology','Dr. Reznik':'Neurology','Dr. Balaz':'Neurology','Dr. Simkova':'Cardiology','Dr. Horak':'Cardiology','Dr. Rybar':'Internal medicine','Dr. Hlavova':'Internal medicine','Dr. Karas':'Surgery'};
+const SPECBY={novak:'Neurologist',reznik:'Neurologist',balaz:'Neurologist',simkova:'Cardiologist',horak:'Cardiologist',rybar:'Internist',hlavova:'Internist',karas:'Surgeon'};
+function specOf(name){if(!name)return '';const p=name.trim().split(/\s+/);const s=p[p.length-1].normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();return SPECBY[s]||'';}
 function nsAvHtml(x){const a=NS_AV[x];return a?`<span class="pav ph ${a}"></span>`:`<span class="pav deptav"><svg viewBox="0 0 24 24"><path d="M10 2v6.3L4.6 18a2 2 0 0 0 1.8 3h11.2a2 2 0 0 0 1.8-3L14 8.3V2M8.5 2h7M7 15h10"/></svg></span>`;}
 const NS_CAT={radiology:['Brain MRI','Chest CT','Spine X-ray','Abdominal US'],lab:['CBC','HbA1c','Lipid panel','CRP','Creatinine']};
 const NS_CFG={
@@ -2670,10 +2671,10 @@ function nsDD(id,e){e.stopPropagation();const el=document.getElementById(id);doc
 function nsPickDept(d){
   document.getElementById('nsDeptVal').textContent=d;document.getElementById('nsDeptDD').classList.remove('open');
   const docs=NS_DEPT[d]||[];
-  document.getElementById('nsDocMenu').innerHTML=docs.map(x=>`<button onclick="nsPickDoc('${x}')">${nsAvHtml(x)}<span class="nm">${x}</span>${NS_SPEC[x]?`<span class="spec">${NS_SPEC[x]}</span>`:''}</button>`).join('');
+  document.getElementById('nsDocMenu').innerHTML=docs.map(x=>`<button onclick="nsPickDoc('${x}')">${nsAvHtml(x)}<span class="nm">${x}</span>${specOf(x)?`<span class="spec">${specOf(x)}</span>`:''}</button>`).join('');
   nsPickDoc(docs[0]);
 }
-function nsPickDoc(x){document.getElementById('nsDocVal').innerHTML=nsAvHtml(x)+`<span class="nm">${x}</span>`+(NS_SPEC[x]?`<span class="spec">${NS_SPEC[x]}</span>`:'');document.getElementById('nsDocDD').classList.remove('open');}
+function nsPickDoc(x){document.getElementById('nsDocVal').innerHTML=nsAvHtml(x)+`<span class="nm">${x}</span>`+(specOf(x)?`<span class="spec">${specOf(x)}</span>`:'');document.getElementById('nsDocDD').classList.remove('open');}
 document.addEventListener('click',e=>{if(!e.target.closest('.nsdd'))document.querySelectorAll('.nsdd.open').forEach(x=>x.classList.remove('open'));});
 function nsSave(){
   const c=NS_CFG[nsT];
@@ -2709,7 +2710,7 @@ function nsInsertPlanned(title, who, meta){
   const r=mkRow(`<div class="spine"><button class="tico t-plan" data-f="visit"><svg class="ico s14"><use href="#i-steth"/></svg></button><div class="line"></div></div>
   <div class="card planned"><div class="body"><div class="pav ph ${av}" data-tip="${who}" tabindex="0"><span class="vb">＋</span></div><div class="cmain">
   <div class="l1"><b>${title}</b><span class="dt"><span class="sdot d-plan"></span>${meta||'to be scheduled'}</span></div>
-  <div class="l2 expl"><span class="exnm">${who}</span>${NS_SPEC[who]?`<span class="spec">${NS_SPEC[who]}</span>`:''}</div>
+  <div class="l2 expl"><span class="exnm">${who}</span>${specOf(who)?`<span class="spec">${specOf(who)}</span>`:''}</div>
   <div class="crow"><span class="tag st-plan">${tt('Plánované')}</span></div></div></div></div>`,'visit');
   const sep=document.querySelector('.ssep');if(sep)sep.parentNode.insertBefore(r,sep.nextSibling);
   if(LANG==='en')swapText(SK2EN);
@@ -3253,7 +3254,7 @@ document.getElementById('langSK').onclick=()=>{setLang('sk');document.getElement
 (function(){
   const tip=document.createElement('div');tip.id='avtip';document.body.appendChild(tip);
   let cur=null;
-  function show(el){const t=el.getAttribute('data-tip');if(!t)return;cur=el;tip.textContent=t;tip.style.display='block';
+  function show(el){const t=el.getAttribute('data-tip');if(!t)return;cur=el;const _sp=specOf(t);tip.textContent=_sp?t+' · '+_sp:t;tip.style.display='block';
     const r=el.getBoundingClientRect();
     tip.style.left='0px';tip.style.top='0px';
     const tr=tip.getBoundingClientRect();
