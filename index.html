@@ -4,8 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v115 (Tesnejšia medzera taby → os)</title>
+<title>Hilbi Cockpit — v116 (QR auto-scroll pri rozbalení)</title>
 <!-- CHANGELOG
+v116 (2026-07-22): Record Session — po kliknutí na "Record via mobile device" sa
+  telo modalu samo plynulo poscrolluje na QR (scrollIntoView smooth po requestAnimationFrame),
+  bez manuálneho scrollovania.
 v115 (2026-07-22): Medzera medzi tabmi a osou (PLÁNOVANÉ) zmenšená: .scroll
   padding-top 14→6, .ssep margin-top 2→0.
 v114 (2026-07-22): "Vyžaduje pozornosť" (.attn) banner ODSTRÁNENÝ z časovej osi —
@@ -3330,7 +3333,7 @@ function axMode(m){const ms=m==='ms';document.body.dataset.ax=ms?'ms':'';documen
 function msJump(e){e.stopPropagation();const row=e.currentTarget.closest('.trow');const card=row&&row.querySelector('.card');if(card)card.click();}
 function msJumpCase(e){e.stopPropagation();openCase(0);}
 function irFoot(html){document.getElementById('irFoot').innerHTML=html;}
-function irQrToggle(){const w=document.getElementById('irQrWrap'),b=document.getElementById('irQrTgl');const show=w.hidden;w.hidden=!show;b.classList.toggle('on',show);}
+function irQrToggle(){const w=document.getElementById('irQrWrap'),b=document.getElementById('irQrTgl');const show=w.hidden;w.hidden=!show;b.classList.toggle('on',show);if(show)requestAnimationFrame(()=>w.scrollIntoView({behavior:'smooth',block:'end'}));}
 function irOpen(){
   irState='idle';irSec=0;if(irTimer)clearInterval(irTimer);irTimer=null;
   document.getElementById('irStep1').hidden=false;document.getElementById('irStep2').hidden=true;
