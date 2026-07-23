@@ -1291,6 +1291,17 @@ body[data-tab="comm"] .timeline{display:none}
 .rendout .cd{display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:0 6px;border:1px solid var(--border-default);border-radius:999px;font-size:10.5px;color:var(--text-muted);white-space:nowrap}
 .rendout .cd.rec{border-color:var(--brand-cyan);color:var(--brand-teal-text)}
 .rendout .cd.none{border-style:dashed}
+.tplbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border-default)}
+.tplbar .tl{font-size:11.5px;color:var(--text-muted);font-weight:600}
+.tplbar select{font:inherit;font-size:12.5px;padding:5px 8px;border:1px solid var(--border-default);border-radius:8px;background:var(--surface-0);color:var(--text-body);max-width:260px}
+.tplbar .cov{font-size:11.5px;padding:2px 8px;border-radius:999px;border:1px solid var(--border-default);white-space:nowrap}
+.tplbar .cov.ok{background:var(--brand-cyan-soft);color:var(--brand-teal-text);border-color:var(--brand-cyan)}
+.tplbar .cov.warn{color:var(--text-muted)}
+.tplbar .vsw{margin-left:auto;display:flex;border:1px solid var(--border-default);border-radius:8px;overflow:hidden}
+.tplbar .vsw button{font:inherit;font-size:12px;padding:5px 11px;border:0;background:var(--surface-0);color:var(--text-muted);cursor:pointer}
+.tplbar .vsw button.on{background:var(--brand-cyan-soft);color:var(--brand-teal-text);font-weight:600}
+.covmiss{font-size:11.5px;color:var(--text-muted);margin:-4px 0 10px}
+.rtext{white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:18px;color:var(--text-body);background:var(--surface-1);border:1px solid var(--border-default);border-radius:8px;padding:10px;margin:0;overflow:auto;max-height:340px}
 .audbox{margin-top:10px;border-top:1px solid var(--border-default);padding-top:8px;font-size:11px;color:var(--text-muted);max-height:180px;overflow:auto}
 .audbox .arow{padding:3px 0;line-height:16px;border-bottom:1px dotted var(--border-default)}
 .audbox .ak{display:inline-block;border-radius:999px;padding:0 6px;font-size:10px;font-weight:700;margin-right:4px}
@@ -2978,12 +2989,8 @@ function rptBarHTML(){
     <span class="vinfo">v${rptVerNo()||'—'} · ${rptStatus()}</span>
   </div>`;
 }
-function rptPlainText(){
-  const ro=document.getElementById('rendout');if(!ro)return '';
-  return Array.from(ro.querySelectorAll('h4,.rsec,.rft')).map(e=>e.textContent.trim()).join('\n');
-}
 function rptCopy(){
-  const t=rptPlainText();
+  const t=rptPlain(tplCur());
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).catch(()=>{});
   logAudit('copy','Composition');showToast('Správa skopírovaná','ok');
 }
@@ -3088,30 +3095,99 @@ function rptSource(k){
   if(k==='narr'){const e=document.querySelector('#dsec0 .narr textarea');const v=e?e.value:'';return v?[rptItem(null,v)]:[];}
   return [];
 }
-/* REGISTER TEMPLATOV — templat sú DÁTA, nie kódová vetva (SOAP-08, REP-09).
-   Pridanie typu reportu = pridanie záznamu sem, NIKDY nová vetva v renderi. */
-const RPT_TPL={
-  slip:{title:'Rx slip',sections:[
-    {label:'Dg',src:'A'},{label:'Rx',src:'rx'},{label:'Follow-up',src:'fu'}]},
-  full:{title:'Lekárska správa',sections:[
-    {label:'S',src:'S'},{label:'O',src:'O'},{label:'A',src:'A'},{label:'P',src:'P'},
-    {label:'eRx',src:'rx'},{label:'Follow-up',src:'fu'},
-    {label:'Naratív',src:'narr',hideIfEmpty:true}]}
-};
+/* REGISTER ŠABLÓN — doménovo neutrálny (cp-19 §5).
+   Povrch NEVIE o doméne: vykresľuje to, čo mu register dodá. Doména `core` je
+   všeobecná ambulantná prax; SM a ďalšie domény pridajú vlastné záznamy.
+   Šablóna určuje FORMU. Trh určuje MINIMUM (TPL-03) — trh šablónu nevyberá. */
+const TPL_REG=[
+ {id:'core.dekurz.soap.v1',domain:'core',kind:'system',slotKey:'dekurz',name:'Dekurz — SOAP',codes:true,
+  sections:[{label:'S',src:'S'},{label:'O',src:'O'},{label:'A',src:'A'},{label:'P',src:'P'},
+            {label:'eRx',src:'rx'},{label:'Follow-up',src:'fu'},{label:'Naratív',src:'narr',hideIfEmpty:true}]},
+ {id:'core.dekurz.rxslip.v1',domain:'core',kind:'system',slotKey:'dekurz',name:'Rx slip',codes:true,
+  sections:[{label:'Dg',src:'A'},{label:'Rx',src:'rx'},{label:'Follow-up',src:'fu'}]},
+ {id:'core.dekurz.struct.v1',domain:'core',kind:'user',slotKey:'dekurz',name:'Dekurz — členený (ukážka poskytovateľa)',codes:false,
+  sections:[{label:'Subjektívne',src:'S'},{label:'Objektívne',src:'O'},
+            {label:'Záver',src:'A'},{label:'Terapia a plán',src:'P'},
+            {label:'Naratív',src:'narr',hideIfEmpty:true}]}
+];
+let TPL_SEL=null;
+function tplList(slot){return TPL_REG.filter(t=>t.slotKey===(slot||'dekurz'));}
+function tplCur(){
+  if(TPL_SEL){const f=TPL_REG.find(t=>t.id===TPL_SEL);if(f)return f;}
+  return TPL_REG.find(t=>t.id===(MKT[MKTC].tpl==='slip'?'core.dekurz.rxslip.v1':'core.dekurz.soap.v1'))||TPL_REG[0];
+}
+function tplPick(id){TPL_SEL=id;renderOut();}
+/* Coverage (INT-03) — koľko sekcií je naplnených a ktoré chýbajú */
+function tplCoverage(tpl){
+  let total=0,filled=0;const missing=[];
+  tpl.sections.forEach(s=>{if(s.hideIfEmpty)return;total++;
+    if(rptSource(s.src).length)filled++;else missing.push(tt(s.label));});
+  return {total:total,filled:filled,missing:missing};
+}
+let RPT_VIEW='struct';
+function rptView(v){RPT_VIEW=v;renderOut();}
+/* Textový renderer — výstup do schránky pre cudzí EHR (cp-19 §1 bod 3, overlay) */
+function rptPlain(tpl){
+  const m=MKT[MKTC],L=[];
+  L.push(tt(tpl.name).toUpperCase()+' · '+RPT_ID.date);
+  L.push(RPT_ID.patient+' · '+m.idlbl+' '+RPT_ID.pid);
+  L.push(tt('Lekár')+': '+RPT_ID.clinician+' · '+RPT_ID.org);
+  L.push('');
+  tpl.sections.forEach(s=>{
+    const items=rptSource(s.src);
+    if(s.hideIfEmpty&&!items.length)return;
+    const txt=items.length?items.map(it=>{
+      let x=it.text;
+      if(tpl.codes&&it.slot&&it.coding){
+        const c=it.coding,k=MKT[MKTC],tag=[];
+        if(c.icd&&TERM_BIND[it.slot]&&TERM_BIND[it.slot].rep)tag.push(k.rep+' '+c.icd);
+        if(c.loinc)tag.push(k.lab+' '+c.loinc);
+        const med=MKTC==='US'?c.rxnorm:c.atc;if(med)tag.push(k.med+' '+med);
+        if(tag.length)x+=' ['+tag.join(', ')+']';
+      }
+      return x;
+    }).join('; '):'—';
+    L.push(tt(s.label)+': '+txt);
+  });
+  L.push('');
+  L.push(tt('podpis')+': '+RPT_ID.clinician+' · '+m.sig+' · '+rptStatus());
+  return L.join('\n');
+}
 function rptSec(label,items){
   return `<div class="rsec"><b>${label}:</b> ${items.length
     ? items.map(it=>`<span class="itm">${escT(it.text)}${it.slot?codeChipsOf(it):''}</span>`).join('')
     : '—'}</div>`;
 }
+function tplBarHTML(tpl,cov){
+  const opts=tplList(tpl.slotKey).map(t=>
+    `<option value="${t.id}"${t.id===tpl.id?' selected':''}>${escT(tt(t.name))}${t.kind==='user'?' ★':''}</option>`).join('');
+  const pct=cov.total?Math.round(cov.filled/cov.total*100):0;
+  const cls=cov.missing.length?'warn':'ok';
+  return `<div class="tplbar">
+    <label class="tl">${tt('Šablóna')}</label>
+    <select id="tplsel" onchange="tplPick(this.value)">${opts}</select>
+    <span class="cov ${cls}" title="${cov.missing.length?tt('Chýba')+': '+cov.missing.join(', '):tt('Všetky sekcie naplnené')}">
+      ${cov.filled}/${cov.total} ${tt('polí')} · ${pct}%</span>
+    <span class="vsw">
+      <button class="${RPT_VIEW==='struct'?'on':''}" onclick="rptView('struct')">${tt('Štruktúra')}</button>
+      <button class="${RPT_VIEW==='text'?'on':''}" onclick="rptView('text')">${tt('Text')}</button>
+    </span>
+  </div>${cov.missing.length?`<div class="covmiss">${tt('Chýba')}: ${escT(cov.missing.join(', '))}</div>`:''}`;
+}
 function renderOut(){
   const ro=document.getElementById('rendout');ro.classList.add('show');
-  const tpl=RPT_TPL[MKT[MKTC].tpl]||RPT_TPL.full;
-  const body=tpl.sections.map(s=>{
-    const items=rptSource(s.src);
-    if(s.hideIfEmpty&&!items.length)return '';
-    return rptSec(tt(s.label),items);
-  }).join('');
-  ro.innerHTML=reportShell(tt(tpl.title),body);
+  const tpl=tplCur(),cov=tplCoverage(tpl);
+  let body;
+  if(RPT_VIEW==='text'){
+    body=`<pre class="rtext" id="rtext">${escT(rptPlain(tpl))}</pre>`;
+  }else{
+    body=tpl.sections.map(s=>{
+      const items=rptSource(s.src);
+      if(s.hideIfEmpty&&!items.length)return '';
+      return rptSec(tt(s.label),items);
+    }).join('');
+  }
+  ro.innerHTML=tplBarHTML(tpl,cov)+reportShell(tt(tpl.name),body);
 }
 /* K-20: billing derivation (BILL-01..04) — suggestion engine, lekár potvrdzuje */
 let BILLN=0,EMsel='';
@@ -3235,6 +3311,9 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
+["Šablóna","Template"],["Štruktúra","Structure"],["Text","Text"],["polí","fields"],["Chýba","Missing"],["Všetky sekcie naplnené","All sections filled"],
+["Dekurz — SOAP","Encounter note — SOAP"],["Rx slip","Rx slip"],["Dekurz — členený (ukážka poskytovateľa)","Encounter note — sectioned (provider sample)"],
+["Subjektívne","Subjective"],["Objektívne","Objective"],["Záver","Assessment"],["Terapia a plán","Therapy and plan"],["Lekár","Clinician"],
 ["Audit","Audit"],["Skryť audit","Hide audit"],["Zatiaľ žiadne záznamy","No entries yet"],
 ["AI návrh","AI suggestion"],["vstupy","inputs"],["logika","logic"],
 ["záznam","record"],["výkaz","report"],["lieky","medication"],
