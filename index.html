@@ -4,8 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v159 (Jeden dokument, dva pohľady)</title>
+<title>Hilbi Cockpit — v160 (Perzistenčný seam)</title>
 <!-- CHANGELOG
+v160 (2026-07-23): Perzistenčný seam (STO-01..05). Úložisko je za rozhraním Store
+  s piatimi kolekciami (templates, documents, snapshots, audit, consents);
+  prototype používa pamäťový adaptér, produkcia zapojí REST alebo Core bez zmeny
+  volajúceho kódu. Všetky zápisy idú cez Store.put — priamy push do polí je nula.
+  Upsert podľa kľúča (documents/master, templates/id, snapshots/ver), audit sa
+  pripája. Kolekcie viazané funkciou, takže poradie definícií nehrá rolu.
+  V správe šablón je viditeľný stav úložiska s počtami a upozornením, že pamäťové
+  úložisko sa po obnovení stratí. Prehliadačové úložisko sa zámerne nepoužíva —
+  Dash je system of record (SYS-01) a audit musí byť tamper-evident (AUD-02).
 v159 (2026-07-23): Jeden dokument, dva pohľady (DOC-06). Podpísaný dokument sa zapíše
   do DOC_REG a objaví sa NARAZ na časovej osi aj v Records paneli — obidva pohľady
   čítajú z toho istého registra a odkazujú na masterIdentifier, takže kópia nevzniká.
@@ -1476,6 +1485,10 @@ body[data-tab="comm"] .timeline{display:none}
 .trwarn{font-size:11px;line-height:16px;color:var(--warning);flex:1 1 240px;min-width:0}
 .rendout .itm.trmiss{border-bottom:1px dotted var(--warning)}
 .plrow .pltx small{display:block;font-size:11px;color:var(--text-muted);font-weight:400}
+.storebar{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;padding:10px 14px;border-radius:10px;
+  background:var(--surface-1);font-size:11.5px;line-height:17px;color:var(--text-muted)}
+.storebar b{color:var(--text-heading);font-size:12px}
+.storebar .swarn{color:var(--warning);flex:1 1 240px;min-width:0}
 .docid{margin-top:12px;padding-top:8px;border-top:1px solid var(--border-default);
   font-size:11.5px;line-height:17px;color:var(--text-muted);display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
 .docid b{font-size:13px;color:var(--text-heading);font-variant-numeric:tabular-nums}
@@ -2373,6 +2386,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
     </div>
     <div class="pgcard">
       <div class="cardhead" id="tpltop"></div>
+        <div id="storebar"></div>
       <div class="tplmgr">
         <div class="tplside" id="tplside"></div>
         <div class="tpledit" id="tpledit"></div>
@@ -3332,7 +3346,7 @@ function rptSaveVersion(){
   sn.doc.humanId=DOC.humanId;
   sn.n=sn.ver; sn.st=first?'final':'amended';
   docRegister(sn);                              /* jeden register pre obidva pohľady */
-  RPT_VERS.push(sn);                      /* zmrazený obsah, nie len stav */
+  Store.put('snapshots',sn);              /* zmrazený obsah cez seam */
   RPT_VIEW_VER=sn.ver;                    /* po podpise ukáž zmrazenú verziu */
   logProv(first?'sign':'amend',(DOC.humanId||docShort(DOC.master))+' v'+sn.ver+' · '+sn.hash,{role:'attester'});
   renderOut();
@@ -3373,8 +3387,8 @@ function rptShare(){
    Certifikačná brána: HIPAA audit (US) · EEHRxF logging (EU) · DPDP + CERT-In (IN). */
 const AUDIT=[];
 function auditTs(){return new Date().toLocaleTimeString('sk-SK',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
-function logProv(act,tgt,o){o=o||{};AUDIT.push({k:'Provenance',ts:auditTs(),act:act,tgt:tgt,agent:o.agent||RPT_ID.clinician,role:o.role||'author',pou:o.pou||'TREAT'});}
-function logAudit(act,tgt,o){o=o||{};AUDIT.push({k:'AuditEvent',ts:auditTs(),act:act,tgt:tgt,agent:o.agent||RPT_ID.clinician,role:o.role||'reader',pou:o.pou||'TREAT'});}
+function logProv(act,tgt,o){o=o||{};Store.put('audit',{k:'Provenance',ts:auditTs(),act:act,tgt:tgt,agent:o.agent||RPT_ID.clinician,role:o.role||'author',pou:o.pou||'TREAT'});}
+function logAudit(act,tgt,o){o=o||{};Store.put('audit',{k:'AuditEvent',ts:auditTs(),act:act,tgt:tgt,agent:o.agent||RPT_ID.clinician,role:o.role||'reader',pou:o.pou||'TREAT'});}
 let AUDOPEN=false;
 function auditToggle(){AUDOPEN=!AUDOPEN;renderOut();}
 function auditHTML(){
@@ -3403,6 +3417,49 @@ function dsiHTML(k){const d=DSI[k];if(!d)return '';
     <div>${tt('vstupy')}: ${d.inputs}</div>
     <div>${tt('logika')}: ${d.logic}</div>
     <div class="dsirole">${d.role}</div></div>`;
+}
+/* ── PERZISTENČNÝ SEAM (STO-01..05) ────────────────────────────────────────────
+   Úložisko je za rozhraním. Prototype používa PAMÄŤOVÝ adaptér; produkcia zapojí
+   REST alebo Core adaptér bez zmeny volajúceho kódu — mení sa iba implementácia.
+
+   Prehliadačové úložisko sa ZÁMERNE nepoužíva: Dash je system of record (SYS-01)
+   a audit musí byť perzistentný, nemenný a tamper-evident (AUD-02). Klientske
+   úložisko nespĺňa ani jedno.
+
+   Kolekcie sa viažu funkciou, nie hodnotou — poradie definícií tak nehrá rolu. */
+const STORE_COLL={
+  templates:()=>TPL_REG, documents:()=>DOC_REG, snapshots:()=>RPT_VERS,
+  audit:()=>AUDIT, consents:()=>CNS_REG
+};
+const STORE_KEY={templates:'id',documents:'master',snapshots:'ver',audit:null,consents:null};
+const Store=(function(){
+  const subs=[]; let adapter='memory';
+  const arr=c=>{const f=STORE_COLL[c]; if(!f)throw new Error('neznáma kolekcia: '+c); return f();};
+  const emit=c=>subs.forEach(fn=>{try{fn(c);}catch(e){}});
+  return {
+    adapter:()=>adapter,
+    collections:()=>Object.keys(STORE_COLL),
+    list:c=>arr(c).slice(),
+    count:c=>arr(c).length,
+    get(c,id){const k=STORE_KEY[c]; if(!k)return null; return arr(c).find(x=>x[k]===id)||null;},
+    put(c,rec){
+      const a=arr(c), k=STORE_KEY[c];
+      if(k){const i=a.findIndex(x=>x[k]===rec[k]); if(i>=0)a[i]=rec; else a.push(rec);}
+      else a.push(rec);
+      emit(c); return rec;
+    },
+    del(c,id){const a=arr(c),k=STORE_KEY[c]; if(!k)return false;
+      const i=a.findIndex(x=>x[k]===id); if(i<0)return false; a.splice(i,1); emit(c); return true;},
+    onChange(fn){subs.push(fn);},
+    stats(){const o={};Object.keys(STORE_COLL).forEach(c=>{o[c]=arr(c).length});return o;}
+  };
+})();
+function storeBadgeHTML(){
+  const s=Store.stats();
+  const parts=Object.keys(s).map(c=>c+' '+s[c]).join(' · ');
+  return `<div class="storebar"><b>${tt('Úložisko')}: ${Store.adapter()}</b>
+    <span>${escT(parts)}</span>
+    <span class="swarn">${tt('pamäťové — po obnovení stránky sa stratí; produkcia zapojí REST alebo Core adaptér')}</span></div>`;
 }
 /* ── IDENTITA DOKUMENTU (DOC-01..05) ───────────────────────────────────────────
    Tri úrovne, prevzaté z FHIR:
@@ -3479,11 +3536,10 @@ function renderDocViews(){
 
 const DOC_REG=[];
 function docRegister(sn){
-  const i=DOC_REG.findIndex(x=>x.master===sn.doc.master);
   const rec={master:sn.doc.master,humanId:sn.doc.humanId,version:sn.ver,status:sn.st,
              title:sn.tpl.name,slotKey:'dekurz',date:sn.id.date,ts:sn.ts,
              by:sn.by,lang:sn.lang,hash:sn.hash};
-  if(i>=0)DOC_REG[i]=rec;else DOC_REG.push(rec);
+  Store.put('documents',rec);
   if(typeof renderDocViews==='function')renderDocViews();
   return rec;
 }
@@ -4036,7 +4092,8 @@ function tplSecMv(i,d){const a=TPL_EDIT.sections,j=i+d;if(j<0||j>=a.length)retur
 function tplMgrRender(){
   const side=document.getElementById('tplside'),ed=document.getElementById('tpledit');
   if(!side||!ed)return;
-  const top=document.getElementById('tpltop');if(top)top.innerHTML=tplTopHTML();  /* akcie sa prekreslia so stavom */
+  const top=document.getElementById('tpltop');if(top)top.innerHTML=tplTopHTML();
+  const sb2=document.getElementById('storebar');if(sb2)sb2.innerHTML=storeBadgeHTML();  /* akcie sa prekreslia so stavom */
 
   const list=TPL_REG.filter(x=>x.kind===TPL_SCOPE);
   side.innerHTML=list.length
@@ -4121,10 +4178,10 @@ function tplSave(){
   TPL_SCOPE=TPL_EDIT.kind;
   const v=tplValidate(TPL_EDIT);
   if(!v.ok){showToast('Šablóna neprešla kontrolou minima trhu');return;}   /* TPL-02 */
-  const i=TPL_REG.findIndex(t=>t.id===TPL_EDIT.id);
-  TPL_EDIT.ver=(i>=0?(TPL_REG[i].ver||1):0)+1;          /* verziovanie šablóny */
+  const prev=Store.get('templates',TPL_EDIT.id);
+  TPL_EDIT.ver=(prev?(prev.ver||1):0)+1;
   TPL_EDIT.updatedAt=new Date().toLocaleString('sk-SK');
-  if(i>=0)TPL_REG[i]=TPL_EDIT;else TPL_REG.push(TPL_EDIT);
+  Store.put('templates',TPL_EDIT);
   TPL_SEL=TPL_EDIT.id;
   logProv(i>=0?'amend':'create','SummaryTemplate '+TPL_EDIT.id+' v'+TPL_EDIT.ver,{role:'author'});
   renderOut();showToast('Šablóna uložená a použitá','ok');
@@ -4367,6 +4424,7 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
+["Úložisko","Storage"],["pamäťové — po obnovení stránky sa stratí; produkcia zapojí REST alebo Core adaptér","in-memory — lost on reload; production plugs in a REST or Core adapter"],
 ["vytvorené v systéme","created in system"],["Vytvorené v systéme","Created in system"],["Zatiaľ žiadny dokument vytvorený v systéme.","No document created in the system yet."],
 ["identifikátor","identifier"],["verzia","version"],["Číslo dokumentu","Document number"],["koncept","draft"],["koncept — číslo sa pridelí pri podpise","draft — number is assigned on signature"],
 ["hypertenzia","hypertension"],["India","India"],["PHR","PHR"],["QR — Z4K-882","QR — Z4K-882"],
