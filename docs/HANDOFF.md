@@ -4,7 +4,7 @@
 > ako sa v repozitári správať určuje `CLAUDE.md`; čo je čo určuje `README.md`.
 > **Aktualizuje sa na konci každej relácie.**
 
-Aktualizované: 2026-07-23 · Verzia prototypu: **v131** (`1f116414`)
+Aktualizované: 2026-07-23 · Verzia prototypu: **v134** (`9aaf7ea3`)
 
 ---
 
@@ -47,8 +47,8 @@ hotové a čo je placeholder — nie tento súbor.
 | 1 | SSOT dokumentácia — `cp-17`, `cp-18`, `README`, `CLAUDE.md`, `DEV-SUMMARY` | **hotová** |
 | 2 | Traceability matica: normatívne ID → obrazovka/komponent | hrubá verzia v `DEV-SUMMARY` §4; plná chýba |
 | 3a | Šablónový povrch — picker, coverage, dva renderery (v131) | **hotová** |
-| 3b | **Rozhranie správy šablón** — zoznam, editor sekcií, validácia proti minimu (TPL-02) | **ďalšia na rade** |
-| 3c | Rozhranie dekurzu — intake, kandidáti, validácia (INT-01..05) | čaká |
+| 3b | Rozhranie správy šablón — zoznam, editor sekcií, validácia TPL-02 (v132); vstup z profilového menu (v134) | **hotová** |
+| 3c | **Rozhranie dekurzu** — intake, kandidáti z IQ, validácia po položkách (INT-01..05) | **ďalšia na rade** |
 | 3d | Anamnestické okruhy na pacientskej úrovni (TPL-04) | čaká |
 | 4 | UX podpis, amendment s dôvodom, súhlasový dialóg | čaká |
 | 5 | Audit a verzie ako systémová plocha (nie len v reporte) | čaká |
