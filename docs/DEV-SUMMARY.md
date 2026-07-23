@@ -71,6 +71,7 @@ label, a kódové systémy (záznam / výkaz / lieky / laboratórne).
 | Jazyk dokumentu | `I18N-03` | `ORG.lang`, `docLang()`, otlačený v snímke |
 | Preklad na vyžiadanie | `I18N-07`, `I18N-08` | `TR_LANG`, `trSet()`, `trBarHTML()` |
 | Súhlas per jazyk | `I18N-11` | `CNS_REG` `(id, ver, lang)`, `cnsPick()` |
+| Zdroje ako podmnožiny slotov | `TPL-17`, `TPL-18` | `ENC_SRC` — `exam-neuro`, `labs`, `dx-coded` |
 
 ## 5. Čo musí produkcia nahradiť
 
@@ -93,6 +94,25 @@ v `cp-17` §10:
 renderi je architektonicky obrátené; kód patrí do udalosti, lebo udalosti sú SSOT.
 Doplnenie interoperability do systému, ktorý na ňu nebol navrhnutý, je prestavba, nie záplata.
 
+## 5b. Zdroje sekcií
+
+Zdroj nie je totožný so SOAP slotom — je to **podmnožina slotu rozlíšená kategóriou**.
+Vyplýva to z reálnych správ, ktoré tieto vrstvy bežne rozlišujú.
+
+| Zdroj | Patrí do slotu | FHIR | Kódovanie |
+|---|---|---|---|
+| `S`, `O`, `A`, `P` | vlastný slot | `Composition.section` | podľa `TERM-04` |
+| `exam-neuro` | `O` | `Observation` (kategória vyšetrenie) | — |
+| `labs` | `O` | `Observation` (laboratórne, likvor) | LOINC |
+| `dx-coded` | `A` | `Condition` | SNOMED + klasifikácia trhu |
+| `rx` | `P` | `MedicationRequest` | ATC / RxNorm |
+| `fu` | `P` | `Appointment` | — |
+| `hist-*`, `allergies`, `meds` | pacientska úroveň | vlastné zdroje (`TPL-04`) | podľa okruhu |
+
+Pridanie zdroja znamená doplniť **všetkých šesť** registrov: `TPL_SRC`, `SRC_COVERS`,
+`TERM_BIND`, `SRC_STYLE`, `SRC_DISP` a resolver v `rptSource()`. Kontrolný skript
+konzistencie kľúčov to overuje.
+
 ## 6. Invarianty
 
 - Každý zápis má `Provenance`; každý prístup a export má `AuditEvent` s purpose-of-use.
@@ -101,3 +121,5 @@ Doplnenie interoperability do systému, ktorý na ňu nebol navrhnutý, je prest
 - AI nikdy nezapisuje ticho; zápis vzniká potvrdením lekára.
 - Zdieľa sa len podpísaná verzia a len so súhlasovým kontextom.
 - Jadro nikdy nevolá GitHub priamo — GitHub je autoring, nie runtime.
+- Z poskytovateľskej vzorky sa preberá **iba štruktúra**; klinické hodnoty, identita
+  pacienta ani znenie cudzích právnych textov sa nekopírujú (`TPL-08`).
