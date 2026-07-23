@@ -1322,6 +1322,8 @@ body[data-tab="comm"] .timeline{display:none}
 .tplval.bad{border:1px solid var(--warning);color:var(--text-body)}
 .tplro{font-size:11.5px;color:var(--text-muted);margin-bottom:10px;font-style:italic}
 .tplbar .tplmgrb{padding:5px 10px;min-height:0;font-size:12px}
+.genrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 10px}
+.genrow .ghint{font-size:11px;color:var(--text-muted);margin-left:auto}
 .covmiss{font-size:11.5px;color:var(--text-muted);margin:-4px 0 10px}
 .rtext{white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:18px;color:var(--text-body);background:var(--surface-1);border:1px solid var(--border-default);border-radius:8px;padding:10px;margin:0;overflow:auto;max-height:340px}
 .audbox{margin-top:10px;border-top:1px solid var(--border-default);padding-top:8px;font-size:11px;color:var(--text-muted);max-height:180px;overflow:auto}
@@ -2443,6 +2445,11 @@ body[data-tab="comm"] .timeline{display:none}
         <div class="emrow" id="emrow" style="display:none"></div>
         <div class="billfoot"><button class="btn primary" onclick="finalizeSign()" id="billconfirm">Potvrdiť výkaz a podpísať</button></div>
       </div>
+      <div class="genrow">
+        <button class="btn primary" onclick="renderOut()"><svg class="ico s14" style="flex:none"><use href="#i-doc"/></svg><span>Generovať náhľad</span></button>
+        <button class="btn" onclick="tplMgr()">Šablóny…</button>
+        <span class="ghint">Náhľad pred podpisom · status preliminary</span>
+      </div>
       <div class="rendout" id="rendout"></div>
       <div class="genrow"><svg class="ico s14"><use href="#i-file"/></svg><span><b>Lekárska správa</b><small>projekcia z verzie 15.07 ✓ · jazyk podľa príjemcu</small></span><button class="btn">Generovať</button></div>
       <div class="genrow"><svg class="ico s14"><use href="#i-file"/></svg><span><b>Potvrdenie</b><small>pre pacienta / zamestnávateľa</small></span><button class="btn">Generovať</button></div>
@@ -2672,7 +2679,10 @@ document.addEventListener('keydown',e=>{
 function mOpen(id){if(id==='dkwrap')dTab(0,document.querySelectorAll('.dtabs button')[0]);document.getElementById(id).classList.add('open');document.getElementById('dockmenu').classList.remove('open');document.getElementById('hmenu')&&document.getElementById('hmenu').classList.remove('open')}
 function mClose(id){document.getElementById(id).classList.remove('open')}
 function dTab(i,btn){document.querySelectorAll('.dtabs button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
-  [0,1,2].forEach(n=>document.getElementById('dsec'+n).classList.toggle('on',n===i));}
+  [0,1,2].forEach(n=>document.getElementById('dsec'+n).classList.toggle('on',n===i));
+  /* záložka Generovať vykreslí náhľad hneď — lišta so šablónami nesmie závisieť
+     od toho, že sa už raz generovalo (cyklická závislosť, oprava v v133) */
+  if(i===2&&typeof renderOut==='function')renderOut();}
 let recIns=false,fotIns=false;
 function mkRow(html,type){const r=document.createElement('div');r.className='trow';r.dataset.type=type;r.innerHTML=html;return r}
 /* K-16: SOAP segment — default A; vitály viditeľné len pri O */
@@ -3422,6 +3432,7 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
+["Generovať náhľad","Generate preview"],["Náhľad pred podpisom · status preliminary","Preview before signing · status preliminary"],
 ["Šablóny dokumentov","Document templates"],["Šablóny","Templates"],["Uložiť šablónu","Save template"],["Nová šablóna","New template"],["Systémové","System"],["Poskytovateľa","Provider"],
 ["Názov","Name"],["Sekcie","Sections"],["Popisok","Label"],["Pridať sekciu","Add section"],["Odobrať","Remove"],["Hore","Up"],["Dole","Down"],
 ["Vkladať kódy do textového výstupu","Include codes in text output"],["Šablóna spĺňa minimum trhu","Template meets market minimum"],["Chýba povinné minimum trhu","Missing market minimum"],["Šablóna nemá žiadnu sekciu","Template has no sections"],
