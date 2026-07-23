@@ -39,6 +39,7 @@ cp-17 (report conformance)  >  cp-15 (záznamový model)  >  index.html (impleme
 
 1. **`README.md`** (tento súbor) — čo čítaš a akú to má váhu.
 2. **`CLAUDE.md`** — ako sa v tomto repozitári správať (sanity brány, commit pravidlá, disciplína tokenov).
+   Rýchly štart relácie: **`docs/HANDOFF-START.md`**.
 3. **`docs/cp-17-…`** — čo je záväzné pre report a jeho životný cyklus.
 4. **`docs/cp-15-…`** — záznamový model (SOAP, case, billing).
 5. **`docs/DEV-SUMMARY.md`** — rýchla orientácia a mapa „pravidlo → kde v kóde".
@@ -66,7 +67,8 @@ cp-17 (report conformance)  >  cp-15 (záznamový model)  >  index.html (impleme
 | `docs/core-11-tech-careplan-pathway-mapping.md` | **NORMATIVE** | Mapovanie care plan → pathway. |
 | `docs/core-12-tech-sync-standard.md` | **NORMATIVE** | Synchronizačný kontrakt. |
 | `docs/DEV-SUMMARY.md` | **INFORMATIVE** | Orientácia pre dev tím + mapa „pravidlo → kde v kóde". |
-| `docs/HANDOFF.md` | **INFORMATIVE** | Kontext na pokračovanie práce v novej relácii. |
+| `docs/HANDOFF-START.md` | **INFORMATIVE** | Kompaktný štart relácie — vlož do prvej správy nového chatu. |
+| `docs/HANDOFF.md` | **INFORMATIVE** | Podrobný stav práce, fázy, otvorené body. |
 | `tokens.json` | **REFERENCE** | Dizajn tokeny v DTCG formáte, generované z `:root`. Vstup pre Style Dictionary → Figma Variables. Neupravovať ručne. |
 | `index.html` | — | Prototyp. Implementácia, nikdy nie norma. |
 
