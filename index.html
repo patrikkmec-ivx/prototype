@@ -1300,6 +1300,28 @@ body[data-tab="comm"] .timeline{display:none}
 .tplbar .vsw{margin-left:auto;display:flex;border:1px solid var(--border-default);border-radius:8px;overflow:hidden}
 .tplbar .vsw button{font:inherit;font-size:12px;padding:5px 11px;border:0;background:var(--surface-0);color:var(--text-muted);cursor:pointer}
 .tplbar .vsw button.on{background:var(--brand-cyan-soft);color:var(--brand-teal-text);font-weight:600}
+
+.tplmgr{display:grid;grid-template-columns:230px 1fr;gap:14px;min-height:340px}
+.tplside{border-right:1px solid var(--border-default);padding-right:12px;overflow:auto;max-height:420px}
+.tplside .tgrp{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);margin:10px 0 5px}
+.tplside .titem{padding:7px 9px;border-radius:8px;cursor:pointer;font-size:12.5px;color:var(--text-body);line-height:16px;border:1px solid transparent}
+.tplside .titem:hover{background:var(--surface-1)}
+.tplside .titem.on{background:var(--brand-cyan-soft);border-color:var(--brand-cyan);color:var(--brand-teal-text);font-weight:600}
+.tplside .titem .kb{display:block;font-size:10px;color:var(--text-muted);font-weight:400;margin-top:1px}
+.tpledit .fr{margin-bottom:12px}
+.tpledit label.fl{display:block;font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px}
+.tpledit input[type=text],.tpledit select{font:inherit;font-size:12.5px;padding:6px 8px;border:1px solid var(--border-default);border-radius:8px;background:var(--surface-0);color:var(--text-body)}
+.tpledit input[type=text].wide{width:100%}
+.secrow{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.secrow input[type=text]{flex:1}
+.secrow select{width:150px}
+.secrow .mv{border:1px solid var(--border-default);background:var(--surface-0);border-radius:6px;width:26px;height:28px;cursor:pointer;color:var(--text-muted);font-size:13px;line-height:1}
+.secrow .mv:hover{background:var(--surface-1)}
+.tplval{margin:10px 0;padding:8px 10px;border-radius:8px;font-size:11.5px;line-height:17px}
+.tplval.ok{background:var(--brand-cyan-soft);color:var(--brand-teal-text)}
+.tplval.bad{border:1px solid var(--warning);color:var(--text-body)}
+.tplro{font-size:11.5px;color:var(--text-muted);margin-bottom:10px;font-style:italic}
+.tplbar .tplmgrb{padding:5px 10px;min-height:0;font-size:12px}
 .covmiss{font-size:11.5px;color:var(--text-muted);margin:-4px 0 10px}
 .rtext{white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:18px;color:var(--text-body);background:var(--surface-1);border:1px solid var(--border-default);border-radius:8px;padding:10px;margin:0;overflow:auto;max-height:340px}
 .audbox{margin-top:10px;border-top:1px solid var(--border-default);padding-top:8px;font-size:11px;color:var(--text-muted);max-height:180px;overflow:auto}
@@ -2213,6 +2235,19 @@ body[data-tab="comm"] .timeline{display:none}
     <div class="sh-f" id="irFoot"></div>
   </div>
 </div>
+<div class="sheetwrap" id="tplwrap"><div class="scrim" onclick="mClose('tplwrap')"></div>
+  <div class="sheet">
+    <div class="sh-h"><span class="hic c-note"><svg class="ico s14"><use href="#i-pen"/></svg></span><b>Šablóny dokumentov</b><button class="x" onclick="mClose('tplwrap')" title="Zavrieť">&times;</button></div>
+    <div class="sh-b">
+      <div class="tplmgr">
+        <div class="tplside" id="tplside"></div>
+        <div class="tpledit" id="tpledit"></div>
+      </div>
+    </div>
+    <div class="sh-f"><button class="btn" onclick="mClose('tplwrap')">Zavrieť</button><button class="btn primary" onclick="tplSave()">Uložiť šablónu</button></div>
+  </div>
+</div>
+
 <div class="sheetwrap" id="recwrap"><div class="scrim" onclick="mClose('recwrap')"></div>
   <div class="sheet">
     <div class="sh-h"><span class="hic c-note"><svg class="ico s14"><use href="#i-pen"/></svg></span><b>Zaznamenať</b><button class="x" onclick="mClose('recwrap')" title="Zavrieť">✕</button></div>
@@ -3117,6 +3152,81 @@ function tplCur(){
   return TPL_REG.find(t=>t.id===(MKT[MKTC].tpl==='slip'?'core.dekurz.rxslip.v1':'core.dekurz.soap.v1'))||TPL_REG[0];
 }
 function tplPick(id){TPL_SEL=id;renderOut();}
+/* ── Rozhranie správy šablón (TPL-02, TPL-05) ──────────────────────────────────
+   Povrch je doménovo neutrálny: zdroje sekcií dodáva register zdrojov, nie kód UI. */
+const TPL_SRC=[
+ {k:'S',n:'Subjektívne (S)'},{k:'O',n:'Objektívne (O)'},{k:'A',n:'Zhodnotenie / dg. (A)'},
+ {k:'P',n:'Plán (P)'},{k:'rx',n:'Preskripcia'},{k:'fu',n:'Follow-up'},{k:'narr',n:'Naratív lekára'}
+];
+let TPL_EDIT=null;
+function tplMgr(){TPL_EDIT=JSON.parse(JSON.stringify(tplCur()));mOpen('tplwrap');tplMgrRender();}
+function tplMgrPick(id){const s=TPL_REG.find(x=>x.id===id);if(s){TPL_EDIT=JSON.parse(JSON.stringify(s));tplMgrRender();}}
+function tplMgrNew(){
+  TPL_EDIT={id:'core.dekurz.user.'+Date.now(),domain:'core',kind:'user',slotKey:'dekurz',
+            name:tt('Nová šablóna'),codes:true,sections:[{label:'A',src:'A'},{label:'P',src:'P'}]};
+  tplMgrRender();
+}
+/* Ktorý SOAP slot sekcia pokrýva. Projekcie sa počítajú do svojho slotu:
+   rx = MedicationRequest → P · fu = Appointment → P (SOAP-04). */
+const SRC_COVERS={S:['S'],O:['O'],A:['A'],P:['P'],rx:['P'],fu:['P'],narr:[]};
+/* TPL-02: validácia proti povinnému minimu trhu */
+function tplValidate(tpl){
+  const need=MKT[MKTC].min||[];
+  const have=[];tpl.sections.forEach(s=>{(SRC_COVERS[s.src]||[]).forEach(k=>{if(!have.includes(k))have.push(k)})});
+  const miss=need.filter(k=>!have.includes(k));
+  return {ok:miss.length===0&&tpl.sections.length>0,miss:miss,
+          empty:tpl.sections.length===0};
+}
+function tplSecSet(i,f,v){TPL_EDIT.sections[i][f]=v;tplMgrRender();}
+function tplSecDel(i){TPL_EDIT.sections.splice(i,1);tplMgrRender();}
+function tplSecAdd(){TPL_EDIT.sections.push({label:'',src:'S'});tplMgrRender();}
+function tplSecMv(i,d){const a=TPL_EDIT.sections,j=i+d;if(j<0||j>=a.length)return;
+  const x=a[i];a[i]=a[j];a[j]=x;tplMgrRender();}
+function tplMgrRender(){
+  const side=document.getElementById('tplside'),ed=document.getElementById('tpledit');
+  if(!side||!ed)return;
+  const grp=(k,lbl)=>{const l=TPL_REG.filter(t=>t.kind===k);if(!l.length)return '';
+    return `<div class="tgrp">${lbl}</div>`+l.map(t=>
+      `<div class="titem ${TPL_EDIT&&t.id===TPL_EDIT.id?'on':''}" onclick="tplMgrPick('${t.id}')">${escT(tt(t.name))}
+        <span class="kb">${t.domain} · ${t.slotKey}</span></div>`).join('');};
+  side.innerHTML=grp('system',tt('Systémové'))+grp('user',tt('Poskytovateľa'))
+    +`<div class="tgrp">&nbsp;</div><button class="btn" style="width:100%" onclick="tplMgrNew()">+ ${tt('Nová šablóna')}</button>`;
+  if(!TPL_EDIT){ed.innerHTML='';return;}
+  const ro=TPL_EDIT.kind==='system',v=tplValidate(TPL_EDIT);
+  const opts=(sel)=>TPL_SRC.map(s=>`<option value="${s.k}"${s.k===sel?' selected':''}>${escT(tt(s.n))}</option>`).join('');
+  ed.innerHTML=`
+    ${ro?`<div class="tplro">${tt('Systémová šablóna je len na čítanie — vytvorte kópiu cez Nová šablóna.')}</div>`:''}
+    <div class="fr"><label class="fl">${tt('Názov')}</label>
+      <input type="text" class="wide" value="${escT(tt(TPL_EDIT.name))}" ${ro?'disabled':''}
+        oninput="TPL_EDIT.name=this.value"></div>
+    <div class="fr"><label class="fl">${tt('Sekcie')}</label>
+      ${TPL_EDIT.sections.map((s,i)=>`<div class="secrow">
+        <button class="mv" ${ro?'disabled':''} onclick="tplSecMv(${i},-1)" title="${tt('Hore')}">&uarr;</button>
+        <button class="mv" ${ro?'disabled':''} onclick="tplSecMv(${i},1)" title="${tt('Dole')}">&darr;</button>
+        <input type="text" value="${escT(s.label)}" ${ro?'disabled':''} placeholder="${tt('Popisok')}"
+          oninput="TPL_EDIT.sections[${i}].label=this.value">
+        <select ${ro?'disabled':''} onchange="tplSecSet(${i},'src',this.value)">${opts(s.src)}</select>
+        <button class="mv" ${ro?'disabled':''} onclick="tplSecDel(${i})" title="${tt('Odobrať')}">&times;</button>
+      </div>`).join('')}
+      ${ro?'':`<button class="btn" onclick="tplSecAdd()">+ ${tt('Pridať sekciu')}</button>`}</div>
+    <div class="fr"><label class="fl">
+      <input type="checkbox" ${TPL_EDIT.codes?'checked':''} ${ro?'disabled':''}
+        onchange="TPL_EDIT.codes=this.checked"> ${tt('Vkladať kódy do textového výstupu')}</label></div>
+    <div class="tplval ${v.ok?'ok':'bad'}">${v.ok
+      ? '✓ '+tt('Šablóna spĺňa minimum trhu')+' ('+MKTC+')'
+      : '⚠ '+(v.empty?tt('Šablóna nemá žiadnu sekciu'):tt('Chýba povinné minimum trhu')+' ('+MKTC+'): '+v.miss.join(', '))}</div>`;
+}
+function tplSave(){
+  if(!TPL_EDIT)return;
+  if(TPL_EDIT.kind==='system'){showToast('Systémovú šablónu nemožno prepísať');return;}
+  const v=tplValidate(TPL_EDIT);
+  if(!v.ok){showToast('Šablóna neprešla kontrolou minima trhu');return;}   /* TPL-02 */
+  const i=TPL_REG.findIndex(t=>t.id===TPL_EDIT.id);
+  if(i>=0)TPL_REG[i]=TPL_EDIT;else TPL_REG.push(TPL_EDIT);
+  TPL_SEL=TPL_EDIT.id;
+  logProv('create','SummaryTemplate '+TPL_EDIT.id,{role:'author'});
+  mClose('tplwrap');renderOut();showToast('Šablóna uložená a použitá','ok');
+}
 /* Coverage (INT-03) — koľko sekcií je naplnených a ktoré chýbajú */
 function tplCoverage(tpl){
   let total=0,filled=0;const missing=[];
@@ -3168,6 +3278,7 @@ function tplBarHTML(tpl,cov){
     <select id="tplsel" onchange="tplPick(this.value)">${opts}</select>
     <span class="cov ${cls}" title="${cov.missing.length?tt('Chýba')+': '+cov.missing.join(', '):tt('Všetky sekcie naplnené')}">
       ${cov.filled}/${cov.total} ${tt('polí')} · ${pct}%</span>
+    <button class="btn tplmgrb" onclick="tplMgr()">${tt('Šablóny')}…</button>
     <span class="vsw">
       <button class="${RPT_VIEW==='struct'?'on':''}" onclick="rptView('struct')">${tt('Štruktúra')}</button>
       <button class="${RPT_VIEW==='text'?'on':''}" onclick="rptView('text')">${tt('Text')}</button>
@@ -3311,6 +3422,12 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
+["Šablóny dokumentov","Document templates"],["Šablóny","Templates"],["Uložiť šablónu","Save template"],["Nová šablóna","New template"],["Systémové","System"],["Poskytovateľa","Provider"],
+["Názov","Name"],["Sekcie","Sections"],["Popisok","Label"],["Pridať sekciu","Add section"],["Odobrať","Remove"],["Hore","Up"],["Dole","Down"],
+["Vkladať kódy do textového výstupu","Include codes in text output"],["Šablóna spĺňa minimum trhu","Template meets market minimum"],["Chýba povinné minimum trhu","Missing market minimum"],["Šablóna nemá žiadnu sekciu","Template has no sections"],
+["Systémová šablóna je len na čítanie — vytvorte kópiu cez Nová šablóna.","System template is read-only — create a copy via New template."],
+["Šablóna uložená a použitá","Template saved and applied"],["Šablóna neprešla kontrolou minima trhu","Template failed the market minimum check"],["Systémovú šablónu nemožno prepísať","A system template cannot be overwritten"],
+["Subjektívne (S)","Subjective (S)"],["Objektívne (O)","Objective (O)"],["Zhodnotenie / dg. (A)","Assessment / dx (A)"],["Plán (P)","Plan (P)"],["Preskripcia","Prescription"],["Naratív lekára","Clinician narrative"],
 ["Šablóna","Template"],["Štruktúra","Structure"],["Text","Text"],["polí","fields"],["Chýba","Missing"],["Všetky sekcie naplnené","All sections filled"],
 ["Dekurz — SOAP","Encounter note — SOAP"],["Rx slip","Rx slip"],["Dekurz — členený (ukážka poskytovateľa)","Encounter note — sectioned (provider sample)"],
 ["Subjektívne","Subjective"],["Objektívne","Objective"],["Záver","Assessment"],["Terapia a plán","Therapy and plan"],["Lekár","Clinician"],
