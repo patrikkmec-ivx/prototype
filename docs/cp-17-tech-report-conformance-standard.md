@@ -1,7 +1,7 @@
 ---
 doc_id: TBD (priradiť podľa gsr-13)
 title: "Report conformance — shell, terminológia, podpis, provenance, AI transparentnosť"
-version: 1.2-draft
+version: 1.3-draft
 date: 2026-07-23
 authority: "navrhol: Patrik (CEO) · schvaľuje: Roman (CBO) · aplikuje: Dominika/Viktor · kontroluje: Marek"
 type: normative
@@ -167,6 +167,15 @@ Rozsah: klinický report a jeho životný cyklus. Mimo rozsah: Records knižnica
 - **TPL-11** Anamnestické okruhy sa označujú ustálenými skratkami klinickej praxe
   (RA, OA, AA, FA, SA, PA, GA). Každý okruh zodpovedá samostatnému FHIR zdroju
   a patrí na pacientsku úroveň (`TPL-04`); popisok v šablóne je iba forma.
+- **TPL-12** Znenie informovaného súhlasu je **právny artefakt** a patrí registru
+  súhlasov, NIE šablóne. Register vedie **verziu a dátum účinnosti** každého znenia.
+- **TPL-13** Súhlas sa MUSÍ dať vydať v oboch podobách z jedného zdroja: ako
+  **samostatný dokument** aj ako **sekcia na konci správy** (bežná prax a požiadavka
+  starších systémov). Šablóna určuje iba umiestnenie.
+- **TPL-14** Dokument MUSÍ niesť, **ktorá verzia znenia** bola pacientovi predložená.
+  Podpísaný súhlas bez identifikácie verzie znenia NIE JE preukázateľný.
+- **TPL-15** Povinné minimum trhu (`TPL-02`) sa vzťahuje na **klinický dokument**.
+  Súhlas má vlastné pravidlá a do klinickej úplnosti (`INT-03`) sa nezapočítava.
 - **TPL-06** Šablóna definuje sekcie a väzby; **renderery sú vymeniteľné**
   (štruktúrovaný a textový). Textový výstup slúži na prenos do cudzieho systému
   a MÔŽE niesť kódy podľa nastavenia šablóny.
@@ -231,6 +240,8 @@ vedome placeholdery a NIE sú zhodné s normou:
 | TPL-04, TPL-11 | ✓ RA/OA/AA/FA/SA/PA/GA na pacientskej úrovni, mapované na FHIR zdroje |
 | TPL-07 | ✓ hlavička a pätka v nastaveniach organizácie |
 | TPL-08..10 | ✓ extrakcia zo vzorky: iba štruktúra, mapovanie ako návrh, brána TPL-02 |
+| TPL-12, TPL-13, TPL-15 | ✓ register súhlasov, obe podoby z jedného zdroja, typovo citlivá validácia |
+| TPL-14 | ~ verzia znenia sa zobrazuje; väzba na podpísaný `Consent` chýba |
 | INT-03 | ✓ coverage |
 | INT-01, INT-02, INT-04..07 | ✗ intake vrstva zatiaľ nepostavená |
 | SYS-01..04 | ✗ integrácia zatiaľ nepostavená |
