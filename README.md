@@ -56,6 +56,7 @@ cp-17 (report conformance)  >  cp-15 (záznamový model)  >  index.html (impleme
 | `docs/cp-15-tech-soap-case-billing-standard.md` | **NORMATIVE** | Záznamový model: SOAP jadro, case vrstva, billing derivácia. |
 | `docs/core-01-tech-clinical-core-standard.md` | **NORMATIVE** | Klinické jadro. |
 | `docs/cp-16-tech-records-simple-note-analysis.md` | **INFORMATIVE** | Analýza Records vrstvy; implementácia odložená. |
+| `docs/cp-19-tech-templates-intake-analysis.md` | **INFORMATIVE** | Analýza šablónovej vrstvy a IQ intake postupu; návrh pravidiel TPL-*/INT-*. |
 | `docs/cp-18-tech-report-lifecycle.mermaid` | **REFERENCE** | Životný cyklus reportu s Provenance bodmi — vizualizácia `cp-17`. |
 | `docs/cp-14-tech-soap-screen-flow.mermaid` | **REFERENCE** | Obrazovkový tok SOAP. |
 | `docs/core-02-tech-clinical-core-flow.mermaid` | **REFERENCE** | Tok klinického jadra. |
