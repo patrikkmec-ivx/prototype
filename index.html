@@ -1313,6 +1313,26 @@ body[data-tab="comm"] .timeline{display:none}
 .rendout .cd{display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:0 6px;border:1px solid var(--border-default);border-radius:999px;font-size:10.5px;color:var(--text-muted);white-space:nowrap}
 .rendout .cd.rec{border-color:var(--brand-cyan);color:var(--brand-teal-text)}
 .rendout .cd.none{border-style:dashed}
+.impwrap{min-width:0}
+.imphead{font-size:12px;font-weight:700;color:var(--text-heading);margin-bottom:9px}
+.improw{display:flex;gap:8px;align-items:center;margin-bottom:6px;min-width:0}
+.improw.off{opacity:.45}
+.improw .ilbl{flex:0 0 140px;font-size:12.5px;color:var(--text-heading);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.improw .iar{color:var(--text-subtle);flex:none}
+.improw select{flex:1 1 auto;min-width:0;font:inherit;font-size:12.5px;padding:5px 7px;border:1px solid var(--border-default);border-radius:8px;background:var(--surface-0);color:var(--text-body)}
+.improw .ist{flex:none;width:16px;text-align:center;font-weight:700;font-size:12px}
+.improw .ist.ok{color:var(--brand-teal-text)}
+.improw .ist.no{color:var(--warning)}
+.impaside{margin-top:12px;padding:9px 11px;background:var(--brand-cyan-soft);border-radius:8px;font-size:11.5px;color:var(--brand-teal-text);line-height:17px}
+.impaside .idim{color:var(--text-muted)}
+.imppriv{margin-top:9px;font-size:11px;color:var(--text-muted);line-height:16px;font-style:italic}
+.imppanel{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.orgnote{font-size:11.5px;color:var(--text-muted);line-height:17px;margin-bottom:12px;padding:8px 10px;background:var(--surface-1);border-radius:8px}
+.orghd{border-bottom:2px solid var(--text-heading);padding-bottom:6px;margin-bottom:10px;line-height:17px}
+.orghd b{font-size:13.5px;color:var(--text-heading)}
+.orghd span{display:block;font-size:11px;color:var(--text-muted)}
+.rendout .itm.pt{color:var(--text-body)}
+.rendout .ptm{margin-left:6px;font-size:10px;color:var(--text-muted);border:1px dotted var(--border-strong);border-radius:999px;padding:0 6px;white-space:nowrap}
 .tplbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border-default)}
 .tplbar .tl{font-size:11.5px;color:var(--text-muted);font-weight:600}
 .tplbar select{font:inherit;font-size:12.5px;padding:5px 8px;border:1px solid var(--border-default);border-radius:8px;background:var(--surface-0);color:var(--text-body);max-width:260px}
@@ -1892,6 +1912,7 @@ body[data-tab="comm"] .timeline{display:none}
         <div class="um-sep"></div>
         <div class="um-h"><svg class="ico s14" aria-hidden="true"><use href="#i-bldg"/></svg><span>Settings under the Medical Facility</span><svg class="umchev" width="12" height="7" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <button class="um-it" role="menuitem">My profile under the Medical Facility</button>
+        <button class="um-it" role="menuitem" onclick="umGo('org')">Document header</button>
         <button class="um-it" role="menuitem">My practices</button>
         <div class="um-sep"></div>
         <button class="um-it danger" role="menuitem"><svg class="ico s14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 17l5-5-5-5M20 12H9M12 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Sign out</button>
@@ -2276,6 +2297,17 @@ body[data-tab="comm"] .timeline{display:none}
     <div class="sh-f" id="irFoot"></div>
   </div>
 </div>
+<div class="sheetwrap" id="orgwrap"><div class="scrim" onclick="mClose('orgwrap')"></div>
+  <div class="sheet">
+    <div class="sh-h"><span class="hic c-doc"><svg class="ico s14"><use href="#i-bldg"/></svg></span><b>Hlavička dokumentov</b><button class="x" onclick="mClose('orgwrap')" title="Zavrieť">&times;</button></div>
+    <div class="sh-b">
+      <div class="orgnote">Hlavička a pätka patria zdravotníckemu zariadeniu, nie šablóne. Zmena sa prejaví vo všetkých dokumentoch a šablónach naraz.</div>
+      <div class="tpledit" id="orgform"></div>
+    </div>
+    <div class="sh-f"><button class="btn" onclick="mClose('orgwrap')">Zrušiť</button><button class="btn primary" onclick="orgSave()">Uložiť</button></div>
+  </div>
+</div>
+
 <div class="sheetwrap" id="tplwrap"><div class="scrim" onclick="mClose('tplwrap')"></div>
   <div class="sheet wide">
     <div class="sh-h"><span class="hic c-note"><svg class="ico s14"><use href="#i-pen"/></svg></span><b>Šablóny dokumentov</b><button class="x" onclick="mClose('tplwrap')" title="Zavrieť">&times;</button></div>
@@ -2776,6 +2808,7 @@ function umClose(){const m=document.getElementById('usermenu');if(m)m.classList.
 function umGo(k){
   umClose();
   if(k==='tpl'){tplMgr();return;}
+  if(k==='org'){orgOpen();return;}
 }
 document.addEventListener('click',e=>{
   const m=document.getElementById('usermenu');
@@ -3143,11 +3176,13 @@ function dsiHTML(k){const d=DSI[k];if(!d)return '';
 function reportShell(title,bodyHTML){
   const m=MKT[MKTC];
   const bill=BILLN?'<br>'+tt('Výkaz potvrdený')+': '+BILLN+' '+tt('položiek')+' · '+billArtifact():'';
-  return `<h4>${escT(title)} · ${escT(RPT_ID.org)}</h4>
+  return `${orgHeadHTML()}
+  <h4>${escT(title)}</h4>
   <div class="rsec">${rptIdLine()} · ${escT(RPT_ID.clinician)}</div>
   ${bodyHTML}
   <div class="rft">${tt('podpis')}: ${escT(RPT_ID.clinician)} · ${m.sig} · ${tt('profil')}: ${escT(m.doc)} · ${rptModeNote()} · Composition.status: ${rptStatus()}
-  <br>${tt('záznam')}: ${m.rec} + ${m.lab} · ${tt('výkaz')}: ${m.rep} · ${tt('lieky')}: ${m.med}${bill}</div>
+  <br>${tt('záznam')}: ${m.rec} + ${m.lab} · ${tt('výkaz')}: ${m.rep} · ${tt('lieky')}: ${m.med}
+  <br>${escT(ORG.stamp)}${bill}</div>
   ${rptVerHTML()}
   ${rptBarHTML()}
   ${auditHTML()}`;
@@ -3157,7 +3192,9 @@ function reportShell(title,bodyHTML){
    (štatistická klasifikácia). Naratív sa NIKDY nestráca — FHIR CodeableConcept
    = coding[] + text. Kód ide do coding, lekárova formulácia ostáva v .text.
    S = prevažne naratív (nekódujeme nasilu). A/O/P majú kódový slot.            */
-const TERM_BIND={S:{rec:null,rep:null},O:{rec:'lab',rep:null},A:{rec:'rec',rep:'rep'},P:{rec:'rec',rep:null}};
+const TERM_BIND={S:{rec:null,rep:null},O:{rec:'lab',rep:null},A:{rec:'rec',rep:'rep'},P:{rec:'rec',rep:null},
+ OA:{rec:'rec',rep:'rep'},AA:{rec:'rec',rep:null},FA:{rec:'rec',rep:null},
+ RA:{rec:null,rep:null},SA:{rec:null,rep:null},PA:{rec:null,rep:null},GA:{rec:null,rep:null}};
 /* Demo ValueSet — v produkcii nahradí $expand/$validate-code proti terminologickému serveru */
 const CODEMAP=[
  {re:/skler[oó]z|multiple scleros/i,             sct:'24700007', icd:'G35'},
@@ -3166,9 +3203,98 @@ const CODEMAP=[
  {re:/TK |krvn[yý] tlak|blood pressure|\bBP\b/i,  loinc:'85354-9'},
  {re:/pulz|heart rate/i,                          loinc:'8867-4'},
  {re:/PRO dotazn[ií]k|PHQ/i,                      loinc:'44249-1'},
- {re:/Tecfidera|dimetyl|dimethyl fumar/i,         atc:'L04AX07', rxnorm:'1373478', sct:'703067007'}
+ {re:/Tecfidera|dimetyl|dimethyl fumar/i,         atc:'L04AX07', rxnorm:'1373478', sct:'703067007'},
+ {re:/penicil/i,                                  sct:'91936005', icd:'Z88.0'},
+ {re:/metformin|metformín/i,                      atc:'A10BA02', rxnorm:'6809', sct:'109081006'},
+ {re:/infarkt myokardu|myocardial infarct/i,      sct:'22298006', icd:'I21'}
 ];
 function codeOf(text){return CODEMAP.find(c=>c.re.test(text))||null;}
+/* Nastavenia hlavičky organizácie */
+const ORG_F=[['name','Názov zariadenia'],['fac','Pracovisko / ambulancia'],['addr','Adresa'],
+             ['ico','IČO'],['pzs','Kód PZS'],['contact','Kontakt'],['stamp','Text pätky']];
+function orgOpen(){mOpen('orgwrap');orgRender();}
+function orgRender(){
+  const f=document.getElementById('orgform');if(!f)return;
+  f.innerHTML=ORG_F.map(function(a){var k=a[0],l=a[1];
+    return '<div class="fr"><label class="fl">'+tt(l)+'</label>'+
+      '<input type="text" class="wide" value="'+escT(ORG[k]||'')+'" oninput="ORG[\''+k+'\']=this.value"></div>';}).join('');
+}
+function orgSave(){
+  logProv('amend','Organization · header',{role:'author'});
+  mClose('orgwrap');
+  if(document.getElementById('rendout').classList.contains('show'))renderOut();
+  showToast('Hlavička uložená','ok');
+}
+/* Extrakcia šablóny z nahratej vzorky (TPL-08, TPL-09, TPL-10).
+   Získava IBA štruktúru. Údaje pacienta ani zdrojový obrázok sa NEUKLADAJÚ.
+   Mapovanie popiskov je NÁVRH — potvrdzuje ho lekár (DSI-01). */
+const TPL_ALIAS={
+ 'ra':'RA','rodinna anamneza':'RA',
+ 'oa':'OA','osobna anamneza':'OA',
+ 'aa':'AA','alergicka anamneza':'AA','alergie':'AA','alergia':'AA',
+ 'fa':'FA','farmakologicka anamneza':'FA','lieky':'FA','medikacia':'FA','la':'FA',
+ 'sa':'SA','socialna anamneza':'SA',
+ 'pa':'PA','pracovna anamneza':'PA',
+ 'ga':'GA','gynekologicka anamneza':'GA',
+ 'no':'S','to':'S','terajsie ochorenie':'S','subj':'S','subjektivne':'S','anamneza':'S','popis':'S',
+ 'obj':'O','objektivny nalez':'O','objektivne':'O','status praesens':'O','nalez':'O',
+ 'zaver':'A','dg':'A','diagnozy':'A','diagnosticky zaver':'A','zhodnotenie':'A',
+ 'odporucanie':'P','doporucenie':'P','terapia':'P','liecba':'P','plan':'P','recepty':'P',
+ 'epikriza':'narr','priebeh hospitalizacie':'narr'
+};
+function normLbl(s){return (s||'').toLowerCase().replace(/[:.\s]+$/,'').trim()
+  .normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+function aliasOf(lbl){return TPL_ALIAS[normLbl(lbl)]||null;}
+const OCR_DEMO=[
+ {kind:'header',text:'UNIVERZITNÁ NEMOCNICA BRATISLAVA · I. Neurologická klinika'},
+ {kind:'label',text:'Subj.:'},{kind:'label',text:'OA:'},{kind:'label',text:'SA:'},
+ {kind:'label',text:'AA:'},{kind:'label',text:'RA:'},{kind:'label',text:'Obj.:'},
+ {kind:'label',text:'Dg.:'},{kind:'label',text:'Odporúčanie:'},
+ {kind:'consent',text:'Informovaný súhlas pacienta'}
+];
+let TPL_IMP=null;
+function tplImport(){
+  TPL_IMP={rows:OCR_DEMO.filter(x=>x.kind==='label').map(x=>({lbl:x.text,src:aliasOf(x.text),use:true})),
+           header:OCR_DEMO.find(x=>x.kind==='header'),
+           consent:OCR_DEMO.find(x=>x.kind==='consent')};
+  TPL_EDIT=null;tplMgrRender();
+}
+function tplImpSet(i,v){TPL_IMP.rows[i].src=v||null;tplMgrRender();}
+function tplImpUse(i,v){TPL_IMP.rows[i].use=v;tplMgrRender();}
+function tplImpCancel(){TPL_IMP=null;TPL_EDIT=JSON.parse(JSON.stringify(tplCur()));tplMgrRender();}
+function tplImpHTML(){
+  const opts=(sel)=>`<option value="">${tt('— nemapovať —')}</option>`+
+    TPL_SRC.map(s=>`<option value="${s.k}"${s.k===sel?' selected':''}>${escT(tt(s.n))}</option>`).join('');
+  const rows=TPL_IMP.rows.map((r,i)=>`<div class="improw${r.use?'':' off'}">
+      <input type="checkbox" ${r.use?'checked':''} onchange="tplImpUse(${i},this.checked)">
+      <span class="ilbl">${escT(r.lbl)}</span><span class="iar">&rarr;</span>
+      <select onchange="tplImpSet(${i},this.value)">${opts(r.src)}</select>
+      <span class="ist ${r.src?'ok':'no'}">${r.src?'&#10003;':'?'}</span>
+    </div>`).join('');
+  const mapped=TPL_IMP.rows.filter(r=>r.use&&r.src).length;
+  return `<div class="impwrap">
+    <div class="imphead">${tt('Toto sme rozpoznali')} — ${tt('skontrolujte a potvrďte')}</div>
+    ${rows}
+    <div class="impaside">
+      <div><b>${tt('Hlavička poskytovateľa')}</b> — ${tt('rozpoznaná, odložená do nastavení zariadenia')}<br>
+        <span class="idim">${escT(TPL_IMP.header?TPL_IMP.header.text:'—')}</span></div>
+      <div style="margin-top:6px"><b>${tt('Informovaný súhlas')}</b> — ${tt('oddelený, vlastný typ dokumentu')}</div>
+    </div>
+    <div class="imppriv">${tt('Zo vzorky sa preberá iba štruktúra. Údaje pacienta ani zdrojový obrázok sa neukladajú.')}</div>
+    <div class="imppanel">
+      <button class="btn" onclick="tplImpCancel()">${tt('Zrušiť')}</button>
+      <button class="btn primary" onclick="tplImpApply()">${tt('Potvrdiť a vytvoriť šablónu')} (${mapped})</button>
+    </div></div>`;
+}
+function tplImpApply(){
+  const secs=TPL_IMP.rows.filter(r=>r.use&&r.src).map(r=>({label:r.lbl.replace(/[:.\s]+$/,''),src:r.src}));
+  if(!secs.length){showToast('Nie je namapovaná žiadna sekcia');return;}
+  const tpl={id:'core.dekurz.import.'+Date.now(),domain:'core',kind:'user',slotKey:'dekurz',
+             name:tt('Šablóna z nahratej vzorky'),codes:true,ver:0,sections:secs};
+  TPL_IMP=null;TPL_EDIT=tpl;tplMgrRender();
+  showToast(tplValidate(tpl).ok?'Šablóna pripravená — skontrolujte a uložte':'Šablóna nespĺňa minimum trhu — doplňte sekcie',
+            tplValidate(tpl).ok?'ok':'');
+}
 /* Položka reportu má TVAR, nie reťazec: {slot, text, coding}.
    Dnes sa coding odvodzuje (TERM-05 nezhoda, cp-17 §10). Keď príde capture-side
    kódovanie, naplní sa rovnaký tvar — rozhranie templatov sa NEZMENÍ. */
@@ -3189,12 +3315,49 @@ function codeChipsOf(it){
 }
 /* Zdroje slotov — jedno miesto, kde sa vie, odkiaľ sa čo berie */
 function rptSource(k){
+  if(PT_ANAM[k])return PT_ANAM[k].map(x=>{const i=rptItem(k,x);i.pt=true;return i;});
   if(k==='S'||k==='O'||k==='A'||k==='P')return slotTexts(k).map(t=>rptItem(k,t));
   if(k==='rx')return slotTexts('P').filter(t=>/eRecept|ePrescription/i.test(t)).map(t=>rptItem('P',t));
   if(k==='fu')return FUsel?[rptItem(null,tt('Kontrola o')+' '+tt(FUsel))]:[];
   if(k==='narr'){const e=document.querySelector('#dsec0 .narr textarea');const v=e?e.value:'';return v?[rptItem(null,v)]:[];}
   return [];
 }
+/* HLAVIČKA A PÄTKA POSKYTOVATEĽA (TPL-07) — patria ORGANIZÁCII, nie šablóne.
+   Šablóna ich nikdy nenesie natvrdo; zmena adresy sa prejaví vo všetkých dokumentoch. */
+const ORG={
+  name:'ExpertMed',
+  fac:'Neurologická ambulancia',
+  addr:'Pažítková 4, 821 01 Bratislava',
+  ico:'35 123 456',
+  pzs:'P40707004209',
+  contact:'+421 2 1234 5678 · info@expertmed.sk',
+  stamp:'Pečiatka a podpis lekára'
+};
+function orgHeadHTML(){
+  return `<div class="orghd"><b>${escT(ORG.name)}</b>${ORG.fac?' · '+escT(ORG.fac):''}
+    <span>${escT(ORG.addr)}${ORG.ico?' · IČO '+escT(ORG.ico):''}${ORG.pzs?' · '+tt('kód PZS')+' '+escT(ORG.pzs):''}</span></div>`;
+}
+function orgHeadText(){
+  const L=[ORG.name+(ORG.fac?' · '+ORG.fac:''),ORG.addr];
+  if(ORG.ico||ORG.pzs)L.push([ORG.ico?'IČO '+ORG.ico:'',ORG.pzs?'kód PZS '+ORG.pzs:''].filter(Boolean).join(' · '));
+  if(ORG.contact)L.push(ORG.contact);
+  return L.join('\n');
+}
+/* PACIENTSKA ÚROVEŇ (TPL-04) — anamnestické okruhy pretrvávajú medzi návštevami,
+   aktualizujú sa, NEVZNIKAJÚ nanovo. Šablóna ich do dokumentu len premieta.
+   Skratky sú ustálená slovenská prax; každá zodpovedá samostatnému FHIR zdroju. */
+const PT_ANAM={
+ RA:['Otec — infarkt myokardu v 58 r.','Matka — diabetes mellitus II. typu'],
+ OA:['Arteriálna hypertenzia (2019)','Diabetes mellitus II. typu (2021)'],
+ AA:['Penicilín — exantém'],
+ FA:['Tecfidera 240 mg 1-0-1','Metformín 850 mg 1-0-1'],
+ SA:['Žije s partnerom, byt bez bariér'],
+ PA:['Administratívna práca, bez rizikovej expozície'],
+ GA:['2 pôrody, menopauza neguje']
+};
+const PT_FHIR={RA:'FamilyMemberHistory',OA:'Condition / Procedure',AA:'AllergyIntolerance',
+               FA:'MedicationStatement',SA:'Observation · social-history',
+               PA:'Observation · occupational',GA:'Observation / Condition'};
 /* REGISTER ŠABLÓN — doménovo neutrálny (cp-19 §5).
    Povrch NEVIE o doméne: vykresľuje to, čo mu register dodá. Doména `core` je
    všeobecná ambulantná prax; SM a ďalšie domény pridajú vlastné záznamy.
@@ -3220,13 +3383,19 @@ function tplPick(id){TPL_SEL=id;renderOut();}
 /* ── Rozhranie správy šablón (TPL-02, TPL-05) ──────────────────────────────────
    Povrch je doménovo neutrálny: zdroje sekcií dodáva register zdrojov, nie kód UI. */
 const TPL_SRC=[
- {k:'S',n:'Subjektívne (S)'},{k:'O',n:'Objektívne (O)'},{k:'A',n:'Zhodnotenie / dg. (A)'},
- {k:'P',n:'Plán (P)'},{k:'rx',n:'Preskripcia'},{k:'fu',n:'Follow-up'},{k:'narr',n:'Naratív lekára'}
+ {k:'S',n:'Subjektívne (S)',g:'enc'},{k:'O',n:'Objektívne (O)',g:'enc'},
+ {k:'A',n:'Zhodnotenie / dg. (A)',g:'enc'},{k:'P',n:'Plán (P)',g:'enc'},
+ {k:'rx',n:'Preskripcia',g:'enc'},{k:'fu',n:'Follow-up',g:'enc'},{k:'narr',n:'Naratív lekára',g:'enc'},
+ {k:'RA',n:'RA — rodinná anamnéza',g:'pt'},{k:'OA',n:'OA — osobná anamnéza',g:'pt'},
+ {k:'AA',n:'AA — alergická anamnéza',g:'pt'},{k:'FA',n:'FA — farmakologická anamnéza',g:'pt'},
+ {k:'SA',n:'SA — sociálna anamnéza',g:'pt'},{k:'PA',n:'PA — pracovná anamnéza',g:'pt'},
+ {k:'GA',n:'GA — gynekologická anamnéza',g:'pt'}
 ];
 let TPL_EDIT=null;
 function tplMgr(){TPL_EDIT=JSON.parse(JSON.stringify(tplCur()));mOpen('tplwrap');tplMgrRender();}
-function tplMgrPick(id){const s=TPL_REG.find(x=>x.id===id);if(s){TPL_EDIT=JSON.parse(JSON.stringify(s));tplMgrRender();}}
+function tplMgrPick(id){const s=TPL_REG.find(x=>x.id===id);if(s){TPL_IMP=null;TPL_EDIT=JSON.parse(JSON.stringify(s));tplMgrRender();}}
 function tplMgrNew(){
+  TPL_IMP=null;
   TPL_EDIT={id:'core.dekurz.user.'+Date.now(),domain:'core',kind:'user',slotKey:'dekurz',
             name:tt('Nová šablóna'),codes:true,ver:0,sections:[{label:'A',src:'A'},{label:'P',src:'P'}]};
   tplMgrRender();
@@ -3255,7 +3424,10 @@ function tplMgrRender(){
       `<div class="titem ${TPL_EDIT&&t.id===TPL_EDIT.id?'on':''}" onclick="tplMgrPick('${t.id}')">${escT(tt(t.name))}
         <span class="kb">${t.domain} · ${t.slotKey} · v${t.ver||1}</span></div>`).join('');};
   side.innerHTML=grp('system',tt('Systémové'))+grp('user',tt('Poskytovateľa'))
-    +`<div class="tgrp">&nbsp;</div><button class="btn" style="width:100%" onclick="tplMgrNew()">+ ${tt('Nová šablóna')}</button>`;
+    +`<div class="tgrp">&nbsp;</div>
+      <button class="btn" style="width:100%" onclick="tplMgrNew()">+ ${tt('Nová šablóna')}</button>
+      <button class="btn" style="width:100%;margin-top:6px" onclick="tplImport()">${tt('Nahrať šablónu')}…</button>`;
+  if(TPL_IMP){ed.innerHTML=tplImpHTML();return;}
   if(!TPL_EDIT){ed.innerHTML='';return;}
   const ro=TPL_EDIT.kind==='system',v=tplValidate(TPL_EDIT);
   const opts=(sel)=>TPL_SRC.map(s=>`<option value="${s.k}"${s.k===sel?' selected':''}>${escT(tt(s.n))}</option>`).join('');
@@ -3307,6 +3479,7 @@ function rptView(v){RPT_VIEW=v;renderOut();}
 /* Textový renderer — výstup do schránky pre cudzí EHR (cp-19 §1 bod 3, overlay) */
 function rptPlain(tpl){
   const m=MKT[MKTC],L=[];
+  L.push(orgHeadText());L.push('');
   L.push(tt(tpl.name).toUpperCase()+' · '+RPT_ID.date);
   L.push(RPT_ID.patient+' · '+m.idlbl+' '+RPT_ID.pid);
   L.push(tt('Lekár')+': '+RPT_ID.clinician+' · '+RPT_ID.org);
@@ -3329,11 +3502,12 @@ function rptPlain(tpl){
   });
   L.push('');
   L.push(tt('podpis')+': '+RPT_ID.clinician+' · '+m.sig+' · '+rptStatus());
+  L.push(ORG.stamp);
   return L.join('\n');
 }
 function rptSec(label,items){
   return `<div class="rsec"><b>${label}:</b> ${items.length
-    ? items.map(it=>`<span class="itm">${escT(it.text)}${it.slot?codeChipsOf(it):''}</span>`).join('')
+    ? items.map(it=>`<span class="itm${it.pt?' pt':''}">${escT(it.text)}${it.slot?codeChipsOf(it):''}${it.pt?`<span class="ptm" title="${tt('Pacientska úroveň — pretrváva medzi návštevami')}">${tt('anamnéza')}</span>`:''}</span>`).join('')
     : '—'}</div>`;
 }
 function tplBarHTML(tpl,cov){
@@ -3489,6 +3663,13 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
+["Hlavička dokumentov","Document header"],["Názov zariadenia","Facility name"],["Pracovisko / ambulancia","Unit / clinic"],["Adresa","Address"],["IČO","Reg. No."],["Kód PZS","Provider code"],["Kontakt","Contact"],["Text pätky","Footer text"],["kód PZS","provider code"],["Hlavička uložená","Header saved"],
+["Nahrať šablónu","Upload template"],["Toto sme rozpoznali","This is what we recognised"],["skontrolujte a potvrďte","review and confirm"],["— nemapovať —","— do not map —"],
+["Hlavička poskytovateľa","Provider header"],["rozpoznaná, odložená do nastavení zariadenia","recognised, moved to facility settings"],["Informovaný súhlas","Informed consent"],["oddelený, vlastný typ dokumentu","separated, its own document type"],
+["Zo vzorky sa preberá iba štruktúra. Údaje pacienta ani zdrojový obrázok sa neukladajú.","Only the structure is taken from the sample. Patient data and the source image are not stored."],
+["Potvrdiť a vytvoriť šablónu","Confirm and create template"],["Šablóna z nahratej vzorky","Template from uploaded sample"],["Šablóna pripravená — skontrolujte a uložte","Template ready — review and save"],["Šablóna nespĺňa minimum trhu — doplňte sekcie","Template does not meet the market minimum — add sections"],["Nie je namapovaná žiadna sekcia","No section is mapped"],
+["anamnéza","history"],["Pacientska úroveň — pretrváva medzi návštevami","Patient level — persists across visits"],
+["RA — rodinná anamnéza","FH — family history"],["OA — osobná anamnéza","PH — past medical history"],["AA — alergická anamnéza","AL — allergies"],["FA — farmakologická anamnéza","MH — medication history"],["SA — sociálna anamnéza","SH — social history"],["PA — pracovná anamnéza","OH — occupational history"],["GA — gynekologická anamnéza","GH — gynaecological history"],
 ["Novinky","News"],["Nastavenia","Settings"],["Môj profil","My profile"],["Šablóny","Templates"],["Lokalizácia","Localization"],
 ["Nastavenia zdravotníckeho zariadenia","Settings under the Medical Facility"],["Môj profil v zdravotníckom zariadení","My profile under the Medical Facility"],["Moje pracoviská","My practices"],["Odhlásiť sa","Sign out"],
 ["Generovať náhľad","Generate preview"],["Náhľad pred podpisom · status preliminary","Preview before signing · status preliminary"],
