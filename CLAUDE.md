@@ -97,10 +97,27 @@ Implementácie: `.tabs` (hlavná lišta kokpitu) · `.dtabs` (dekurz) · `.tabba
 Výnimka: dvojstavový prepínač zobrazenia vnútri panela (napr. Štruktúra / Text)
 nie je navigácia, a preto ostáva segmentom.
 
+### Tlačidlá
+
+Škála z dizajn systému: **L 48 px** · **M 40 px** (default) · **S 32 px**
+(`.btn` · `.btn.lg` · `.btn.sm`), ikonové `.btn.icob` (32×32), tiché `.btn.ghost`.
+Popisky: L 16/24, M 14/20, S 12/16, Mulish SemiBold.
+
+Primary je `--brand-cyan` s textom `--brand-cyan-ink` (`#06343E`), **nikdy biely text**.
+**Na jednej obrazovke smie byť najviac jedno primary tlačidlo** — hlavná akcia.
+Podporné akcie sú sekundárne (biele s rámom), potichu ghost.
+
+Vlastné rozmery tlačidiel sa **nedefinujú**. Ak niektorý rozmer chýba, je to zmena
+dizajn systému a musí sa nahlásiť — nie prepísať lokálne.
+
 ### Modálne okná
 
 `sheetwrap` → `sheet` (`sheet wide` pre široký obsah) → `sh-h` hlavička, `sh-b` telo,
 `sh-f` pätka s tlačidlami vpravo. Zatváranie cez `mClose(id)` aj kliknutím na `scrim`.
+
+**Výšku určuje obsah.** Modal nemá vynútenú výšku ani `min-height` na vnútorných
+paneloch; jediné obmedzenie je responzívny strop (`max-height:86vh`) so scrollom
+v `sh-b`. Prázdne miesto pod krátkym obsahom je chyba.
 
 ## 7. i18n
 
