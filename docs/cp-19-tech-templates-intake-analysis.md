@@ -173,7 +173,11 @@ Kokpit nie je SM. Potrebuje vlastný doménový plug-in `core`, ktorého tokeny 
 | Ručne písané tokeny | druhá taxonómia | §5 — generovať z modelu |
 | Rozrastanie šablón bez správy | neudržateľnosť | verziovanie a vlastníctvo šablón |
 
-## 7. Navrhované normatívne dôsledky (do `cp-17`)
+## 7. Normatívne dôsledky — PREVZATÉ DO `cp-17` v1.1
+
+> **Stav: schválené a prenesené.** Pravidlá nižšie sú od `cp-17` v1.1 **normatívne**
+> (`cp-17` §9 Šablóny, §10 Vstup cez Hilbi IQ, §11 Integrácia modulov).
+> Záväzné znenie je v `cp-17`; tu ostávajú len ako kontext analýzy.
 
 - **TPL-01** Šablóna určuje formu výstupu, NIKDY nie je miestom uloženia údaja.
   Sekcia šablóny vyberá a zoraďuje položky; položky si nesú svoju FHIR identitu.
