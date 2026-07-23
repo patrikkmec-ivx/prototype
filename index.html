@@ -1326,7 +1326,7 @@ body[data-tab="comm"] .timeline{display:none}
 .improw.off{opacity:.45}
 .improw .ilbl{flex:0 0 140px;font-size:14px;line-height:20px;color:var(--text-heading);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .improw .iar{color:var(--text-subtle);flex:none}
-.improw select{flex:1 1 auto;min-width:0;font:inherit;font-size:14px;line-height:20px;color:var(--text-muted);
+.improw select{flex:1 1 auto;min-width:0;font:inherit;font-size:14px;line-height:20px;color:var(--text-body);
   padding:10px 14px;min-height:40px;border:none;border-radius:8px;background:var(--surface-1)}
 .improw select:focus{outline:none;background:var(--surface-white);box-shadow:0 0 0 2px var(--brand-cyan)}
 .improw .ist{flex:none;width:16px;text-align:center;font-weight:700;font-size:12px}
@@ -1389,11 +1389,6 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
 .pgcard{background:var(--surface-white);border:1px solid var(--border-default);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:24px}
 .cardhead{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;border-bottom:1px solid var(--border-default)}
 .tplprevcol{display:none}
-@media(min-width:1200px){
-  .tplmgr{grid-template-columns:260px minmax(320px,1fr) minmax(320px,400px)}
-  .tplprevcol{display:block;position:sticky;top:0}
-  .edtabs{display:none}
-}
 /* TABY — kanonický vzor. Zhodný s hlavnou lištou kokpitu (.tabs) a s .dtabs:
    plochý button bez rámu a pozadia, ikona + popisok, neaktívny --text-muted,
    aktívny --text-heading + 700 + 3px podčiarknutie. Nikdy pilulky ani segmenty. */
@@ -1417,6 +1412,11 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
 .newcard span:not(.nci){font-size:11px;color:var(--text-muted);line-height:15px}
 .newnote{font-size:10.5px;color:var(--text-muted);margin-top:11px;font-style:italic;line-height:15px}
 .tplmgr{display:grid;grid-template-columns:260px minmax(0,1fr);gap:24px;align-items:start}
+@media(min-width:1200px){
+  .tplmgr{grid-template-columns:260px minmax(320px,1fr) minmax(320px,400px)}
+  .tplprevcol{display:block;position:sticky;top:0}
+  .edtabs{display:none}
+}
 @media(max-width:900px){.tplmgr{grid-template-columns:1fr}.tplside{border-right:0;border-bottom:1px solid var(--border-default);padding:0 0 16px}}
 .tplside{border-right:1px solid var(--border-default);padding-right:24px}
 .tplside .tgrp{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);margin:8px 0 8px}
@@ -1444,7 +1444,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
 .tpledit input[type=text].wide{width:100%}
 .secrow{display:flex;gap:7px;align-items:center;margin-bottom:8px;min-width:0}
 .secrow input[type=text]{flex:1 1 160px;min-width:0;font-weight:700}
-.secrow select{flex:0 1 230px;min-width:0;color:var(--text-muted)}
+.secrow select{flex:0 1 230px;min-width:0;color:var(--text-body)}
 
 .edfoot{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
 .tplval{margin:10px 0;padding:8px 10px;border-radius:8px;font-size:11.5px;line-height:17px}
