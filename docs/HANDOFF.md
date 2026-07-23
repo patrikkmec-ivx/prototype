@@ -4,7 +4,7 @@
 > ako sa v repozitári správať určuje `CLAUDE.md`; čo je čo určuje `README.md`.
 > **Aktualizuje sa na konci každej relácie.**
 
-Aktualizované: 2026-07-23 · Verzia prototypu: **v153** (`fe64b943`)
+Aktualizované: 2026-07-23 · Verzia prototypu: **v156** (`d53869ed`)
 
 ---
 
