@@ -712,7 +712,28 @@ body[data-nav="min"] .navhead{justify-content:center;padding:11px 0;gap:0;min-he
 body[data-nav="min"] .navhead .nic{width:18px;height:18px}
 .nav a.active .nic{stroke:var(--brand-cyan);color:var(--brand-cyan)}
 .nav .mark{position:absolute;left:15px;bottom:78px;width:170px;height:169px;pointer-events:none}
-.nav .me{margin-top:auto;display:flex;gap:8px;align-items:center;padding:6px}
+.nav .me{margin-top:auto;display:flex;gap:8px;align-items:center;padding:6px;position:relative}
+.usermenu{display:none;position:absolute;bottom:calc(100% + 8px);left:4px;z-index:60;min-width:268px;max-width:calc(100vw - 32px);
+  background:var(--surface-white);border:1px solid var(--border-default);border-radius:14px;
+  box-shadow:0 14px 38px rgba(27,35,64,.20);padding:6px;max-height:70vh;overflow:auto}
+.usermenu.open{display:block}
+.um-id{padding:10px 12px 8px}
+.um-id b{display:block;font-size:13.5px;color:var(--text-heading);font-weight:700;line-height:18px}
+.um-id span{display:block;font-size:12px;color:var(--text-muted);line-height:17px}
+.um-it{display:flex;gap:10px;align-items:center;width:100%;padding:9px 12px;border:none;background:none;
+  font:inherit;font-size:13.5px;color:var(--text-heading);font-weight:600;border-radius:9px;cursor:pointer;
+  min-height:40px;text-align:left}
+.um-it:hover{background:var(--surface-1)}
+.um-it .um-b{margin-left:auto;min-width:20px;height:20px;border-radius:999px;background:var(--brand-accent);
+  color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 6px}
+.um-it.danger{color:var(--danger)}
+.um-it.danger svg{stroke:var(--danger)}
+.um-h{display:flex;gap:10px;align-items:center;padding:9px 12px 5px;font-size:12.5px;color:var(--text-muted);font-weight:600}
+.um-h svg:not(.umchev){stroke:var(--text-muted);flex:none}
+.um-h .umchev{margin-left:auto;transform:rotate(-90deg);color:var(--text-subtle);flex:none}
+.um-sep{height:1px;background:var(--border-default);margin:6px 4px}
+body[data-nav="min"] .usermenu{left:0}
+@media(max-width:744px){.usermenu{left:0;min-width:240px}}
 .nav .me .av{width:32px;height:32px;border-radius:50%;background:#DDE3F0;flex:none}
 .nav .me{gap:9px}
 .menm{flex:1;min-width:0}
@@ -1856,7 +1877,22 @@ body[data-tab="comm"] .timeline{display:none}
     <div class="me">
       <div class="av" style="background:url(data:image/jpeg;base64,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) center/cover;font-size:0">ER</div>
       <div class="menm"><b>Dr. E.<br>Rodriguez</b></div>
-      <button class="navset" title="Nastavenia" aria-label="Nastavenia"><svg class="ico s18" aria-hidden="true"><use href="#i-gear"/></svg></button>
+      <button class="navset" title="Nastavenia" aria-label="Nastavenia" onclick="umToggle(event)"><svg class="ico s18" aria-hidden="true"><use href="#i-gear"/></svg></button>
+      <div class="usermenu" id="usermenu" role="menu" aria-label="Profil">
+        <div class="um-id"><b>Dr. E. Rodriguez</b><span>e.rodriguez@hilbi.com</span></div>
+        <button class="um-it" role="menuitem">News<span class="um-b">1</span></button>
+        <div class="um-sep"></div>
+        <div class="um-h"><svg class="ico s14" aria-hidden="true"><use href="#i-gear"/></svg><span>Settings</span><svg class="umchev" width="12" height="7" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <button class="um-it" role="menuitem">My profile</button>
+        <button class="um-it" role="menuitem" onclick="umGo('tpl')">Templates</button>
+        <button class="um-it" role="menuitem">Localization</button>
+        <div class="um-sep"></div>
+        <div class="um-h"><svg class="ico s14" aria-hidden="true"><use href="#i-bldg"/></svg><span>Settings under the Medical Facility</span><svg class="umchev" width="12" height="7" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <button class="um-it" role="menuitem">My profile under the Medical Facility</button>
+        <button class="um-it" role="menuitem">My practices</button>
+        <div class="um-sep"></div>
+        <button class="um-it danger" role="menuitem"><svg class="ico s14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 17l5-5-5-5M20 12H9M12 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Sign out</button>
+      </div>
     </div>
   </nav>
 
@@ -2727,6 +2763,23 @@ function cpPick(btn){const w=btn.closest('.tabdd');w.classList.remove('open');
   w.querySelector('.tab').classList.add('active');
   showToast((LANG==='en'?'Opening — ':'Otváram — ')+t);
 }
+/* Profilové menu v ľavej lište (.me → gear) */
+function umToggle(e){
+  if(e)e.stopPropagation();
+  const m=document.getElementById('usermenu');if(!m)return;
+  const open=m.classList.toggle('open');
+  if(open){document.getElementById('dockmenu')&&document.getElementById('dockmenu').classList.remove('open');}
+}
+function umClose(){const m=document.getElementById('usermenu');if(m)m.classList.remove('open');}
+function umGo(k){
+  umClose();
+  if(k==='tpl'){tplMgr();return;}
+}
+document.addEventListener('click',e=>{
+  const m=document.getElementById('usermenu');
+  if(m&&m.classList.contains('open')&&!m.contains(e.target)&&!e.target.closest('.navset'))umClose();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')umClose();});
 document.addEventListener('click',e=>{document.querySelectorAll('.tabdd.open').forEach(w=>{if(!w.contains(e.target))w.classList.remove('open');});});
 function cTab(t,btn){
   btn.closest('.tabs').querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
@@ -3432,6 +3485,8 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
+["Novinky","News"],["Nastavenia","Settings"],["Môj profil","My profile"],["Šablóny","Templates"],["Lokalizácia","Localization"],
+["Nastavenia zdravotníckeho zariadenia","Settings under the Medical Facility"],["Môj profil v zdravotníckom zariadení","My profile under the Medical Facility"],["Moje pracoviská","My practices"],["Odhlásiť sa","Sign out"],
 ["Generovať náhľad","Generate preview"],["Náhľad pred podpisom · status preliminary","Preview before signing · status preliminary"],
 ["Šablóny dokumentov","Document templates"],["Šablóny","Templates"],["Uložiť šablónu","Save template"],["Nová šablóna","New template"],["Systémové","System"],["Poskytovateľa","Provider"],
 ["Názov","Name"],["Sekcie","Sections"],["Popisok","Label"],["Pridať sekciu","Add section"],["Odobrať","Remove"],["Hore","Up"],["Dole","Down"],
