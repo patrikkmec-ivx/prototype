@@ -99,9 +99,20 @@ nie je navigácia, a preto ostáva segmentom.
 
 ### Tlačidlá
 
-Škála z dizajn systému: **L 48 px** · **M 40 px** (default) · **S 32 px**
-(`.btn` · `.btn.lg` · `.btn.sm`), ikonové `.btn.icob` (32×32), tiché `.btn.ghost`.
+Škála z dizajn systému, **veľkosť sa vyberá podľa kontextu**:
+
+| Veľkosť | Kedy |
+|---|---|
+| **48 · L** (`.btn.lg`) | primárne CTA, mobil na plnú šírku, prázdne stavy, landing |
+| **40 · M** (`.btn`) | **default** — väčšina UI: formuláre, panely, toolbary, karty |
+| **32 · S** (`.btn.sm`) | kompaktné a riadkové — riadky tabuliek, husté filtre |
+
+Ikonové `.btn.icob` (32×32), tiché `.btn.ghost`.
 Popisky: L 16/24, M 14/20, S 12/16, Mulish SemiBold.
+
+Typy podľa dôrazu: **Primary › Secondary › Ghost**; kontextové sú Destructive, IQ,
+Inverse, Glass. Secondary má vždy **neutrálny** rám — cyan rám na Secondary znamená
+vybraný chip, nie tlačidlo. Vlastné farby mimo typov sa nepoužívajú.
 
 Primary je `--brand-cyan` s textom `--brand-cyan-ink` (`#06343E`), **nikdy biely text**.
 **Na jednej obrazovke smie byť najviac jedno primary tlačidlo** — hlavná akcia.
@@ -109,6 +120,16 @@ Podporné akcie sú sekundárne (biele s rámom), potichu ghost.
 
 Vlastné rozmery tlačidiel sa **nedefinujú**. Ak niektorý rozmer chýba, je to zmena
 dizajn systému a musí sa nahlásiť — nie prepísať lokálne.
+
+### Formulárové polia
+
+Podľa handoffu dizajn systému: **bez rámu v pokojovom stave**, výplň `surface/1`,
+hodnota v `--text-heading`, popisok `--text-muted`, placeholder `--text-subtle`.
+Focus = biele pozadie + **2px prstenec** `--brand-cyan`. Hover `surface/2`.
+
+Veľkosti: **S 40 px** (radius 8) · **M 48 px** (radius 12, default) · **L 56 px** (radius 16).
+**Nikdy pod 40 px** a nikdy rám ako pokojový stav. Placeholder sa nepoužíva namiesto
+popisku; popisok je vždy viditeľný.
 
 ### Modálne okná
 
