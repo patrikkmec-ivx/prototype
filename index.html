@@ -3439,6 +3439,7 @@ function reportShell(title,bodyHTML){
    S = prevažne naratív (nekódujeme nasilu). A/O/P majú kódový slot.            */
 const TERM_BIND={S:{rec:null,rep:null},O:{rec:'lab',rep:null},A:{rec:'rec',rep:'rep'},P:{rec:'rec',rep:null},
  'hist-past':{rec:'rec',rep:'rep'},'allergies':{rec:'rec',rep:null},'meds':{rec:'rec',rep:null},
+ 'exam-neuro':{rec:null,rep:null},'labs':{rec:'lab',rep:null},'dx-coded':{rec:'rec',rep:'rep'},
  'hist-family':{rec:null,rep:null},'hist-social':{rec:null,rep:null},
  'hist-occup':{rec:null,rep:null},'hist-gyn':{rec:null,rep:null}};
 /* Demo ValueSet — v produkcii nahradí $expand/$validate-code proti terminologickému serveru */
@@ -3452,7 +3453,11 @@ const CODEMAP=[
  {re:/Tecfidera|dimetyl|dimethyl fumar/i,         atc:'L04AX07', rxnorm:'1373478', sct:'703067007'},
  {re:/penicil/i,                                  sct:'91936005', icd:'Z88.0'},
  {re:/metformin|metformín/i,                      atc:'A10BA02', rxnorm:'6809', sct:'109081006'},
- {re:/infarkt myokardu|myocardial infarct/i,      sct:'22298006', icd:'I21'}
+ {re:/infarkt myokardu|myocardial infarct/i,      sct:'22298006', icd:'I21'},
+ {re:/oligoklonáln|oligoclonal/i,                 loinc:'34573-4'},
+ {re:/krvn[yý] obraz|blood count/i,               loinc:'58410-2'},
+ {re:/glyk[eé]mia|z[aá]kladn[eé] vy[sš]etrenie/i, loinc:'24323-8'},
+ {re:/relaps-remit|relapsing.remitting/i,         sct:'426373005', icd:'G35'}
 ];
 function codeOf(text){return CODEMAP.find(c=>c.re.test(text))||null;}
 /* Nastavenia hlavičky organizácie */
@@ -3488,9 +3493,12 @@ const TPL_ALIAS={
  'ga':'hist-gyn','gynekologicka anamneza':'hist-gyn',
  'no':'S','to':'S','terajsie ochorenie':'S','subj':'S','subjektivne':'S','anamneza':'S','popis':'S',
  'obj':'O','objektivny nalez':'O','objektivne':'O','status praesens':'O','nalez':'O',
- 'zaver':'A','dg':'A','diagnozy':'A','diagnosticky zaver':'A','zhodnotenie':'A',
- 'odporucanie':'P','doporucenie':'P','terapia':'P','liecba':'P','plan':'P','recepty':'P',
- 'epikriza':'narr','priebeh hospitalizacie':'narr'
+ 'zaver':'A','dg':'A','diagnosticky zaver':'A','zhodnotenie':'A','diagnozy':'dx-coded',
+ 'odporucanie':'P','terapia':'P','liecba':'P','plan':'P','recepty':'rx','predpisane lieky':'rx',
+ 'epikriza':'narr','priebeh hospitalizacie':'narr',
+ 'hk/dk':'exam-neuro','neurologicky nalez':'exam-neuro','postoj a chodza':'exam-neuro',
+ 'laboratorne vysetrenia':'labs','likvor':'labs','reiberov index':'labs','krvny obraz':'labs',
+ 'dop':'P','doporucenie':'P'
 };
 function normLbl(s){return (s||'').toLowerCase().replace(/[:.\s]+$/,'').trim()
   .normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
@@ -3567,6 +3575,7 @@ function codeChipsOf(it){
 }
 /* Zdroje slotov — jedno miesto, kde sa vie, odkiaľ sa čo berie */
 function rptSource(k){
+  if(ENC_SRC[k])return ENC_SRC[k].map(x=>rptItem(k,x));
   if(PT_ANAM[k])return PT_ANAM[k].map(x=>{const i=rptItem(k,x);i.pt=true;return i;});
   if(k==='S'||k==='O'||k==='A'||k==='P')return slotTexts(k).map(t=>rptItem(k,t));
   if(k==='rx')return slotTexts('P').filter(t=>/eRecept|ePrescription/i.test(t)).map(t=>rptItem('P',t));
@@ -3585,6 +3594,8 @@ const CNS_REG=[
   body:'By signing this document I confirm that I have been informed about the nature of my condition, the proposed treatment, its risks and my right to refuse it. I understood the information, had the opportunity to ask questions and decided without pressure.'},
  {id:'cns.handover',ver:1,lang:'sk',date:'03.11.2025',sign:['patient'],name:'Prevzatie lekárskej správy',
   body:'Potvrdzujem, že som prevzal(a) lekársku správu, ktorú som povinný(á) odovzdať svojmu všeobecnému lekárovi.'},
+ {id:'cns.declaration',ver:1,lang:'sk',date:'26.05.2026',sign:['patient'],name:'Vyhlásenie pacienta',
+  body:'Podpísaný týmto záväzne vyhlasujem, že som bol(a) dnešným dňom poučený(á) a informovaný(á) o povahe môjho ochorenia, navrhovaných postupoch liečby, možných rizikách vývoja môjho zdravotného stavu, ako aj o možnosti odmietnuť navrhovaný postup a o rizikách s odmietnutím súvisiacich. Poučenie bolo vykonané zrozumiteľne, ohľaduplne a bez nátlaku. Poučeniu som porozumel(a) a vyhlásenie dávam pri plnom vedomí a svojím podpisom potvrdzujem, že som právne spôsobilý(á) samostatne sa rozhodovať. Potvrdzujem, že som bol(a) poučený(á) o možnosti tento súhlas slobodne odvolať, o čom bude neodkladne vykonaný písomný záznam do mojej zdravotnej dokumentácie.'},
  {id:'cns.gdpr',ver:1,lang:'sk',date:'20.05.2025',sign:[],name:'Spracúvanie osobných údajov',
   body:'Informácie o spracúvaní osobných údajov podľa Nariadenia Európskeho parlamentu a Rady (EÚ) 2016/679 sú zverejnené na webovom sídle poskytovateľa.'}
 ];
@@ -3640,6 +3651,9 @@ const SRC_DISP={
  'hist-social':{sk:['SA','Sociálna anamnéza'],en:['SH','Social history'],de:['SA','Sozialanamnese']},
  'hist-occup':{sk:['PA','Pracovná anamnéza'],en:['OH','Occupational history'],de:['BA','Berufsanamnese']},
  'hist-gyn':{sk:['GA','Gynekologická anamnéza'],en:['GH','Gynaecological history'],de:['GA','Gynäkolog. Anamnese']},
+ 'exam-neuro':{sk:['Neurologický nález','Neurologický nález'],en:['Neuro exam','Neurological examination'],de:['Neuro-Status','Neurologischer Status']},
+ 'labs':{sk:['Laboratórne vyšetrenia','Laboratórne a likvorové vyšetrenia'],en:['Labs','Laboratory and CSF results'],de:['Labor','Labor- und Liquorbefunde']},
+ 'dx-coded':{sk:['Diagnózy','Kódované diagnózy'],en:['Diagnoses','Coded diagnoses'],de:['Diagnosen','Kodierte Diagnosen']},
  'consent':{sk:['Informovaný súhlas','Informovaný súhlas'],en:['Informed consent','Informed consent'],de:['Einwilligung','Einwilligung']}
 };
 function docLang(){return ORG.lang||'sk';}                 /* jazyk DOKUMENTU */
@@ -3685,6 +3699,17 @@ const PT_ANAM={
  'hist-occup':['Administratívna práca, bez rizikovej expozície'],
  'hist-gyn':['2 pôrody, menopauza neguje']
 };
+/* Zdroje ako PODMNOŽINY slotov, rozlíšené kategóriou/kódom. Reálne správy
+   rozlišujú Obj. vs neurologický nález vs laboratórium — všetko sú Observation,
+   ale lekár ich vidí ako samostatné sekcie. Rovnako Záver (próza) vs Diagnózy (kód). */
+const ENC_SRC={
+ 'exam-neuro':['HK/DK: držanie správne, hybnosť zachovaná, normotonus, bez pyramídových javov',
+               'Postoj a chôdza samostatná, bez lateralizácie, na pätách aj špičkách bilat.'],
+ 'labs':['Základné vyšetrenie — glykémia, CRP, ionogram v norme',
+         'Krvný obraz — bez patologického nálezu',
+         'Likvor — oligoklonálne pásy prítomné, izolovaná intratekálna tvorba Ig'],
+ 'dx-coded':['Skleróza multiplex, relaps-remitujúca forma']
+};
 const PT_FHIR={'hist-family':'FamilyMemberHistory','hist-past':'Condition / Procedure','allergies':'AllergyIntolerance',
                'meds':'MedicationStatement','hist-social':'Observation · social-history',
                'hist-occup':'Observation · occupational','hist-gyn':'Observation / Condition'};
@@ -3709,6 +3734,17 @@ const TPL_REG=[
             {label:'Dg.',src:'A'},{label:'Odporúčanie',src:'P'},
             {label:'Epikríza',src:'narr',hideIfEmpty:true},
             {label:'Informovaný súhlas',src:'consent'}]},
+ {id:'fntt.sm.dekurz.v1',domain:'core',kind:'provider',slotKey:'dekurz',name:'FNTT SM',codes:true,ver:1,
+  consentId:'cns.declaration',
+  sections:[{label:'TO',src:'S'},
+            {label:'Obj.',src:'O'},
+            {label:'HK/DK',src:'exam-neuro'},
+            {label:'Laboratórne a likvorové vyšetrenia',src:'labs'},
+            {label:'Záver',src:'A'},
+            {label:'Dop.',src:'P'},
+            {label:'Recepty',src:'rx'},
+            {label:'Diagnózy',src:'dx-coded'},
+            {label:'Vyhlásenie pacienta',src:'consent'}]},
  {id:'core.dekurz.my.kontrola.v1',domain:'core',kind:'my',slotKey:'dekurz',name:'Krátka kontrola (moja)',codes:true,ver:1,
   sections:[{label:'Subj.',src:'S'},{label:'Obj.',src:'O'},{label:'Dg.',src:'A'},{label:'Plán',src:'P'}]}
 ];
@@ -3731,6 +3767,7 @@ const TPL_SRC=[
  {k:'rx',n:'Preskripcia',g:'enc'},{k:'fu',n:'Follow-up',g:'enc'},{k:'narr',n:'Naratív lekára',g:'enc'},
  {k:'hist-family',g:'pt'},{k:'hist-past',g:'pt'},{k:'allergies',g:'pt'},{k:'meds',g:'pt'},
  {k:'hist-social',g:'pt'},{k:'hist-occup',g:'pt'},{k:'hist-gyn',g:'pt'},
+ {k:'exam-neuro',g:'enc'},{k:'labs',g:'enc'},{k:'dx-coded',g:'enc'},
  {k:'consent',n:'Informovaný súhlas',g:'doc'}
 ];
 let TPL_EDIT=null,TPL_TAB='edit',TPL_SCOPE='system',TPL_NEW=false;
@@ -3771,7 +3808,8 @@ function tplMgrNew(){
 }
 /* Ktorý SOAP slot sekcia pokrýva. Projekcie sa počítajú do svojho slotu:
    rx = MedicationRequest → P · fu = Appointment → P (SOAP-04). */
-const SRC_COVERS={S:['S'],O:['O'],A:['A'],P:['P'],rx:['P'],fu:['P'],narr:[]};
+const SRC_COVERS={S:['S'],O:['O'],A:['A'],P:['P'],rx:['P'],fu:['P'],narr:[],
+ 'exam-neuro':['O'],'labs':['O'],'dx-coded':['A']};
 /* TPL-02: validácia proti povinnému minimu trhu */
 function tplValidate(tpl){
   /* minimum trhu sa vzťahuje na klinický dokument; súhlas má vlastné pravidlá */
@@ -3919,6 +3957,7 @@ function rptPlain(tpl){
    norm = bežné sekcie (S, O, naratív)
    anam = anamnestické okruhy — kompaktne v jednom riadku, ako v tlačenej správe */
 const SRC_STYLE={A:'key',P:'key',S:'norm',O:'norm',narr:'norm',rx:'norm',fu:'norm',
+ 'exam-neuro':'norm','labs':'norm','dx-coded':'key',
  'hist-family':'anam','hist-past':'anam','allergies':'anam','meds':'anam','hist-social':'anam','hist-occup':'anam','hist-gyn':'anam'};
 function rptItmHTML(it,inline){
   const tr=TR_LANG?trText(it.text):null;
