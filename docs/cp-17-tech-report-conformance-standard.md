@@ -1,7 +1,7 @@
 ---
 doc_id: TBD (priradiť podľa gsr-13)
 title: "Report conformance — shell, terminológia, podpis, provenance, AI transparentnosť"
-version: 1.7-draft
+version: 1.8-draft
 date: 2026-07-23
 authority: "navrhol: Patrik (CEO) · schvaľuje: Roman (CBO) · aplikuje: Dominika/Viktor · kontroluje: Marek"
 type: normative
@@ -203,6 +203,13 @@ Rozsah: klinický report a jeho životný cyklus. Mimo rozsah: Records knižnica
   Podpísaný súhlas bez identifikácie verzie znenia NIE JE preukázateľný.
 - **TPL-15** Povinné minimum trhu (`TPL-02`) sa vzťahuje na **klinický dokument**.
   Súhlas má vlastné pravidlá a do klinickej úplnosti (`INT-03`) sa nezapočítava.
+- **TPL-17** Zdroj sekcie môže byť **podmnožinou SOAP slotu**, rozlíšenou kategóriou
+  alebo kódom (napr. `exam-neuro`, `labs` a `dx-coded` sú všetko obsah slotov `O`/`A`).
+  Reálne správy tieto vrstvy rozlišujú a lekár ich vníma ako samostatné sekcie.
+  Dve sekcie viazané na **ten istý** zdroj NESMÚ zobrazovať ten istý obsah dvakrát —
+  ak dokument rozlišuje, musí existovať samostatný zdroj.
+- **TPL-18** Zhodnotenie v próze (`A`) a **kódovaný zoznam diagnóz** (`dx-coded`) sú
+  odlišné zdroje. Kódovaný zoznam nesie klasifikáciu trhu (`TERM-02`); próza ju nenesie.
 - **TPL-06** Šablóna definuje sekcie a väzby; **renderery sú vymeniteľné**
   (štruktúrovaný a textový). Textový výstup slúži na prenos do cudzieho systému
   a MÔŽE niesť kódy podľa nastavenia šablóny.
@@ -304,6 +311,7 @@ vedome placeholdery a NIE sú zhodné s normou:
 | TPL-07 | ✓ hlavička a pätka v nastaveniach organizácie |
 | TPL-08..10 | ✓ extrakcia zo vzorky: iba štruktúra, mapovanie ako návrh, brána TPL-02 |
 | TPL-16 | ✓ tri okruhy vlastníctva, systémové read-only |
+| TPL-17, TPL-18 | ✓ `exam-neuro`, `labs`, `dx-coded` ako podmnožiny slotov |
 | TPL-12, TPL-13, TPL-15 | ✓ register súhlasov, obe podoby z jedného zdroja, typovo citlivá validácia |
 | TPL-14 | ~ verzia znenia sa zobrazuje; väzba na podpísaný `Consent` chýba |
 | INT-03 | ✓ coverage |
