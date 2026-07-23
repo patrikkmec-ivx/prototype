@@ -1257,6 +1257,13 @@ body[data-tab="comm"] .timeline{display:none}
 .rendout .rsec{margin:7px 0;font-size:12.5px;color:var(--text-body);line-height:18px}
 .rendout .rsec b{color:var(--text-heading)}
 .rendout .rft{margin-top:10px;padding-top:8px;border-top:1px dashed var(--border-strong);font-size:11.5px;color:var(--text-muted)}
+.rptbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--border-default)}
+.rptbar .btn{padding:7px 13px;min-height:34px;font-size:13px}
+.rptbar .vinfo{margin-left:auto;font-size:11.5px;color:var(--text-muted);white-space:nowrap}
+.rptver{margin-top:10px;font-size:11.5px;color:var(--text-muted);line-height:17px}
+.rptver b{color:var(--text-heading);font-weight:600}
+.rptver .vrow{display:flex;gap:6px;align-items:baseline;padding:2px 0}
+.rptver .vst{border:1px solid var(--border-default);border-radius:999px;padding:0 6px;font-size:10.5px}
 /* K-20 · billing derivation (ChargeItem potvrdenie) — NEW, doplniť do Figmy */
 .billbox{border:1px solid var(--border-strong);border-radius:12px;background:var(--surface-1);padding:13px 15px;margin:0 0 12px;display:none}
 .billbox.show{display:block}
@@ -2896,6 +2903,48 @@ const RPT_ID={patient:'Jane Carter',pid:'76157 8787',clinician:'Dr. Novak',org:'
 let RPT_MODE='overlay';
 function rptModeNote(){return RPT_MODE==='core'?tt('autoritatívny záznam (Hilbi = system of record)'):tt('kompilácia — zápis do zdrojového systému (system of record: host EHR)');}
 function rptIdLine(){const m=MKT[MKTC];return escT(RPT_ID.patient)+' · '+m.idlbl+' '+escT(RPT_ID.pid)+' · '+escT(RPT_ID.date);}
+/* Verziovanie (G4): podpísaný záznam je nemenný — oprava = addendum, nikdy tichý edit.
+   Composition.status: preliminary → final (1. podpis) → amended (každá ďalšia verzia). */
+let RPT_VERS=[];
+function rptStatus(){return RPT_VERS.length===0?'preliminary':(RPT_VERS.length===1?'final':'amended');}
+function rptVerNo(){return RPT_VERS.length;}
+function rptSaveVersion(){
+  const first=RPT_VERS.length===0;
+  RPT_VERS.push({n:RPT_VERS.length+1,st:first?'final':'amended',ts:new Date().toLocaleTimeString('sk-SK',{hour:'2-digit',minute:'2-digit'}),by:RPT_ID.clinician});
+  renderOut();
+  showToast(first?'Verzia 1 uložená · status: final':('Addendum uložené · verzia '+RPT_VERS.length+' · status: amended'),'ok');
+}
+function rptVerHTML(){
+  if(!RPT_VERS.length)return `<div class="rptver"><b>${tt('Verzie')}:</b> ${tt('zatiaľ neuložené — draft')}</div>`;
+  return `<div class="rptver"><b>${tt('Verzie')}</b> (${tt('originál sa zachováva, oprava = addendum')}):`
+    +RPT_VERS.map(v=>`<div class="vrow"><span class="vst">v${v.n}</span> ${v.st} · ${escT(v.ts)} · ${escT(v.by)}</div>`).join('')+`</div>`;
+}
+function rptBarHTML(){
+  return `<div class="rptbar">
+    <button class="btn primary" onclick="renderOut()">${tt('Generovať')}</button>
+    <button class="btn" onclick="rptSaveVersion()">${RPT_VERS.length?tt('Uložiť addendum'):tt('Uložiť verziu')}</button>
+    <button class="btn" onclick="rptCopy()">${tt('Kopírovať')}</button>
+    <button class="btn" onclick="rptPrint()">${tt('Tlačiť')}</button>
+    <button class="btn" onclick="rptShare()">${tt('Zdieľať')}</button>
+    <span class="vinfo">v${rptVerNo()||'—'} · ${rptStatus()}</span>
+  </div>`;
+}
+function rptPlainText(){
+  const ro=document.getElementById('rendout');if(!ro)return '';
+  return Array.from(ro.querySelectorAll('h4,.rsec,.rft')).map(e=>e.textContent.trim()).join('\n');
+}
+function rptCopy(){
+  const t=rptPlainText();
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).catch(()=>{});
+  showToast('Správa skopírovaná','ok');
+}
+function rptPrint(){showToast(RPT_VERS.length?'Tlač — podpísaná verzia v'+rptVerNo():'Tlač — draft (nepodpísané)');}
+/* Zdieľanie (G6): vyžaduje súhlasový kontext — IN Consent Manager · EU purpose-of-use · US info-blocking */
+function rptShare(){
+  if(!RPT_VERS.length){showToast('Zdieľanie až po uložení verzie');return;}
+  const m=MKTC==='IN'?'ABDM Consent Manager':(MKTC==='US'?'purpose-of-use · info-blocking':'EHDS purpose-of-use');
+  showToast('Zdieľanie vyžaduje súhlas: '+m);
+}
 /* Jednotný report-shell: hlavička + telo + pätka RAZ (SOAP-08: jeden objekt, žiadne duplikované chrome) */
 function reportShell(title,bodyHTML){
   const m=MKT[MKTC];
@@ -2903,7 +2952,9 @@ function reportShell(title,bodyHTML){
   return `<h4>${escT(title)} · ${escT(RPT_ID.org)}</h4>
   <div class="rsec">${rptIdLine()} · ${escT(RPT_ID.clinician)}</div>
   ${bodyHTML}
-  <div class="rft">${tt('podpis')}: ${escT(RPT_ID.clinician)} · ${m.sig} · ${tt('profil')}: ${escT(m.doc)} · ${rptModeNote()} · Composition.status: final${bill}</div>`;
+  <div class="rft">${tt('podpis')}: ${escT(RPT_ID.clinician)} · ${m.sig} · ${tt('profil')}: ${escT(m.doc)} · ${rptModeNote()} · Composition.status: ${rptStatus()}${bill}</div>
+  ${rptVerHTML()}
+  ${rptBarHTML()}`;
 }
 function renderOut(){
   const ro=document.getElementById('rendout');ro.classList.add('show');
@@ -3043,6 +3094,13 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
+["Uložiť addendum","Save addendum"],["Uložiť verziu","Save version"],["Kopírovať","Copy"],["Tlačiť","Print"],["Zdieľať","Share"],
+["Verzie","Versions"],["zatiaľ neuložené — draft","not saved yet — draft"],["originál sa zachováva, oprava = addendum","original is preserved, correction = addendum"],
+["Verzia 1 uložená · status: final","Version 1 saved · status: final"],["Addendum uložené · verzia","Addendum saved · version"],["· status: amended","· status: amended"],
+["Správa skopírovaná","Report copied"],["Tlač — draft (nepodpísané)","Print — draft (unsigned)"],["Tlač — podpísaná verzia v","Print — signed version v"],
+["Zdieľanie až po uložení verzie","Sharing only after a version is saved"],["Zdieľanie vyžaduje súhlas: ","Sharing requires consent: "],
+["profil","profile"],["autoritatívny záznam (Hilbi = system of record)","authoritative record (Hilbi = system of record)"],
+["kompilácia — zápis do zdrojového systému (system of record: host EHR)","compilation — written back to the source system (system of record: host EHR)"],
 ["Podpis — osobný PIN","Signature — personal PIN"],["Zabezpečený podpis · šifrované","Secure signature · encrypted"],["PIN autorizuje podpis podľa pravidiel trhu","PIN authorizes the signature per market rules"],
 ["Celá os","Full axis"],["Mílniky","Milestones"],["Mílniky = index, klik otvára zdroj","Milestones = index, click opens the source"],
 ["Mílnik — zmena liečby","Milestone — treatment change"],["Mílnik — hospitalizácia","Milestone — hospitalization"],["Mílnik — relaps / eskalácia","Milestone — relapse / escalation"],
