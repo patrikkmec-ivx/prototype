@@ -1,7 +1,7 @@
 ---
 doc_id: TBD (priradiť podľa gsr-13)
 title: "Report conformance — shell, terminológia, podpis, provenance, AI transparentnosť"
-version: 1.4-draft
+version: 1.5-draft
 date: 2026-07-23
 authority: "navrhol: Patrik (CEO) · schvaľuje: Roman (CBO) · aplikuje: Dominika/Viktor · kontroluje: Marek"
 type: normative
@@ -92,6 +92,15 @@ Rozsah: klinický report a jeho životný cyklus. Mimo rozsah: Records knižnica
   (EÚ: eIDAS pokročilý/kvalifikovaný · US: e-signature podľa HIPAA a štátu ·
   IN: IT Act / ABDM).
 - **SIG-02** Podpis validuje minimálny set slotov podľa `SOAP-06`.
+- **SIG-04** Autentifikácia podpisu volá **regionálnu overovaciu funkciu podľa trhu**.
+  Implementácia je na backende; frontend drží iba seam a výsledok.
+- **SIG-05** Ak trh nemá osobitnú požiadavku, použije sa interný mechanizmus:
+  overená registrácia pacienta, 2FA pri prihlásení a **PIN s časovou pečiatkou**.
+- **SIG-06** PIN s časovou pečiatkou je dôkaz **autentifikácie a auditu**, NIE
+  kvalifikovaný elektronický podpis. Trhy vyžadujúce AdES/QES MUSIA mať pripojenú
+  regionálnu funkciu (`SIG-01`); bez nej sa dokument NESMIE označiť za právne podpísaný.
+- **SIG-07** Použitý mechanizmus, jeho výsledok a čas sa zaznamenávajú v `Provenance`
+  a `AuditEvent` — je to doklad pre ISO a ďalšie certifikácie.
 - **SIG-03** V móde `overlay` Hilbi podpis **predkladá a zaznamenáva**, právne
   platný podpis vykonáva hostiteľský systém. Hilbi NESMIE prezentovať vlastný
   UI-stav ako právne platný podpis.
@@ -208,7 +217,43 @@ Rozsah: klinický report a jeho životný cyklus. Mimo rozsah: Records knižnica
 - **SYS-04** Akcia vykonaná v integrovanom povrchu MUSÍ vytvoriť `Provenance` v Dash.
   API preto nesie agenta, rolu a purpose-of-use — audit sa NESMIE končiť na hranici modulu.
 
-## 12. Trhová matica
+## 12. Jazyk a lokalizácia
+
+- **I18N-01** Jazykovo neutrálnou vrstvou je **kód**, nie preklad. Žiadny prirodzený
+  jazyk nie je SSOT; angličtina nemá osobitné postavenie.
+- **I18N-02** **Jazyk rozhrania**, **jazyk dokumentu** a **jazyk pacienta** sú tri
+  nezávislé osi. Jazyk rozhrania NIKDY neurčuje jazyk dokumentu.
+- **I18N-03** Jazyk dokumentu vyplýva z **jurisdikcie poskytovateľa**, potvrdzuje sa
+  v nastaveniach zariadenia a **otlačí sa na dokument pri jeho vzniku**. Nedohľadáva
+  sa pri zobrazení — neskoršia zmena nastavenia NESMIE prepísať jazyk starých dokumentov.
+- **I18N-04** Systémové šablóny sú lokalizované. Šablóny poskytovateľa a osobné
+  sa **neprekladajú** — ich popisky idú na vytlačený dokument.
+- **I18N-05** **Metadáta a taxonómia** (typ dokumentu, kategória, popisky v navigácii,
+  stavy, štítky) sa lokalizujú **cez zobrazovací termín kódu** v cieľovom jazyku,
+  NIE strojovým prekladom reťazca.
+- **I18N-06** Ten istý popisok sekcie má dve použitia: v **dokumente** sa vykresľuje
+  v jazyku dokumentu, v **navigácii** v jazyku rozhrania. Preto sú interné kľúče
+  jazykovo neutrálne a skratky (`OA`, `AA`, `RA`) sú iba ich zobrazenie.
+- **I18N-07** **Telo správy** ostáva v jazyku, v ktorom vzniklo. Preklad je dostupný
+  **na vyžiadanie** v detaile dokumentu (výber jazyka) a zobrazuje sa s upozornením.
+- **I18N-08** Preklad na vyžiadanie je **čítacia pomôcka**: neukladá sa ako dokument,
+  nenahrádza originál, **nededí podpis** a neexportuje sa bez označenia. Originál
+  ostáva autoritatívny.
+- **I18N-09** Klinický obsah sa NIKDY neprekladá automaticky bez vyžiadania.
+- **I18N-10** Cudzí dokument prevzatý na časovú os sa NESMIE zmeniť. Preklad k nemu
+  môže pribudnúť, nikdy ho nenahrádza.
+- **I18N-11** Register súhlasov je kľúčovaný **`(id, verzia, jazyk)`**. Každá jazyková
+  verzia je samostatne schválené znenie, NIE preklad. Súhlas sa NIKDY neprekladá
+  strojovo; ak schválené znenie v jazyku pacienta neexistuje, nesmie sa použiť.
+- **I18N-12** Pri chýbajúcom preklade sa zobrazí **originál s poznámkou**. Nikdy
+  prázdna hodnota a nikdy tichý strojový preklad.
+- **I18N-13** Tlač a export prebiehajú **vždy v jazyku dokumentu**, bez ohľadu na
+  jazyk rozhrania.
+- **I18N-14** Formátovanie čísel, dátumov a jednotiek sa riadi **locale**, nie jazykom.
+  Je klinicky citlivé (desatinný oddeľovač v dávkovaní, poradie zložiek dátumu).
+- **I18N-15** Vyžiadanie prekladu sa zaznamenáva v `AuditEvent` vrátane nástroja a času.
+
+## 13. Trhová matica
 
 | Vrstva | EÚ | US | IN |
 |---|---|---|---|
@@ -222,7 +267,7 @@ Rozsah: klinický report a jeho životný cyklus. Mimo rozsah: Records knižnica
 | Súhlas | EHDS purpose-of-use | info-blocking | ABDM Consent Manager |
 | Certifikácia (mód `core`) | EHDS CE režim | certifikované Health IT | ABDM + CERT-In audit |
 
-## 13. Stav prototypu voči tejto norme
+## 14. Stav prototypu voči tejto norme
 
 Prototype (`index.html`, v129) implementuje **štruktúru**; nasledujúce body sú
 vedome placeholdery a NIE sú zhodné s normou:
@@ -249,8 +294,11 @@ vedome placeholdery a NIE sú zhodné s normou:
 | INT-03 | ✓ coverage |
 | INT-01, INT-02, INT-04..07 | ✗ intake vrstva zatiaľ nepostavená |
 | SYS-01..04 | ✗ integrácia zatiaľ nepostavená |
+| SIG-04..07 | ✗ seam pre regionálne overenie zatiaľ nie je |
+| I18N-01..15 | ✗ jazyková vrstva zatiaľ nepostavená |
+| **Zmrazenie obsahu pri podpise** | ✗ **telo sa rendruje zo živých dát — podpísaný dokument sa môže ticho zmeniť** |
 
-## 14. Otvorené body
+## 15. Otvorené body
 
 - **Marek** — MDR hranica pre Hilbi IQ (`DSI-04`); rozsah EHDS CE režimu a Cyber
   Resilience Act pri prechode do módu `core`; podpisová úroveň per trh (`SIG-01`);
