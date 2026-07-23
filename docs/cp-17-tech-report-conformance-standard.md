@@ -1,7 +1,7 @@
 ---
 doc_id: TBD (priradiť podľa gsr-13)
 title: "Report conformance — shell, terminológia, podpis, provenance, AI transparentnosť"
-version: 1.6-draft
+version: 1.7-draft
 date: 2026-07-23
 authority: "navrhol: Patrik (CEO) · schvaľuje: Roman (CBO) · aplikuje: Dominika/Viktor · kontroluje: Marek"
 type: normative
@@ -310,7 +310,13 @@ vedome placeholdery a NIE sú zhodné s normou:
 | INT-01, INT-02, INT-04..07 | ✗ intake vrstva zatiaľ nepostavená |
 | SYS-01..04 | ✗ integrácia zatiaľ nepostavená |
 | SIG-04..07 | ✗ seam pre regionálne overenie zatiaľ nie je |
-| I18N-01..15 | ✗ jazyková vrstva zatiaľ nepostavená |
+| I18N-01, I18N-02, I18N-06 | ✓ neutrálne kľúče, skratka v jazyku dokumentu vs. názov v jazyku rozhrania |
+| I18N-03 | ✓ jazyk dokumentu z nastavení organizácie, otlačený v snímke |
+| I18N-07, I18N-08, I18N-09 | ✓ preklad na vyžiadanie ako čítacia pomôcka s upozornením |
+| I18N-11 | ✓ register súhlasov kľúčovaný `(id, verzia, jazyk)`; chýbajúce znenie sa prizná |
+| I18N-12, I18N-15 | ✓ chýbajúci preklad ukáže originál · vyžiadanie sa loguje |
+| I18N-04, I18N-05 | ~ systémové šablóny lokalizované len čiastočne; taxonómia zatiaľ nečerpá zobrazovací termín kódu |
+| I18N-10, I18N-13, I18N-14 | ✗ cudzie dokumenty, jazyk tlače a locale formátovanie zatiaľ neriešené |
 | AMD-05..09 | ✓ snímka pri podpise, render výhradne zo snímky, odtlačok obsahu · verziované odkazy sú v prototype hodnotami |
 
 ## 15. Otvorené body
