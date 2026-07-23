@@ -1345,6 +1345,7 @@ body[data-tab="comm"] .timeline{display:none}
 .sgl{flex:1 1 150px;min-width:140px}
 .sgl .sgn{display:block;border-bottom:1px solid var(--text-muted);height:20px}
 .sgl .sgc{display:block;font-size:10.5px;color:var(--text-muted);margin-top:3px;text-align:center}
+.cnsbox.cnsmiss{background:var(--warning-soft);border-color:var(--warning);color:var(--text-body);font-size:11.5px;line-height:17px}
 .cnsnote{font-size:10.5px;color:var(--text-muted);line-height:15px;margin-top:5px;font-style:italic}
 .orghd{border-bottom:2px solid var(--text-heading);padding-bottom:6px;margin-bottom:10px;line-height:17px}
 .orghd b{font-size:13.5px;color:var(--text-heading)}
@@ -1357,6 +1358,10 @@ body[data-tab="comm"] .timeline{display:none}
 .rendout .rsec.anam>b{color:var(--text-heading);font-weight:700}
 .rendout .itm.inl{display:inline}
 .rendout .sep{color:var(--text-muted)}
+.trbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.trbar select{font:inherit;font-size:14px;line-height:20px;padding:10px 14px;min-height:40px;border:none;border-radius:8px;background:var(--surface-1);color:var(--text-heading)}
+.trwarn{font-size:11px;line-height:16px;color:var(--warning);flex:1 1 240px;min-width:0}
+.rendout .itm.trmiss{border-bottom:1px dotted var(--warning)}
 .snapmark{margin-top:10px;padding:7px 10px;background:var(--brand-cyan-soft);border-radius:8px;
   font-size:11px;line-height:16px;color:var(--brand-teal-text)}
 .hash{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px}
@@ -3304,6 +3309,34 @@ function snapShellHTML(sn){
       · ${tt('šablóna')} ${escT(sn.tpl.id)} v${sn.tpl.ver}
       · <span class="hash">${tt('odtlačok')} ${sn.hash}</span></div>`;
 }
+/* Preklad tela na vyžiadanie — ČÍTACIA POMÔCKA (I18N-07, I18N-08).
+   Neukladá sa, nenahrádza originál, nededí podpis, neexportuje sa bez označenia.
+   Demo slovník; produkčne prekladová služba so záznamom v AuditEvent (I18N-15). */
+let TR_LANG=null;
+const TR_DEMO={
+ 'Arteriálna hypertenzia (2019)':{en:'Arterial hypertension (2019)',de:'Arterielle Hypertonie (2019)'},
+ 'Diabetes mellitus II. typu (2021)':{en:'Type 2 diabetes mellitus (2021)',de:'Diabetes mellitus Typ 2 (2021)'},
+ 'Penicilín — exantém':{en:'Penicillin — rash',de:'Penicillin — Exanthem'},
+ 'Otec — infarkt myokardu v 58 r.':{en:'Father — myocardial infarction at 58',de:'Vater — Myokardinfarkt mit 58'},
+ 'Matka — diabetes mellitus II. typu':{en:'Mother — type 2 diabetes mellitus',de:'Mutter — Diabetes mellitus Typ 2'},
+ 'Žije s partnerom, byt bez bariér':{en:'Lives with partner, barrier-free flat',de:'Lebt mit Partner, barrierefreie Wohnung'}
+};
+function trText(s){const e=TR_DEMO[s];return (e&&e[TR_LANG])?e[TR_LANG]:null;}
+function trSet(v){
+  TR_LANG=v||null;
+  if(TR_LANG)logAudit('translate','Composition',{pou:'TREAT'});   /* I18N-15 */
+  renderOut();
+}
+function trBarHTML(){
+  return `<div class="trbar">
+    <label class="tl">${tt('Preklad')}</label>
+    <select onchange="trSet(this.value)">
+      <option value=""${TR_LANG?'':' selected'}>${tt('Originál')} · ${docLang().toUpperCase()}</option>
+      ${LANGS.filter(l=>l.k!==docLang()).map(l=>`<option value="${l.k}"${TR_LANG===l.k?' selected':''}>${l.n}</option>`).join('')}
+    </select>
+    ${TR_LANG?`<span class="trwarn">${tt('Strojový preklad — needitovaný. Originál ostáva autoritatívny, preklad sa neukladá a nededí podpis.')}</span>`:''}
+  </div>`;
+}
 /* Jednotný report-shell: hlavička + telo + pätka RAZ (SOAP-08: jeden objekt, žiadne duplikované chrome) */
 function reportShell(title,bodyHTML){
   const m=MKT[MKTC];
@@ -3325,8 +3358,9 @@ function reportShell(title,bodyHTML){
    = coding[] + text. Kód ide do coding, lekárova formulácia ostáva v .text.
    S = prevažne naratív (nekódujeme nasilu). A/O/P majú kódový slot.            */
 const TERM_BIND={S:{rec:null,rep:null},O:{rec:'lab',rep:null},A:{rec:'rec',rep:'rep'},P:{rec:'rec',rep:null},
- OA:{rec:'rec',rep:'rep'},AA:{rec:'rec',rep:null},FA:{rec:'rec',rep:null},
- RA:{rec:null,rep:null},SA:{rec:null,rep:null},PA:{rec:null,rep:null},GA:{rec:null,rep:null}};
+ 'hist-past':{rec:'rec',rep:'rep'},'allergies':{rec:'rec',rep:null},'meds':{rec:'rec',rep:null},
+ 'hist-family':{rec:null,rep:null},'hist-social':{rec:null,rep:null},
+ 'hist-occup':{rec:null,rep:null},'hist-gyn':{rec:null,rep:null}};
 /* Demo ValueSet — v produkcii nahradí $expand/$validate-code proti terminologickému serveru */
 const CODEMAP=[
  {re:/skler[oó]z|multiple scleros/i,             sct:'24700007', icd:'G35'},
@@ -3349,7 +3383,11 @@ function orgRender(){
   const f=document.getElementById('orgform');if(!f)return;
   f.innerHTML=ORG_F.map(function(a){var k=a[0],l=a[1];
     return '<div class="fr"><label class="fl">'+tt(l)+'</label>'+
-      '<input type="text" class="wide" value="'+escT(ORG[k]||'')+'" oninput="ORG[\''+k+'\']=this.value"></div>';}).join('');
+      '<input type="text" class="wide" value="'+escT(ORG[k]||'')+'" oninput="ORG[\''+k+'\']=this.value"></div>';}).join('')
+    +'<div class="fr"><label class="fl">'+tt('Jazyk dokumentácie')+'</label>'
+    +'<select class="wide" onchange="ORG.lang=this.value;orgRender()">'
+    +LANGS.map(function(l){return '<option value="'+l.k+'"'+(l.k===docLang()?' selected':'')+'>'+l.n+'</option>';}).join('')
+    +'</select><div class="cnsnote">'+tt('Vyplýva z jurisdikcie poskytovateľa a otlačí sa na dokument pri jeho vzniku. Neskoršia zmena neprepíše staršie dokumenty.')+'</div></div>';
 }
 function orgSave(){
   logProv('amend','Organization · header',{role:'author'});
@@ -3361,13 +3399,13 @@ function orgSave(){
    Získava IBA štruktúru. Údaje pacienta ani zdrojový obrázok sa NEUKLADAJÚ.
    Mapovanie popiskov je NÁVRH — potvrdzuje ho lekár (DSI-01). */
 const TPL_ALIAS={
- 'ra':'RA','rodinna anamneza':'RA',
- 'oa':'OA','osobna anamneza':'OA',
- 'aa':'AA','alergicka anamneza':'AA','alergie':'AA','alergia':'AA',
- 'fa':'FA','farmakologicka anamneza':'FA','lieky':'FA','medikacia':'FA','la':'FA',
- 'sa':'SA','socialna anamneza':'SA',
- 'pa':'PA','pracovna anamneza':'PA',
- 'ga':'GA','gynekologicka anamneza':'GA',
+ 'ra':'hist-family','rodinna anamneza':'hist-family',
+ 'oa':'hist-past','osobna anamneza':'hist-past',
+ 'aa':'allergies','alergicka anamneza':'allergies','alergie':'allergies','alergia':'allergies',
+ 'fa':'meds','farmakologicka anamneza':'meds','lieky':'meds','medikacia':'meds','la':'meds',
+ 'sa':'hist-social','socialna anamneza':'hist-social',
+ 'pa':'hist-occup','pracovna anamneza':'hist-occup',
+ 'ga':'hist-gyn','gynekologicka anamneza':'hist-gyn',
  'no':'S','to':'S','terajsie ochorenie':'S','subj':'S','subjektivne':'S','anamneza':'S','popis':'S',
  'obj':'O','objektivny nalez':'O','objektivne':'O','status praesens':'O','nalez':'O',
  'zaver':'A','dg':'A','diagnozy':'A','diagnosticky zaver':'A','zhodnotenie':'A',
@@ -3397,7 +3435,7 @@ function tplImpUse(i,v){TPL_IMP.rows[i].use=v;tplMgrRender();}
 function tplImpCancel(){TPL_IMP=null;TPL_EDIT=JSON.parse(JSON.stringify(tplCur()));tplMgrRender();}
 function tplImpHTML(){
   const opts=(sel)=>`<option value="">${tt('— nemapovať —')}</option>`+
-    TPL_SRC.map(s=>`<option value="${s.k}"${s.k===sel?' selected':''}>${escT(tt(s.n))}</option>`).join('');
+    TPL_SRC.map(s=>`<option value="${s.k}"${s.k===sel?' selected':''}>${escT(srcName(s.k))}</option>`).join('');
   const rows=TPL_IMP.rows.map((r,i)=>`<div class="improw${r.use?'':' off'}">
       <input type="checkbox" ${r.use?'checked':''} onchange="tplImpUse(${i},this.checked)">
       <span class="ilbl">${escT(r.lbl)}</span><span class="iar">&rarr;</span>
@@ -3461,26 +3499,38 @@ function rptSource(k){
    samostatný dokument (slotKey 'consent') alebo sekcia na konci správy —
    druhá podoba je bežná v starších systémoch a v slovenskej praxi. */
 const CNS_REG=[
- {id:'cns.general.v2',name:'Všeobecný informovaný súhlas',ver:2,date:'15.01.2026',sign:['patient','clinician'],
+ {id:'cns.general',ver:2,lang:'sk',date:'15.01.2026',sign:['patient','clinician'],name:'Všeobecný informovaný súhlas',
   body:'Svojím podpisom potvrdzujem, že som bol(a) poučený(á) o podstate môjho ochorenia, o navrhovaných postupoch liečby, ich rizikách a o možnosti odmietnuť navrhovaný postup. Poučeniu som porozumel(a), mal(a) som možnosť klásť doplňujúce otázky a rozhodol(la) som sa bez nátlaku.'},
- {id:'cns.handover.v1',name:'Prevzatie lekárskej správy',ver:1,date:'03.11.2025',sign:['patient'],
+ {id:'cns.general',ver:2,lang:'en',date:'15.01.2026',sign:['patient','clinician'],name:'General informed consent',
+  body:'By signing this document I confirm that I have been informed about the nature of my condition, the proposed treatment, its risks and my right to refuse it. I understood the information, had the opportunity to ask questions and decided without pressure.'},
+ {id:'cns.handover',ver:1,lang:'sk',date:'03.11.2025',sign:['patient'],name:'Prevzatie lekárskej správy',
   body:'Potvrdzujem, že som prevzal(a) lekársku správu, ktorú som povinný(á) odovzdať svojmu všeobecnému lekárovi.'},
- {id:'cns.gdpr.v1',name:'Spracúvanie osobných údajov',ver:1,date:'20.05.2025',sign:[],
+ {id:'cns.gdpr',ver:1,lang:'sk',date:'20.05.2025',sign:[],name:'Spracúvanie osobných údajov',
   body:'Informácie o spracúvaní osobných údajov podľa Nariadenia Európskeho parlamentu a Rady (EÚ) 2016/679 sú zverejnené na webovom sídle poskytovateľa.'}
 ];
-function cnsOf(id){return CNS_REG.find(c=>c.id===id)||CNS_REG[0];}
+/* I18N-11: znenie sa NIKDY neprekladá. Ak schválené znenie v jazyku dokumentu
+   neexistuje, súhlas sa nesmie použiť — vráti sa null a blok to prizná. */
+function cnsIds(){return [...new Set(CNS_REG.map(c=>c.id))];}
+function cnsPick(id,lang){
+  const l=lang||docLang();
+  return CNS_REG.find(c=>c.id===id&&c.lang===l)||null;
+}
+function cnsOf(id){return cnsPick(id)||null;}
 function cnsBlockHTML(tpl){
   const c=cnsOf(tpl.consentId);
+  if(!c)return `<div class="cnsbox cnsmiss">${tt('Pre jazyk dokumentu')} (${docLang().toUpperCase()}) ${tt('neexistuje schválené znenie tohto súhlasu. Súhlas sa nesmie použiť — doplňte znenie v registri.')}</div>`;
   const lines=(c.sign||[]).map(r=>`<div class="sgl"><span class="sgn"></span>
     <span class="sgc">${r==='patient'?tt('podpis pacienta alebo zákonného zástupcu'):tt('podpis a pečiatka lekára')}</span></div>`).join('');
   return `<div class="cnsbox">
-    <div class="cnsh">${escT(tt(c.name))} <span class="cnsv">v${c.ver} · ${escT(c.date)}</span></div>
+    <div class="cnsh">${escT(c.name)} <span class="cnsv">v${c.ver} · ${escT(c.date)} · ${c.lang.toUpperCase()}</span></div>
     <div class="cnst">${escT(c.body)}</div>
     ${(c.sign&&c.sign.length)?`<div class="sgrow"><div class="sgl"><span class="sgn"></span><span class="sgc">${tt('dátum')}</span></div>${lines}</div>`:''}
   </div>`;
 }
 function cnsBlockText(tpl){
-  const c=cnsOf(tpl.consentId),L=[];
+  const c=cnsOf(tpl.consentId);
+  if(!c)return '\n['+tt('chýba schválené znenie súhlasu pre jazyk dokumentu')+']';
+  const L=[];
   L.push('');L.push(tt(c.name).toUpperCase()+'  (v'+c.ver+' · '+c.date+')');
   L.push(c.body);
   if(c.sign&&c.sign.length){
@@ -3490,6 +3540,36 @@ function cnsBlockText(tpl){
   }
   return L.join('\n');
 }
+/* ── JAZYKOVÁ VRSTVA (I18N-01..15) ─────────────────────────────────────────────
+   Kľúč je jazykovo neutrálny; skratka aj názov sú iba ZOBRAZENIE.
+   V dokumente sa použije skratka v jazyku DOKUMENTU, v navigácii a editore
+   dlhý názov v jazyku ROZHRANIA. Sú to dve nezávislé osi (I18N-02, I18N-06). */
+const LANGS=[{k:'sk',n:'Slovenčina'},{k:'en',n:'English'},{k:'de',n:'Deutsch'}];
+const SRC_DISP={
+ 'S':{sk:['Subj.','Subjektívne'],en:['S','Subjective'],de:['Subj.','Subjektiv']},
+ 'O':{sk:['Obj.','Objektívne'],en:['O','Objective'],de:['Obj.','Objektiv']},
+ 'A':{sk:['Dg.','Zhodnotenie a diagnóza'],en:['A','Assessment / diagnosis'],de:['Dg.','Beurteilung']},
+ 'P':{sk:['Odporúčanie','Plán a terapia'],en:['P','Plan and therapy'],de:['Plan','Plan und Therapie']},
+ 'rx':{sk:['Recepty','Preskripcia'],en:['Rx','Prescription'],de:['Rp.','Verordnung']},
+ 'fu':{sk:['Kontrola','Follow-up'],en:['Follow-up','Follow-up'],de:['Kontrolle','Follow-up']},
+ 'narr':{sk:['Epikríza','Naratív lekára'],en:['Summary','Clinician narrative'],de:['Epikrise','Arztbericht']},
+ 'hist-family':{sk:['RA','Rodinná anamnéza'],en:['FH','Family history'],de:['FA','Familienanamnese']},
+ 'hist-past':{sk:['OA','Osobná anamnéza'],en:['PMH','Past medical history'],de:['VE','Vorerkrankungen']},
+ 'allergies':{sk:['AA','Alergická anamnéza'],en:['AL','Allergies'],de:['Allergien','Allergien']},
+ 'meds':{sk:['FA','Farmakologická anamnéza'],en:['MH','Medication history'],de:['Medikation','Medikation']},
+ 'hist-social':{sk:['SA','Sociálna anamnéza'],en:['SH','Social history'],de:['SA','Sozialanamnese']},
+ 'hist-occup':{sk:['PA','Pracovná anamnéza'],en:['OH','Occupational history'],de:['BA','Berufsanamnese']},
+ 'hist-gyn':{sk:['GA','Gynekologická anamnéza'],en:['GH','Gynaecological history'],de:['GA','Gynäkolog. Anamnese']},
+ 'consent':{sk:['Informovaný súhlas','Informovaný súhlas'],en:['Informed consent','Informed consent'],de:['Einwilligung','Einwilligung']}
+};
+function docLang(){return ORG.lang||'sk';}                 /* jazyk DOKUMENTU */
+function uiLang(){return (typeof LANG!=='undefined'&&LANG)?LANG:'en';}  /* jazyk ROZHRANIA */
+function srcDisp(k,lang,long){const d=SRC_DISP[k];if(!d)return k;
+  const e=d[lang]||d.sk||d.en;return long?e[1]:e[0];}
+function srcAbbr(k){return srcDisp(k,docLang(),false);}     /* do dokumentu */
+function srcName(k){return srcDisp(k,uiLang(),true);}       /* do navigácie a editora */
+/* I18N-12: chýbajúci preklad => originál s poznámkou, nikdy prázdno */
+function langName(k){const l=LANGS.find(x=>x.k===k);return l?l.n:k;}
 /* HLAVIČKA A PÄTKA POSKYTOVATEĽA (TPL-07) — patria ORGANIZÁCII, nie šablóne.
    Šablóna ich nikdy nenesie natvrdo; zmena adresy sa prejaví vo všetkých dokumentoch. */
 const ORG={
@@ -3499,7 +3579,9 @@ const ORG={
   ico:'35 123 456',
   pzs:'P40707004209',
   contact:'+421 2 1234 5678 · info@expertmed.sk',
-  stamp:'Pečiatka a podpis lekára'
+  stamp:'Pečiatka a podpis lekára',
+  jurisdiction:'SK',
+  lang:'sk'          /* jazyk dokumentu — z jurisdikcie, potvrdzuje zariadenie (I18N-03) */
 };
 function orgHeadHTML(){
   return `<div class="orghd"><b>${escT(ORG.name)}</b>${ORG.fac?' · '+escT(ORG.fac):''}
@@ -3515,17 +3597,17 @@ function orgHeadText(){
    aktualizujú sa, NEVZNIKAJÚ nanovo. Šablóna ich do dokumentu len premieta.
    Skratky sú ustálená slovenská prax; každá zodpovedá samostatnému FHIR zdroju. */
 const PT_ANAM={
- RA:['Otec — infarkt myokardu v 58 r.','Matka — diabetes mellitus II. typu'],
- OA:['Arteriálna hypertenzia (2019)','Diabetes mellitus II. typu (2021)'],
- AA:['Penicilín — exantém'],
- FA:['Tecfidera 240 mg 1-0-1','Metformín 850 mg 1-0-1'],
- SA:['Žije s partnerom, byt bez bariér'],
- PA:['Administratívna práca, bez rizikovej expozície'],
- GA:['2 pôrody, menopauza neguje']
+ 'hist-family':['Otec — infarkt myokardu v 58 r.','Matka — diabetes mellitus II. typu'],
+ 'hist-past':['Arteriálna hypertenzia (2019)','Diabetes mellitus II. typu (2021)'],
+ 'allergies':['Penicilín — exantém'],
+ 'meds':['Tecfidera 240 mg 1-0-1','Metformín 850 mg 1-0-1'],
+ 'hist-social':['Žije s partnerom, byt bez bariér'],
+ 'hist-occup':['Administratívna práca, bez rizikovej expozície'],
+ 'hist-gyn':['2 pôrody, menopauza neguje']
 };
-const PT_FHIR={RA:'FamilyMemberHistory',OA:'Condition / Procedure',AA:'AllergyIntolerance',
-               FA:'MedicationStatement',SA:'Observation · social-history',
-               PA:'Observation · occupational',GA:'Observation / Condition'};
+const PT_FHIR={'hist-family':'FamilyMemberHistory','hist-past':'Condition / Procedure','allergies':'AllergyIntolerance',
+               'meds':'MedicationStatement','hist-social':'Observation · social-history',
+               'hist-occup':'Observation · occupational','hist-gyn':'Observation / Condition'};
 /* REGISTER ŠABLÓN — doménovo neutrálny (cp-19 §5).
    Povrch NEVIE o doméne: vykresľuje to, čo mu register dodá. Doména `core` je
    všeobecná ambulantná prax; SM a ďalšie domény pridajú vlastné záznamy.
@@ -3537,12 +3619,12 @@ const TPL_REG=[
  {id:'core.dekurz.rxslip.v1',domain:'core',kind:'system',slotKey:'dekurz',name:'Rx slip',codes:true,ver:1,
   sections:[{label:'Dg',src:'A'},{label:'Rx',src:'rx'},{label:'Follow-up',src:'fu'}]},
  {id:'core.consent.v1',domain:'core',kind:'system',slotKey:'consent',name:'Informovaný súhlas — samostatný',codes:false,ver:1,
-  consentId:'cns.general.v2',sections:[{label:'Informovaný súhlas',src:'consent'}]},
+  consentId:'cns.general',sections:[{label:'Informovaný súhlas',src:'consent'}]},
  {id:'core.dekurz.struct.v1',domain:'core',kind:'provider',slotKey:'dekurz',name:'Ambulantná správa — nález (vzor poskytovateľa)',codes:false,ver:1,
-  consentId:'cns.handover.v1',
+  consentId:'cns.handover',
   sections:[{label:'Subj.',src:'S'},
-            {label:'OA',src:'OA'},{label:'SA',src:'SA'},{label:'AA',src:'AA'},
-            {label:'FA',src:'FA'},{label:'RA',src:'RA'},
+            {label:'hist-past',src:'hist-past'},{label:'hist-social',src:'hist-social'},{label:'allergies',src:'allergies'},
+            {label:'meds',src:'meds'},{label:'hist-family',src:'hist-family'},
             {label:'Obj.',src:'O'},
             {label:'Dg.',src:'A'},{label:'Odporúčanie',src:'P'},
             {label:'Epikríza',src:'narr',hideIfEmpty:true},
@@ -3567,10 +3649,8 @@ const TPL_SRC=[
  {k:'S',n:'Subjektívne (S)',g:'enc'},{k:'O',n:'Objektívne (O)',g:'enc'},
  {k:'A',n:'Zhodnotenie / dg. (A)',g:'enc'},{k:'P',n:'Plán (P)',g:'enc'},
  {k:'rx',n:'Preskripcia',g:'enc'},{k:'fu',n:'Follow-up',g:'enc'},{k:'narr',n:'Naratív lekára',g:'enc'},
- {k:'RA',n:'RA — rodinná anamnéza',g:'pt'},{k:'OA',n:'OA — osobná anamnéza',g:'pt'},
- {k:'AA',n:'AA — alergická anamnéza',g:'pt'},{k:'FA',n:'FA — farmakologická anamnéza',g:'pt'},
- {k:'SA',n:'SA — sociálna anamnéza',g:'pt'},{k:'PA',n:'PA — pracovná anamnéza',g:'pt'},
- {k:'GA',n:'GA — gynekologická anamnéza',g:'pt'},
+ {k:'hist-family',g:'pt'},{k:'hist-past',g:'pt'},{k:'allergies',g:'pt'},{k:'meds',g:'pt'},
+ {k:'hist-social',g:'pt'},{k:'hist-occup',g:'pt'},{k:'hist-gyn',g:'pt'},
  {k:'consent',n:'Informovaný súhlas',g:'doc'}
 ];
 let TPL_EDIT=null,TPL_TAB='edit',TPL_SCOPE='system',TPL_NEW=false;
@@ -3621,9 +3701,13 @@ function tplValidate(tpl){
   return {ok:miss.length===0&&tpl.sections.length>0,miss:miss,
           empty:tpl.sections.length===0};
 }
-function tplSecSet(i,f,v){TPL_EDIT.sections[i][f]=v;tplMgrRender();}
+function tplSecSet(i,f,v){TPL_EDIT.sections[i][f]=v;
+  /* pri zmene zdroja ponúkni skratku v jazyku dokumentu, ak popisok nebol upravený */
+  if(f==='src'){const s=TPL_EDIT.sections[i];
+    if(!s.label||Object.keys(SRC_DISP).some(k=>srcDisp(k,docLang(),false)===s.label))s.label=srcAbbr(v);}
+  tplMgrRender();}
 function tplSecDel(i){TPL_EDIT.sections.splice(i,1);tplMgrRender();}
-function tplSecAdd(){TPL_EDIT.sections.push({label:'',src:'S'});tplMgrRender();}
+function tplSecAdd(){TPL_EDIT.sections.push({label:srcAbbr('S'),src:'S'});tplMgrRender();}
 function tplSecMv(i,d){const a=TPL_EDIT.sections,j=i+d;if(j<0||j>=a.length)return;
   const x=a[i];a[i]=a[j];a[j]=x;tplMgrRender();}
 function tplMgrRender(){
@@ -3643,7 +3727,7 @@ function tplMgrRender(){
   if(TPL_IMP){ed.innerHTML=tplImpHTML();return;}
   if(!TPL_EDIT){ed.innerHTML=`<div class="tempty">${tt('Vyberte šablónu vľavo alebo vytvorte novú.')}</div>`;return;}
   const ro=TPL_EDIT.kind==='system',v=tplValidate(TPL_EDIT);
-  const opts=(sel)=>TPL_SRC.map(s=>`<option value="${s.k}"${s.k===sel?' selected':''}>${escT(tt(s.n))}</option>`).join('');
+  const opts=(sel)=>TPL_SRC.map(s=>`<option value="${s.k}"${s.k===sel?' selected':''}>${escT(srcName(s.k))}</option>`).join('');
   const tabs=`<div class="edtabs"><div class="tabbar">
     <button class="${TPL_TAB==='edit'?'on':''}" onclick="tplTab('edit')"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-rows"/></svg>${tt('Sekcie')}</button>
     <button class="${TPL_TAB==='prev'?'on':''}" onclick="tplTab('prev')"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-file"/></svg>${tt('Náhľad')}</button></div></div>`;
@@ -3674,7 +3758,8 @@ function tplMgrRender(){
       ${ro?'':`<button class="btn" onclick="tplSecAdd()">+ ${tt('Pridať sekciu')}</button>`}</div>
     ${TPL_EDIT.sections.some(s=>s.src==='consent')?`<div class="fr"><label class="fl">${tt('Znenie súhlasu')}</label>
       <select ${ro?'disabled':''} onchange="TPL_EDIT.consentId=this.value;tplMgrRender()">
-        ${CNS_REG.map(c=>`<option value="${c.id}"${c.id===(TPL_EDIT.consentId||CNS_REG[0].id)?' selected':''}>${escT(tt(c.name))} · v${c.ver}</option>`).join('')}
+        ${cnsIds().map(id=>{const c=cnsPick(id)||CNS_REG.find(x=>x.id===id);
+          return `<option value="${id}"${id===(TPL_EDIT.consentId||cnsIds()[0])?' selected':''}>${escT(c.name)} · v${c.ver}${cnsPick(id)?'':' · '+tt('chýba v jazyku dokumentu')}</option>`;}).join('')}
       </select>
       <div class="cnsnote">${tt('Znenie je právny artefakt a spravuje sa v registri súhlasov. Šablóna určuje iba to, kde sa zobrazí.')}</div></div>`:''}
     <div class="fr"><label class="fl">
@@ -3743,9 +3828,13 @@ function rptPlain(tpl){
    norm = bežné sekcie (S, O, naratív)
    anam = anamnestické okruhy — kompaktne v jednom riadku, ako v tlačenej správe */
 const SRC_STYLE={A:'key',P:'key',S:'norm',O:'norm',narr:'norm',rx:'norm',fu:'norm',
- RA:'anam',OA:'anam',AA:'anam',FA:'anam',SA:'anam',PA:'anam',GA:'anam'};
+ 'hist-family':'anam','hist-past':'anam','allergies':'anam','meds':'anam','hist-social':'anam','hist-occup':'anam','hist-gyn':'anam'};
 function rptItmHTML(it,inline){
-  return `<span class="itm${it.pt?' pt':''}${inline?' inl':''}">${escT(it.text)}${it.slot?codeChipsOf(it):''}${
+  const tr=TR_LANG?trText(it.text):null;
+  const txt=TR_LANG?(tr||it.text):it.text;
+  const miss=TR_LANG&&!tr;
+  return `<span class="itm${it.pt?' pt':''}${inline?' inl':''}${miss?' trmiss':''}"
+    ${miss?`title="${tt('Preklad nie je k dispozícii — zobrazený originál')}"`:''}>${escT(txt)}${it.slot?codeChipsOf(it):''}${
     (it.pt&&!inline)?`<span class="ptm" title="${tt('Pacientska úroveň — pretrváva medzi návštevami')}">${tt('anamnéza')}</span>`:''}</span>`;
 }
 function rptSec(label,items,src){
@@ -3794,7 +3883,7 @@ function renderOut(){
   const tpl=tplCur(),cov=tplCoverage(tpl);
   const sn=RPT_VIEW_VER?RPT_VERS.find(v=>v.ver===RPT_VIEW_VER):null;
   if(sn){                                  /* podpísaná verzia — iba zo snímky */
-    ro.innerHTML=tplBarHTML(tpl,cov)+
+    ro.innerHTML=tplBarHTML(tpl,cov)+trBarHTML()+
       (RPT_VIEW==='text'?`<pre class="rtext">${escT(sn.narrative)}</pre>
         <div class="snapmark">${tt('Zmrazený obsah')} · v${sn.ver} · ${escT(sn.ts)}
         · <span class="hash">${tt('odtlačok')} ${sn.hash}</span></div>`:snapShellHTML(sn))
@@ -3804,7 +3893,7 @@ function renderOut(){
   const body=RPT_VIEW==='text'
     ? `<pre class="rtext" id="rtext">${escT(rptPlain(tpl))}</pre>`
     : tplBodyHTML(tpl);
-  ro.innerHTML=tplBarHTML(tpl,cov)+reportShell(tt(tpl.name),body);
+  ro.innerHTML=tplBarHTML(tpl,cov)+trBarHTML()+reportShell(tt(tpl.name),body);
 }
 /* K-20: billing derivation (BILL-01..04) — suggestion engine, lekár potvrdzuje */
 let BILLN=0,EMsel='';
