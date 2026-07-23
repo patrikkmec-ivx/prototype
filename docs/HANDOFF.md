@@ -4,7 +4,7 @@
 > ako sa v repozitári správať určuje `CLAUDE.md`; čo je čo určuje `README.md`.
 > **Aktualizuje sa na konci každej relácie.**
 
-Aktualizované: 2026-07-23 · Verzia prototypu: **v156** (`d53869ed`)
+Aktualizované: 2026-07-23 · Verzia prototypu: **v157** (`f6b60046`)
 
 ---
 
@@ -89,6 +89,21 @@ zabezpečiť znenie súhlasu v jazyku dokumentu → **vybrať podpisovateľov** 
 
 Hlavička, pätka a podpisovatelia sa editujú v **nastaveniach zariadenia**, nie v šablóne;
 z editora šablóny tam vedie odkaz.
+
+## 3d. Predpoklady tvorby dokumentov
+
+Tri veci treba uzavrieť **pred** tvorbou dokumentov — nie sú to doplnky:
+
+1. **`doc_id`** — dokument nemá stabilný identifikátor. Nedá sa naň odkázať z časovej
+   osi, presne auditovať ani prepojiť s verziami a addendom. Otvorené v `cp-19`, `gsr-13`.
+2. **Kam dokument pristane** — Records vrstva je odložená (`cp-16`), časová os je
+   seedovaná staticky. Vytvorený dokument dnes nemá cieľ. **Vyžaduje rozhodnutie:**
+   udalosť na časovej osi, záznam v Records, alebo oboje s odkazom?
+3. **Perzistenčný seam** — šablóny, verzie, snímky aj audit žijú v pamäti. Netreba
+   databázu, ale rozhranie úložiska (vzor `TemplateAdapter` z Care Planu), aby sa
+   produkcia zapojila bez prepisu.
+
+Tlačový výstup (`I18N-13`) patrí k tvorbe dokumentov a spraví sa s ňou.
 
 ## 4. Otvorené body mimo kódu
 
