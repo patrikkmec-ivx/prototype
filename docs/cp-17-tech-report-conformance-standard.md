@@ -27,6 +27,10 @@ Rozsah: klinický report a jeho životný cyklus. Mimo rozsah: Records knižnica
 
 ## 1. Rola systému — overlay vs core
 
+> **Kontinuita.** Táto pozícia nie je nová. Care Plans Standard ju zamkol v **A1
+> "Position: orchestrator, not an EHR"** — Hilbi nie je system of record, EHR/NIS je master
+> klinického záznamu. Pravidlá nižšie sú jej rozpracovaním pre report vrstvu.
+
 - **REP-01** Hilbi je **default v role overlay** (orchestrátor nad existujúcim
   systémom poskytovateľa). Rola `core` je **opt-in konfigurácia**, NIE default.
 - **REP-02** V móde `overlay` je autoritatívny podpísaný záznam v hostiteľskom
