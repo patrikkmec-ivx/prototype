@@ -4,7 +4,7 @@
 > ako sa v repozitári správať určuje `CLAUDE.md`; čo je čo určuje `README.md`.
 > **Aktualizuje sa na konci každej relácie.**
 
-Aktualizované: 2026-07-23 · Verzia prototypu: **v149** (`b0e6bfdc`)
+Aktualizované: 2026-07-23 · Verzia prototypu: **v151** (`3b06f650`)
 
 ---
 
@@ -84,6 +84,16 @@ sa dotýka `cp-16` a musí sa premietnuť do `cp-17` §10 v tom istom commite.
   v produkčnej podobe (v prototype stačí demo ValueSet, ale UI vzor musí byť správny).
 - **Návrh perzistentného, tamper-evident audit logu** (`AUD-02`).
 - **`doc_id`** priradenie pre `cp-17` a `cp-18` podľa `gsr-13`.
+
+## 4b. Poučenie z incidentu v148
+
+Commit **v148 ticho prepísal v145–v147**: prostredie sa reštartovalo, lokálny
+`index.html` sa vrátil do staršieho stavu a nebol znovu stiahnutý z `main`. Tri
+následné commity sa aplikovali na starý súbor a odstránili podstránku šablón.
+Obnovené vo **v151**.
+
+Preto platí: **pred úpravami over zhodu lokálneho súboru s `main`** a opakuj to po
+každom náznaku reštartu (napr. keď zmizne obsah `/tmp`). Pravidlo je v `CLAUDE.md` §4.
 
 ## 5. Overené, neoverené
 
