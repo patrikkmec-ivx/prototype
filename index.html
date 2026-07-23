@@ -1256,6 +1256,10 @@ body[data-tab="comm"] .timeline{display:none}
 .rendout h4{margin:0 0 8px;font-size:14px;color:var(--text-heading)}
 .rendout .rsec{margin:7px 0;font-size:12.5px;color:var(--text-body);line-height:18px}
 .rendout .rsec b{color:var(--text-heading)}
+.rendout .rsec .itm{display:block;margin:2px 0}
+.rendout .cd{display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:0 6px;border:1px solid var(--border-default);border-radius:999px;font-size:10.5px;color:var(--text-muted);white-space:nowrap}
+.rendout .cd.rec{border-color:var(--brand-cyan);color:var(--brand-teal-text)}
+.rendout .cd.none{border-style:dashed}
 .rendout .rft{margin-top:10px;padding-top:8px;border-top:1px dashed var(--border-strong);font-size:11.5px;color:var(--text-muted)}
 .rptbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--border-default)}
 .rptbar .btn{padding:7px 13px;min-height:34px;font-size:13px}
@@ -2867,9 +2871,9 @@ function saveFot(){mClose('fotwrap');showToast('Nahrané — čaká na overenie'
   if(LANG==='en')swapText(SK2EN);}
 /* K-19: podpis & render — market_rules (SOAP-06/08/09), Flow A vs B */
 const MKT={
- IN:{min:['A','P'],tpl:'slip',lbl:'min. podpis: A+P · render: Rx slip',doc:'ABDM Prescription',sig:'IT Act e-sign',idlbl:'ABHA'},
- EU:{min:['A','P'],tpl:'full',lbl:'min. podpis: A+P (S/O odporúčané) · render: plná správa',doc:'EEHRxF / OpConsult',sig:'eIDAS QES',idlbl:'EHR-ID'},
- US:{min:['A','P'],tpl:'full',lbl:'min. podpis: A+P (MDM) · render: plná správa',doc:'US Core / C-CDA',sig:'HIPAA e-sign',idlbl:'MRN'}
+ IN:{min:['A','P'],tpl:'slip',lbl:'min. podpis: A+P · render: Rx slip',doc:'ABDM Prescription',sig:'IT Act e-sign',idlbl:'ABHA',rec:'SNOMED CT',rep:'ICD-10',med:'ATC',lab:'LOINC'},
+ EU:{min:['A','P'],tpl:'full',lbl:'min. podpis: A+P (S/O odporúčané) · render: plná správa',doc:'EEHRxF / OpConsult',sig:'eIDAS QES',idlbl:'EHR-ID',rec:'SNOMED CT',rep:'MKCH-10',med:'ATC',lab:'LOINC'},
+ US:{min:['A','P'],tpl:'full',lbl:'min. podpis: A+P (MDM) · render: plná správa',doc:'US Core / C-CDA',sig:'HIPAA e-sign',idlbl:'MRN',rec:'SNOMED CT',rep:'ICD-10-CM',med:'RxNorm',lab:'LOINC'}
 };
 let MKTC='EU',FUsel=null,fuDone=false;
 function setMkt(m,btn){MKTC=m;document.querySelectorAll('#mktseg button').forEach(b=>b.classList.toggle('on',b===btn));
@@ -2952,24 +2956,58 @@ function reportShell(title,bodyHTML){
   return `<h4>${escT(title)} · ${escT(RPT_ID.org)}</h4>
   <div class="rsec">${rptIdLine()} · ${escT(RPT_ID.clinician)}</div>
   ${bodyHTML}
-  <div class="rft">${tt('podpis')}: ${escT(RPT_ID.clinician)} · ${m.sig} · ${tt('profil')}: ${escT(m.doc)} · ${rptModeNote()} · Composition.status: ${rptStatus()}${bill}</div>
+  <div class="rft">${tt('podpis')}: ${escT(RPT_ID.clinician)} · ${m.sig} · ${tt('profil')}: ${escT(m.doc)} · ${rptModeNote()} · Composition.status: ${rptStatus()}
+  <br>${tt('záznam')}: ${m.rec} + ${m.lab} · ${tt('výkaz')}: ${m.rep} · ${tt('lieky')}: ${m.med}${bill}</div>
   ${rptVerHTML()}
   ${rptBarHTML()}`;
+}
+/* ── G2 Terminológia ────────────────────────────────────────────────────────────
+   Dual coding: záznam v SNOMED CT (referenčná terminológia), výkaz v MKCH-10/ICD
+   (štatistická klasifikácia). Naratív sa NIKDY nestráca — FHIR CodeableConcept
+   = coding[] + text. Kód ide do coding, lekárova formulácia ostáva v .text.
+   S = prevažne naratív (nekódujeme nasilu). A/O/P majú kódový slot.            */
+const TERM_BIND={S:{rec:null,rep:null},O:{rec:'lab',rep:null},A:{rec:'rec',rep:'rep'},P:{rec:'rec',rep:null}};
+/* Demo ValueSet — v produkcii nahradí $expand/$validate-code proti terminologickému serveru */
+const CODEMAP=[
+ {re:/skler[oó]z|multiple scleros/i,             sct:'24700007', icd:'G35'},
+ {re:/diabet|\bDM\b/i,                            sct:'73211009', icd:'E11'},
+ {re:/hypertenz|hypertens/i,                      sct:'38341003', icd:'I10'},
+ {re:/TK |krvn[yý] tlak|blood pressure|\bBP\b/i,  loinc:'85354-9'},
+ {re:/pulz|heart rate/i,                          loinc:'8867-4'},
+ {re:/PRO dotazn[ií]k|PHQ/i,                      loinc:'44249-1'},
+ {re:/Tecfidera|dimetyl|dimethyl fumar/i,         atc:'L04AX07', rxnorm:'1373478', sct:'703067007'}
+];
+function codeOf(text){return CODEMAP.find(c=>c.re.test(text))||null;}
+/* Chipy pre jednu položku podľa väzby slotu a trhu */
+function codeChips(slot,text){
+  const b=TERM_BIND[slot];if(!b||(!b.rec&&!b.rep))return '';
+  const m=codeOf(text),k=MKT[MKTC];let out='';
+  if(b.rec==='lab'){
+    out+=(m&&m.loinc)?`<span class="cd rec">${k.lab} ${m.loinc}</span>`:`<span class="cd none">${k.lab} —</span>`;
+  }else if(b.rec==='rec'){
+    out+=(m&&m.sct)?`<span class="cd rec">${k.rec} ${m.sct}</span>`:`<span class="cd none">${k.rec} —</span>`;
+    const med=MKTC==='US'?(m&&m.rxnorm):(m&&m.atc);
+    if(med)out+=`<span class="cd">${k.med} ${med}</span>`;
+  }
+  if(b.rep)out+=(m&&m.icd)?`<span class="cd">${k.rep} ${m.icd}</span>`:`<span class="cd none">${k.rep} —</span>`;
+  return out;
 }
 function renderOut(){
   const ro=document.getElementById('rendout');ro.classList.add('show');
   const A=slotTexts('A'),S=slotTexts('S'),O=slotTexts('O'),P=slotTexts('P');
   const rx=P.filter(t=>/eRecept|ePrescription/i.test(t));
   const fu=FUsel?(tt('Kontrola o')+' '+tt(FUsel)):null;const dash='—';
-  /* data-coding = terminologický seam (SNOMED/ICD/LOINC/RxNorm) — pripravené na binding, zatiaľ inertné */
-  const sec=(l,arr,code)=>`<div class="rsec" data-coding="${code||''}"><b>${l}:</b> ${arr.length?arr.map(escT).join('; '):dash}</div>`;
+  /* text = naratív (zachovaný), chipy = coding[] */
+  const sec=(l,arr,slot)=>`<div class="rsec"><b>${l}:</b> ${arr.length
+    ?arr.map(t=>`<span class="itm">${escT(t)}${slot?codeChips(slot,t):''}</span>`).join('')
+    :dash}</div>`;
   let body;
   if(MKT[MKTC].tpl==='slip'){
-    body=sec('Dg',A,'ICD/SNOMED')+sec('Rx',rx,'RxNorm/ATC')+sec('Follow-up',fu?[fu]:[]);
+    body=sec('Dg',A,'A')+sec('Rx',rx,'P')+sec('Follow-up',fu?[fu]:[]);
   }else{
     const narrEl=document.querySelector('#dsec0 .narr textarea');const narr=narrEl?narrEl.value:'';
-    body=sec('S',S,'SNOMED')+sec('O',O,'LOINC')+sec('A',A,'ICD/SNOMED')+sec('P',P,'SNOMED')
-      +sec('eRx',rx,'RxNorm/ATC')+sec('Follow-up',fu?[fu]:[])
+    body=sec('S',S,'S')+sec('O',O,'O')+sec('A',A,'A')+sec('P',P,'P')
+      +sec('eRx',rx,'P')+sec('Follow-up',fu?[fu]:[])
       +(narr?sec(tt('Naratív'),[narr]):'');
   }
   ro.innerHTML=reportShell(MKT[MKTC].tpl==='slip'?'Rx slip':tt('Lekárska správa'),body);
@@ -3094,6 +3132,7 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
+["záznam","record"],["výkaz","report"],["lieky","medication"],
 ["Uložiť addendum","Save addendum"],["Uložiť verziu","Save version"],["Kopírovať","Copy"],["Tlačiť","Print"],["Zdieľať","Share"],
 ["Verzie","Versions"],["zatiaľ neuložené — draft","not saved yet — draft"],["originál sa zachováva, oprava = addendum","original is preserved, correction = addendum"],
 ["Verzia 1 uložená · status: final","Version 1 saved · status: final"],["Addendum uložené · verzia","Addendum saved · version"],["· status: amended","· status: amended"],
