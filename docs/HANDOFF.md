@@ -4,7 +4,7 @@
 > ako sa v repozitári správať určuje `CLAUDE.md`; čo je čo určuje `README.md`.
 > **Aktualizuje sa na konci každej relácie.**
 
-Aktualizované: 2026-07-23 · Verzia prototypu: **v151** (`3b06f650`)
+Aktualizované: 2026-07-23 · Verzia prototypu: **v152** (`859418d8`)
 
 ---
 
@@ -52,6 +52,7 @@ hotové a čo je placeholder — nie tento súbor.
 | 3c1 | Šablóny ako podstránka, dizajn systém (tlačidlá, polia, taby, rozostupy) — v140–v147 | **hotová** |
 | 3c2 | Zmrazenie obsahu pri podpise — snímka + odtlačok (AMD-05..09), v148 | **hotová** |
 | 3c3 | Jazyková vrstva — neutrálne kľúče, jazyk dokumentu, súhlas per jazyk, preklad na vyžiadanie (I18N-01..15), v149 | **hotová** |
+| 3c4 | Šablóna **FNTT SM** podľa reálnej ambulantnej správy + zdroje ako podmnožiny slotov (TPL-17, TPL-18), v152 | **hotová** |
 | 3d | **Rozhranie dekurzu** — intake, kandidáti z IQ, validácia po položkách (INT-01..05) | **ďalšia na rade** |
 | 3d | Anamnestické okruhy na pacientskej úrovni (TPL-04) | čaká |
 | 4 | UX podpis, amendment s dôvodom, súhlasový dialóg | čaká |
@@ -72,6 +73,19 @@ sa dotýka `cp-16` a musí sa premietnuť do `cp-17` §10 v tom istom commite.
 - Cudzie dokumenty na časovej osi (`I18N-10`), jazyk tlače (`I18N-13`) a locale
   formátovanie čísel a dátumov (`I18N-14`) zatiaľ neriešené.
 - Jazyk pacienta ako samostatná os (riadi súhlasy a pacientske listy).
+
+## 3c. Poskytovateľské šablóny
+
+Prvá reálna šablóna je **FNTT SM** (okruh `provider`), adaptovaná z ambulantnej správy
+Neurologickej kliniky — Centrum SM. Sekcie: TO · Obj. · HK/DK · Laboratórne a likvorové
+vyšetrenia · Záver · Dop. · Recepty · Diagnózy · Vyhlásenie pacienta.
+
+Pri adaptácii sa preberá **iba štruktúra** (`TPL-08`) — klinické hodnoty, identita
+pacienta ani cudzie právne texty sa nekopírujú; demo dáta a znenie súhlasu sú vlastné.
+
+Ďalšie poskytovateľské šablóny sa pridávajú rovnako: rozpoznať sekcie → namapovať na
+zdroje (v prípade potreby doplniť nový zdroj podľa `TPL-17`) → overiť minimum trhu →
+zabezpečiť znenie súhlasu v jazyku dokumentu.
 
 ## 4. Otvorené body mimo kódu
 
