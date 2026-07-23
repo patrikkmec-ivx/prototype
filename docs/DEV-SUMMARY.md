@@ -65,6 +65,12 @@ label, a kódové systémy (záznam / výkaz / lieky / laboratórne).
 | Audit | `AUD-01` | `logAudit()` |
 | Súhlas pri zdieľaní | `CNS-01..05` | `rptShare()` |
 | AI transparentnosť | `DSI-01..04` | `DSI`, `dsiHTML()` |
+| Zmrazenie pri podpise | `AMD-05..09` | `rptSnapshot()`, `snapShellHTML()`, `rptHash()` |
+| Neutrálne kľúče zdrojov | `I18N-01`, `I18N-06` | `TPL_SRC` (`hist-past`, `allergies`…), `SRC_DISP` |
+| Dve jazykové osi | `I18N-02` | `srcAbbr()` = jazyk dokumentu · `srcName()` = jazyk rozhrania |
+| Jazyk dokumentu | `I18N-03` | `ORG.lang`, `docLang()`, otlačený v snímke |
+| Preklad na vyžiadanie | `I18N-07`, `I18N-08` | `TR_LANG`, `trSet()`, `trBarHTML()` |
+| Súhlas per jazyk | `I18N-11` | `CNS_REG` `(id, ver, lang)`, `cnsPick()` |
 
 ## 5. Čo musí produkcia nahradiť
 
@@ -76,6 +82,9 @@ v `cp-17` §10:
 | `CODEMAP` — regex pravidlá | terminologický server, `$expand` / `$validate-code` nad ValueSetom |
 | kód sa odvodzuje pri renderi | **kód vzniká pri zázname** (capture-side picker) — `TERM-05`, `TERM-06` |
 | `AUDIT` pole v pamäti | perzistentný, nemenný, tamper-evident log — `AUD-02` |
+| snímka drží hodnoty | verziované odkazy `Observation/123/_history/2` — `AMD-06` |
+| `rptHash()` (djb2) | SHA-256 v `DocumentReference…hash` — `AMD-08` |
+| `TR_DEMO` slovník | prekladová služba so záznamom v `AuditEvent` — `I18N-15` |
 | podpis ako UI stav | integrácia podpisu podľa trhu — `SIG-01` |
 | pätka deklaruje FHIR objekty | reálna emisia `Composition` / `DocumentReference` / `Provenance` |
 | zdieľanie ako hlásenie | súhlasový dialóg s purpose-of-use — `CNS-01` |
