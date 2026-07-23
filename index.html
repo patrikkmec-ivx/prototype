@@ -4,8 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v152 (Poskytovateľská šablóna FNTT SM · zdroje ako podmnožiny slotov)</title>
+<title>Hilbi Cockpit — v153 (Podpisový blok dokumentu)</title>
 <!-- CHANGELOG
+v153 (2026-07-23): Podpisový blok dokumentu. Identita podpisovateľov (meno, funkcia,
+  kód) patrí ZARIADENIU a edituje sa v nastaveniach; ktorí z nich sa objavia na
+  dokumente, určuje ŠABLÓNA (zaškrtávacie polia v editore). FNTT SM má štyri podpisy
+  podľa vzorky: ošetrujúci lekár · primár · prednosta kliniky · pacient.
+  Z editora šablóny vedie odkaz do nastavení hlavičky, pätky a podpisov.
+  Normatívny zdroj: cp-17 TPL-19.
 v152 (2026-07-23): Šablóna FNTT SM podľa reálnej ambulantnej správy Neurologickej
   kliniky — Centrum SM (okruh zariadenia). Sekcie TO / Obj. / HK-DK / Laboratórne
   a likvorové vyšetrenia / Záver / Dop. / Recepty / Diagnózy / Vyhlásenie pacienta.
@@ -1401,10 +1407,15 @@ body[data-tab="comm"] .timeline{display:none}
 .cnsh .cnsv{font-weight:400;color:var(--text-muted);font-size:11px}
 .cnst{font-size:11.5px;line-height:17px;color:var(--text-body)}
 .sgrow{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px}
+.sgrow.docsig{margin-top:26px;padding-top:6px}
+.sgrow.docsig .sgc{line-height:15px}
 .sgl{flex:1 1 150px;min-width:140px}
 .sgl .sgn{display:block;border-bottom:1px solid var(--text-muted);height:20px}
 .sgl .sgc{display:block;font-size:10.5px;color:var(--text-muted);margin-top:3px;text-align:center}
 .cnsbox.cnsmiss{background:var(--warning-soft);border-color:var(--warning);color:var(--text-body);font-size:11.5px;line-height:17px}
+.sgpick{display:flex;gap:9px;align-items:center;padding:7px 0;font-size:14px;line-height:20px;color:var(--text-body);cursor:pointer}
+.sgpick b{color:var(--text-heading);font-weight:600}
+.lnkbtn{background:none;border:none;padding:0;margin-left:6px;font:inherit;font-size:11px;font-weight:700;color:var(--brand-teal-text);cursor:pointer;text-decoration:underline}
 .cnsnote{font-size:10.5px;color:var(--text-muted);line-height:15px;margin-top:5px;font-style:italic}
 .orghd{border-bottom:2px solid var(--text-heading);padding-bottom:6px;margin-bottom:10px;line-height:17px}
 .orghd b{font-size:13.5px;color:var(--text-heading)}
@@ -3436,6 +3447,7 @@ function reportShell(title,bodyHTML){
   <div class="rft">${tt('podpis')}: ${escT(RPT_ID.clinician)} · ${m.sig} · ${tt('profil')}: ${escT(m.doc)} · ${rptModeNote()} · Composition.status: ${rptStatus()}
   <br>${tt('záznam')}: ${m.rec} + ${m.lab} · ${tt('výkaz')}: ${m.rep} · ${tt('lieky')}: ${m.med}
   <br>${escT(ORG.stamp)}${bill}</div>
+  ${sigBlockHTML(tplCur())}
   ${rptVerHTML()}
   ${rptBarHTML()}
   ${auditHTML()}`;
@@ -3480,7 +3492,15 @@ function orgRender(){
     +'<div class="fr"><label class="fl">'+tt('Jazyk dokumentácie')+'</label>'
     +'<select class="wide" onchange="ORG.lang=this.value;orgRender()">'
     +LANGS.map(function(l){return '<option value="'+l.k+'"'+(l.k===docLang()?' selected':'')+'>'+l.n+'</option>';}).join('')
-    +'</select><div class="cnsnote">'+tt('Vyplýva z jurisdikcie poskytovateľa a otlačí sa na dokument pri jeho vzniku. Neskoršia zmena neprepíše staršie dokumenty.')+'</div></div>';
+    +'</select><div class="cnsnote">'+tt('Vyplýva z jurisdikcie poskytovateľa a otlačí sa na dokument pri jeho vzniku. Neskoršia zmena neprepíše staršie dokumenty.')+'</div></div>'
+    +'<div class="fr"><div class="grph">'+tt('Podpisovatelia')+'</div>'
+    +(ORG.signatories||[]).map(function(s,i){
+      return '<div class="secrow">'
+        +'<input type="text" value="'+escT(s.name)+'" placeholder="'+tt('Meno a titul')+'" oninput="ORG.signatories['+i+'].name=this.value">'
+        +'<input type="text" value="'+escT(s.title)+'" placeholder="'+tt('Funkcia')+'" oninput="ORG.signatories['+i+'].title=this.value">'
+        +'<input type="text" value="'+escT(s.code||'')+'" placeholder="'+tt('Kód')+'" style="flex:0 1 120px" oninput="ORG.signatories['+i+'].code=this.value">'
+        +'</div>';}).join('')
+    +'<div class="cnsnote">'+tt('Ktorí z nich sa objavia na konkrétnom dokumente, určuje šablóna.')+'</div></div>';
 }
 function orgSave(){
   logProv('amend','Organization · header',{role:'author'});
@@ -3683,8 +3703,30 @@ const ORG={
   contact:'+421 2 1234 5678 · info@expertmed.sk',
   stamp:'Pečiatka a podpis lekára',
   jurisdiction:'SK',
-  lang:'sk'          /* jazyk dokumentu — z jurisdikcie, potvrdzuje zariadenie (I18N-03) */
+  lang:'sk',         /* jazyk dokumentu — z jurisdikcie, potvrdzuje zariadenie (I18N-03) */
+  /* Identita podpisovateľov patrí ORGANIZÁCII; ktorí z nich sa na dokumente
+     objavia, určuje ŠABLÓNA (TPL-19). Samotný podpis je runtime akt (SIG-*). */
+  signatories:[
+    {k:'clinician',name:'Dr. E. Rodriguez',title:'ošetrujúci lekár',code:'A12345'},
+    {k:'head',     name:'MUDr. M. Novák, PhD.',title:'prednosta kliniky',code:''},
+    {k:'senior',   name:'MUDr. J. Horák, PhD.',title:'primár',code:''},
+    {k:'patient',  name:'',title:'podpis pacienta alebo zákonného zástupcu',code:''}
+  ]
 };
+function sigOf(k){return (ORG.signatories||[]).find(s=>s.k===k)||null;}
+/* Podpisový blok dokumentu — zloženie určuje šablóna, obsah organizácia */
+function sigBlockHTML(tpl){
+  const ks=(tpl&&tpl.signers&&tpl.signers.length)?tpl.signers:['clinician'];
+  const cols=ks.map(k=>{const s=sigOf(k);if(!s)return '';
+    return `<div class="sgl"><span class="sgn"></span>
+      <span class="sgc">${s.name?escT(s.name)+'<br>':''}${escT(tt(s.title))}${s.code?' · '+escT(s.code):''}</span></div>`;}).join('');
+  return cols?`<div class="sgrow docsig">${cols}</div>`:'';
+}
+function sigBlockText(tpl){
+  const ks=(tpl&&tpl.signers&&tpl.signers.length)?tpl.signers:['clinician'];
+  return ks.map(k=>{const s=sigOf(k);if(!s)return '';
+    return (s.name?s.name+' — ':'')+tt(s.title)+(s.code?' · '+s.code:'')+': ..........................';}).filter(Boolean).join('\n');
+}
 function orgHeadHTML(){
   return `<div class="orghd"><b>${escT(ORG.name)}</b>${ORG.fac?' · '+escT(ORG.fac):''}
     <span>${escT(ORG.addr)}${ORG.ico?' · IČO '+escT(ORG.ico):''}${ORG.pzs?' · '+tt('kód PZS')+' '+escT(ORG.pzs):''}</span></div>`;
@@ -3726,7 +3768,7 @@ const PT_FHIR={'hist-family':'FamilyMemberHistory','hist-past':'Condition / Proc
    všeobecná ambulantná prax; SM a ďalšie domény pridajú vlastné záznamy.
    Šablóna určuje FORMU. Trh určuje MINIMUM (TPL-03) — trh šablónu nevyberá. */
 const TPL_REG=[
- {id:'core.dekurz.soap.v1',domain:'core',kind:'system',slotKey:'dekurz',name:'Dekurz — SOAP',codes:true,ver:1,
+ {id:'core.dekurz.soap.v1',domain:'core',kind:'system',slotKey:'dekurz',name:'Dekurz — SOAP',codes:true,ver:1,signers:['clinician'],
   sections:[{label:'S',src:'S'},{label:'O',src:'O'},{label:'A',src:'A'},{label:'P',src:'P'},
             {label:'eRx',src:'rx'},{label:'Follow-up',src:'fu'},{label:'Naratív',src:'narr',hideIfEmpty:true}]},
  {id:'core.dekurz.rxslip.v1',domain:'core',kind:'system',slotKey:'dekurz',name:'Rx slip',codes:true,ver:1,
@@ -3743,7 +3785,7 @@ const TPL_REG=[
             {label:'Epikríza',src:'narr',hideIfEmpty:true},
             {label:'Informovaný súhlas',src:'consent'}]},
  {id:'fntt.sm.dekurz.v1',domain:'core',kind:'provider',slotKey:'dekurz',name:'FNTT SM',codes:true,ver:1,
-  consentId:'cns.declaration',
+  consentId:'cns.declaration',signers:['clinician','senior','head','patient'],
   sections:[{label:'TO',src:'S'},
             {label:'Obj.',src:'O'},
             {label:'HK/DK',src:'exam-neuro'},
@@ -3834,6 +3876,11 @@ function tplSecSet(i,f,v){TPL_EDIT.sections[i][f]=v;
     if(!s.label||Object.keys(SRC_DISP).some(k=>srcDisp(k,docLang(),false)===s.label))s.label=srcAbbr(v);}
   tplMgrRender();}
 function tplSecDel(i){TPL_EDIT.sections.splice(i,1);tplMgrRender();}
+function tplSigner(k,on){
+  const a=(TPL_EDIT.signers||['clinician']).slice();
+  const i=a.indexOf(k); if(on&&i<0)a.push(k); if(!on&&i>=0)a.splice(i,1);
+  TPL_EDIT.signers=a; tplMgrRender();
+}
 function tplSecAdd(){TPL_EDIT.sections.push({label:srcAbbr('S'),src:'S'});tplMgrRender();}
 function tplSecMv(i,d){const a=TPL_EDIT.sections,j=i+d;if(j<0||j>=a.length)return;
   const x=a[i];a[i]=a[j];a[j]=x;tplMgrRender();}
@@ -3895,6 +3942,14 @@ function tplMgrRender(){
           return `<option value="${id}"${id===(TPL_EDIT.consentId||cnsIds()[0])?' selected':''}>${escT(c.name)} · v${c.ver}${cnsPick(id)?'':' · '+tt('chýba v jazyku dokumentu')}</option>`;}).join('')}
       </select>
       <div class="cnsnote">${tt('Znenie je právny artefakt a spravuje sa v registri súhlasov. Šablóna určuje iba to, kde sa zobrazí.')}</div></div>`:''}
+    <div class="fr"><div class="grph">${tt('Podpisy na dokumente')}</div>
+      ${(ORG.signatories||[]).map(s=>`<label class="sgpick">
+        <input type="checkbox" ${(TPL_EDIT.signers||['clinician']).includes(s.k)?'checked':''} ${ro?'disabled':''}
+          onchange="tplSigner('${s.k}',this.checked)">
+        <span><b>${escT(tt(s.title))}</b>${s.name?' · '+escT(s.name):''}</span></label>`).join('')}
+      <div class="cnsnote">${tt('Mená, tituly a kódy podpisovateľov spravuje zariadenie.')}
+        <button class="lnkbtn" onclick="orgOpen()">${tt('Hlavička, pätka a podpisy zariadenia')}</button></div>
+    </div>
     <div class="fr"><label class="fl">
       <input type="checkbox" ${TPL_EDIT.codes?'checked':''} ${ro?'disabled':''}
         onchange="TPL_EDIT.codes=this.checked"> ${tt('Vkladať kódy do textového výstupu')}</label></div>
@@ -3956,7 +4011,7 @@ function rptPlain(tpl){
   });
   L.push('');
   L.push(tt('podpis')+': '+RPT_ID.clinician+' · '+m.sig+' · '+rptStatus());
-  L.push(ORG.stamp);
+  L.push(ORG.stamp);L.push('');L.push(sigBlockText(tpl));
   return L.join('\n');
 }
 /* Vizuálna hierarchia sekcií — odvodená zo zdroja, nie z nastavenia šablóny,
@@ -4155,6 +4210,10 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
+["Podpisy na dokumente","Signatures on the document"],["Podpisovatelia","Signatories"],["Meno a titul","Name and title"],["Funkcia","Role"],["Kód","Code"],
+["Mená, tituly a kódy podpisovateľov spravuje zariadenie.","Names, titles and codes of signatories are managed by the facility."],
+["Hlavička, pätka a podpisy zariadenia","Facility header, footer and signatures"],["Ktorí z nich sa objavia na konkrétnom dokumente, určuje šablóna.","Which of them appear on a given document is decided by the template."],
+["ošetrujúci lekár","attending physician"],["prednosta kliniky","head of department"],["primár","senior consultant"],
 ["Zariadenia","Facility"],["Moje šablóny","My templates"],["Vytvoriť šablónu","Create template"],["Ako chcete šablónu vytvoriť?","How do you want to create the template?"],
 ["Od začiatku","From scratch"],["Prázdna šablóna, sekcie doplníte ručne","Blank template, you add the sections"],["Nahrať súbor","Upload file"],["Z existujúcej správy vo formáte PDF alebo DOCX","From an existing report in PDF or DOCX"],
 ["Odfotiť","Take a photo"],["Odfoťte vytlačenú správu, rozpoznáme jej štruktúru","Photograph a printed report and we will recognise its structure"],
