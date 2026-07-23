@@ -72,6 +72,7 @@ label, a kódové systémy (záznam / výkaz / lieky / laboratórne).
 | Preklad na vyžiadanie | `I18N-07`, `I18N-08` | `TR_LANG`, `trSet()`, `trBarHTML()` |
 | Súhlas per jazyk | `I18N-11` | `CNS_REG` `(id, ver, lang)`, `cnsPick()` |
 | Zdroje ako podmnožiny slotov | `TPL-17`, `TPL-18` | `ENC_SRC` — `exam-neuro`, `labs`, `dx-coded` |
+| Úložisko | `STO-01..05` | `Store`, `STORE_COLL`, `STORE_KEY`, `storeBadgeHTML()` |
 | Identita dokumentu | `DOC-01..07` | `docNew()`, `docAssignHuman()`, `DOC_REG` |
 | Jeden dokument, dva pohľady | `DOC-06` | `renderDocViews()`, `docOpen(master)` |
 | Podpisový blok | `TPL-19` | `ORG.signatories` (identita) · `tpl.signers` (výber) · `sigBlockHTML()` |
@@ -89,6 +90,7 @@ v `cp-17` §10:
 | snímka drží hodnoty | verziované odkazy `Observation/123/_history/2` — `AMD-06` |
 | `rptHash()` (djb2) | SHA-256 v `DocumentReference…hash` — `AMD-08` |
 | `TR_DEMO` slovník | prekladová služba so záznamom v `AuditEvent` — `I18N-15` |
+| pamäťový adaptér `Store` | REST alebo Core adaptér — `STO-02`; volajúci kód sa nemení |
 | podpis ako UI stav | integrácia podpisu podľa trhu — `SIG-01` |
 | pätka deklaruje FHIR objekty | reálna emisia `Composition` / `DocumentReference` / `Provenance` |
 | zdieľanie ako hlásenie | súhlasový dialóg s purpose-of-use — `CNS-01` |
