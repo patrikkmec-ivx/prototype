@@ -4,8 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v158 (Identita dokumentu)</title>
+<title>Hilbi Cockpit — v159 (Jeden dokument, dva pohľady)</title>
 <!-- CHANGELOG
+v159 (2026-07-23): Jeden dokument, dva pohľady (DOC-06). Podpísaný dokument sa zapíše
+  do DOC_REG a objaví sa NARAZ na časovej osi aj v Records paneli — obidva pohľady
+  čítajú z toho istého registra a odkazujú na masterIdentifier, takže kópia nevzniká.
+  Addendum aktualizuje existujúci záznam (v2, amended), nepridáva druhý. Klik
+  v ktoromkoľvek pohľade otvorí ten istý dokument v príslušnej verzii.
 v158 (2026-07-23): Identita dokumentu (DOC-01..06). Tri úrovne podľa FHIR:
   masterIdentifier (urn:uuid) stabilný naprieč všetkými verziami a dodatkami —
   toto je „ten dokument", na ktorý odkazuje časová os aj Records; version; a ľudsky
@@ -1470,6 +1475,7 @@ body[data-tab="comm"] .timeline{display:none}
 .trbar select{font:inherit;font-size:14px;line-height:20px;padding:10px 14px;min-height:40px;border:none;border-radius:8px;background:var(--surface-1);color:var(--text-heading)}
 .trwarn{font-size:11px;line-height:16px;color:var(--warning);flex:1 1 240px;min-width:0}
 .rendout .itm.trmiss{border-bottom:1px dotted var(--warning)}
+.plrow .pltx small{display:block;font-size:11px;color:var(--text-muted);font-weight:400}
 .docid{margin-top:12px;padding-top:8px;border-top:1px solid var(--border-default);
   font-size:11.5px;line-height:17px;color:var(--text-muted);display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
 .docid b{font-size:13px;color:var(--text-heading);font-variant-numeric:tabular-nums}
@@ -2220,6 +2226,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
       </div>
 
       <div class="today"><div class="tline"></div><span class="pill">DNES · 17.07.2026</span></div>
+      <div id="tlDocs"></div>
 
       <div class="trow" data-type="visit" data-mc="tx">
         <div class="spine"><button class="tico t-cur" data-f="visit" title="Mílnik — zmena liečby" onclick="msJump(event)"><svg class="ico s14" aria-hidden="true"><use href="#i-steth"/></svg></button><div class="line"></div></div>
@@ -3432,6 +3439,44 @@ function docAssignHuman(){
 function docShort(m){return m?m.replace('urn:uuid:','').slice(0,8):'—';}
 /* Register dokumentov — JEDEN zdroj pre časovú os aj Records (jeden dokument,
    dva pohľady, nikdy dve kópie). */
+/* ── JEDEN DOKUMENT, DVA POHĽADY (DOC-06) ─────────────────────────────────────
+   Časová os aj Records čítajú z toho istého registra DOC_REG a odkazujú na
+   masterIdentifier. Nikdy nevzniká kópia — je to jeden dokument zobrazený dvakrát. */
+function docOpen(master){
+  const r=DOC_REG.find(x=>x.master===master); if(!r)return;
+  const v=RPT_VERS.find(s=>s.doc&&s.doc.master===master&&s.ver===r.version);
+  if(v){RPT_VIEW_VER=v.ver;}
+  mOpen('dkwrap');
+  const b=document.querySelectorAll('.dtabs button')[2];
+  if(b)dTab(2,b);
+  showToast((r.humanId||docShort(master))+' · '+tt('verzia')+' '+r.version);
+}
+function renderDocViews(){
+  /* časová os */
+  const tl=document.getElementById('tlDocs');
+  if(tl)tl.innerHTML=DOC_REG.map(r=>`
+    <div class="trow" data-type="doc">
+      <div class="spine"><button class="tico" data-f="doc"><svg class="ico s14" aria-hidden="true"><use href="#i-file"/></svg></button><div class="tvline"></div></div>
+      <div class="card" onclick="docOpen('${r.master}')" style="cursor:pointer"><div class="body">
+        <div class="cmain">
+          <div class="l1"><b>${escT(r.title)}</b><span class="dt">${escT(r.date)}</span></div>
+          <div class="l2">${escT(r.humanId||docShort(r.master))} · ${tt('verzia')} ${r.version} · ${escT(r.by)}</div>
+          <div class="crow"><span class="tag ${r.status==='final'?'st-done':'st-plan'}">${escT(r.status)}</span>
+            <span class="tag clin t-a2">${r.lang.toUpperCase()}</span>
+            <span class="tag clin t-a1">${tt('vytvorené v systéme')}</span></div>
+        </div>
+      </div></div>
+    </div>`).join('');
+  /* Records — ten istý register, iný pohľad */
+  const rc=document.getElementById('pt-docs');
+  if(rc)rc.innerHTML=DOC_REG.length
+    ? DOC_REG.map(r=>`<button class="plrow" onclick="docOpen('${r.master}')">
+        <span class="plico" style="background:var(--accent-2-soft);color:var(--accent-2-strong)"><svg class="ico" aria-hidden="true"><use href="#i-file"/></svg></span>
+        <span class="pltx">${escT(r.humanId||docShort(r.master))}<small>${escT(r.title)} · v${r.version}</small></span>
+        <span class="plc">${escT(r.status)}</span></button>`).join('')
+    : `<div class="tempty">${tt('Zatiaľ žiadny dokument vytvorený v systéme.')}</div>`;
+}
+
 const DOC_REG=[];
 function docRegister(sn){
   const i=DOC_REG.findIndex(x=>x.master===sn.doc.master);
@@ -3439,6 +3484,7 @@ function docRegister(sn){
              title:sn.tpl.name,slotKey:'dekurz',date:sn.id.date,ts:sn.ts,
              by:sn.by,lang:sn.lang,hash:sn.hash};
   if(i>=0)DOC_REG[i]=rec;else DOC_REG.push(rec);
+  if(typeof renderDocViews==='function')renderDocViews();
   return rec;
 }
 /* ── ZMRAZENIE OBSAHU PRI PODPISE ──────────────────────────────────────────────
@@ -4321,6 +4367,7 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
+["vytvorené v systéme","created in system"],["Vytvorené v systéme","Created in system"],["Zatiaľ žiadny dokument vytvorený v systéme.","No document created in the system yet."],
 ["identifikátor","identifier"],["verzia","version"],["Číslo dokumentu","Document number"],["koncept","draft"],["koncept — číslo sa pridelí pri podpise","draft — number is assigned on signature"],
 ["hypertenzia","hypertension"],["India","India"],["PHR","PHR"],["QR — Z4K-882","QR — Z4K-882"],
 ["Skryť menu","Hide menu"],["Cesta pacienta","Patient pathway"],["Plány starostlivosti","Care plans"],["Komunikácia","Communication"],["Plán starostlivosti — demencia","Dementia Care plan"],["Plán starostlivosti — Fabryho choroba","Fabry Care plan"],["Plán starostlivosti — kolorektálny","Colorectal Care plan"],["Správanie","Behavioral"],["Osobné","Personal"],["Nahrať reláciu","Record session"],["Digitalizovať dokument","Digitize document"],["Platba a QR synchronizácia","Pay & Synch QR"],["Formát výstupu","Output format"],["Vytvoriť šablónu","Create a template"],["Zastaviť a skontrolovať","Stop & review"],["Ďalší krok","Next step"],["Ďalší krok — termín / žiadanka / odoslanie","Next step — appointment / order / referral"],["Špecialista","Specialist"],["Laboratórne vyšetrenie","Lab test"],["Hospitalizácia","Hospitalization"],["Telemedicína","Tele"],["Oddelenie","Department"],["Neurológia","Neurology"],["Vytvoriť","Create"],["PHR — pripravujeme (Health data + Records)","PHR — coming soon (Health data + Records)"],["Správanie — ďalší inkrement","Behavioral — next increment"],["Osobné — ďalší inkrement","Personal — next increment"],["Prepnúť zariadenie","Switch facility"],["Potiahnutím zmeníte šírku","Drag to resize"],["Dôvod / indikácia (nepovinné)…","Reason / indication (optional)…"],["Profil","Profile"],["Menu","Menu"],["Drobčeková navigácia","Breadcrumb"],["Krvný tlak","Blood pressure"],["Pulz","Pulse"],["Hmotnosť","Weight"],["Dátum","Date"],["Čas","Time"],["Pracovisko","Clinic"],
@@ -4755,7 +4802,9 @@ function renderPHR(){
    {name:'Documents and confirmations',n:1,a:5,icon:'i-file'}
   ];
   el.innerHTML='<div class="ptsub">Health data</div>'+HD.map(phrRow).join('')
-    +'<div class="ptsub">Records</div>'+RC.map(phrRow).join('');
+    +'<div class="ptsub">Records</div>'+RC.map(phrRow).join('')
+    +'<div class="ptsub">'+tt('Vytvorené v systéme')+'</div><div id="pt-docs"></div>';
+  renderDocViews();
 }
 renderPHR();
 
