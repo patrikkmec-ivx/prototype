@@ -1360,6 +1360,24 @@ body[data-tab="comm"] .timeline{display:none}
 .tplbar .vsw button{font:inherit;font-size:12px;padding:5px 11px;border:0;background:var(--surface-0);color:var(--text-muted);cursor:pointer}
 .tplbar .vsw button.on{background:var(--brand-cyan-soft);color:var(--brand-teal-text);font-weight:600}
 
+.tpltop{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border-default)}
+.scopetabs{display:flex;border:1px solid var(--border-default);border-radius:9px;overflow:hidden}
+.scopetabs button{font:inherit;font-size:12.5px;padding:7px 14px;border:0;background:var(--surface-0);color:var(--text-muted);cursor:pointer;display:flex;gap:6px;align-items:center}
+.scopetabs button+button{border-left:1px solid var(--border-default)}
+.scopetabs button.on{background:var(--brand-cyan-soft);color:var(--brand-teal-text);font-weight:600}
+.scopetabs .cnt{font-size:10.5px;background:var(--surface-1);border-radius:999px;padding:0 6px;color:var(--text-muted)}
+.scopetabs button.on .cnt{background:#fff;color:var(--brand-teal-text)}
+.tpltop .tplnewb{margin-left:auto;padding:7px 14px;min-height:0;font-size:12.5px}
+.tempty{font-size:12px;color:var(--text-muted);padding:14px 4px;line-height:18px}
+.newhead{font-size:12.5px;font-weight:700;color:var(--text-heading);margin-bottom:10px}
+.newgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.newcard{display:flex;flex-direction:column;gap:4px;align-items:flex-start;text-align:left;padding:13px;border:1px solid var(--border-default);border-radius:11px;background:var(--surface-0);cursor:pointer;font:inherit;min-width:0}
+.newcard:hover{border-color:var(--brand-cyan);background:var(--brand-cyan-soft)}
+.newcard .nci{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:9px;background:var(--brand-cyan-soft);margin-bottom:4px}
+.newcard .nci svg{stroke:var(--brand-teal-text)}
+.newcard b{font-size:13px;color:var(--text-heading)}
+.newcard span:not(.nci){font-size:11px;color:var(--text-muted);line-height:15px}
+.newnote{font-size:10.5px;color:var(--text-muted);margin-top:11px;font-style:italic;line-height:15px}
 .tplmgr{display:grid;grid-template-columns:236px minmax(0,1fr);gap:16px;min-height:340px}
 @media(max-width:820px){.tplmgr{grid-template-columns:1fr}.tplside{border-right:0;border-bottom:1px solid var(--border-default);padding:0 0 12px;max-height:none}}
 .tplside{border-right:1px solid var(--border-default);padding-right:12px;overflow:auto;max-height:420px}
@@ -2334,6 +2352,7 @@ body[data-tab="comm"] .timeline{display:none}
   <div class="sheet wide">
     <div class="sh-h"><span class="hic c-note"><svg class="ico s14"><use href="#i-pen"/></svg></span><b>Šablóny dokumentov</b><button class="x" onclick="mClose('tplwrap')" title="Zavrieť">&times;</button></div>
     <div class="sh-b">
+      <div class="tpltop" id="tpltop"></div>
       <div class="tplmgr">
         <div class="tplside" id="tplside"></div>
         <div class="tpledit" id="tpledit"></div>
@@ -3275,10 +3294,11 @@ const OCR_DEMO=[
  {kind:'consent',text:'Informovaný súhlas pacienta'}
 ];
 let TPL_IMP=null;
-function tplImport(){
+function tplImport(src){
+  TPL_NEW=false;
   TPL_IMP={rows:OCR_DEMO.filter(x=>x.kind==='label').map(x=>({lbl:x.text,src:aliasOf(x.text),use:true})),
            header:OCR_DEMO.find(x=>x.kind==='header'),
-           consent:OCR_DEMO.find(x=>x.kind==='consent')};
+           consent:OCR_DEMO.find(x=>x.kind==='consent'),src:src||'file'};
   TPL_EDIT=null;tplMgrRender();
 }
 function tplImpSet(i,v){TPL_IMP.rows[i].src=v||null;tplMgrRender();}
@@ -3311,7 +3331,8 @@ function tplImpHTML(){
 function tplImpApply(){
   const secs=TPL_IMP.rows.filter(r=>r.use&&r.src).map(r=>({label:r.lbl.replace(/[:.\s]+$/,''),src:r.src}));
   if(!secs.length){showToast('Nie je namapovaná žiadna sekcia');return;}
-  const tpl={id:'core.dekurz.import.'+Date.now(),domain:'core',kind:'user',slotKey:'dekurz',
+  const sc=TPL_SCOPE==='system'?'my':TPL_SCOPE;
+  const tpl={id:'core.dekurz.import.'+Date.now(),domain:'core',kind:sc,slotKey:'dekurz',
              name:tt('Šablóna z nahratej vzorky'),codes:true,ver:0,sections:secs};
   TPL_IMP=null;TPL_EDIT=tpl;tplMgrRender();
   showToast(tplValidate(tpl).ok?'Šablóna pripravená — skontrolujte a uložte':'Šablóna nespĺňa minimum trhu — doplňte sekcie',
@@ -3426,7 +3447,7 @@ const TPL_REG=[
   sections:[{label:'Dg',src:'A'},{label:'Rx',src:'rx'},{label:'Follow-up',src:'fu'}]},
  {id:'core.consent.v1',domain:'core',kind:'system',slotKey:'consent',name:'Informovaný súhlas — samostatný',codes:false,ver:1,
   consentId:'cns.general.v2',sections:[{label:'Informovaný súhlas',src:'consent'}]},
- {id:'core.dekurz.struct.v1',domain:'core',kind:'user',slotKey:'dekurz',name:'Ambulantná správa — nález (vzor poskytovateľa)',codes:false,ver:1,
+ {id:'core.dekurz.struct.v1',domain:'core',kind:'provider',slotKey:'dekurz',name:'Ambulantná správa — nález (vzor poskytovateľa)',codes:false,ver:1,
   consentId:'cns.handover.v1',
   sections:[{label:'Subj.',src:'S'},
             {label:'OA',src:'OA'},{label:'SA',src:'SA'},{label:'AA',src:'AA'},
@@ -3434,7 +3455,9 @@ const TPL_REG=[
             {label:'Obj.',src:'O'},
             {label:'Dg.',src:'A'},{label:'Odporúčanie',src:'P'},
             {label:'Epikríza',src:'narr',hideIfEmpty:true},
-            {label:'Informovaný súhlas',src:'consent'}]}
+            {label:'Informovaný súhlas',src:'consent'}]},
+ {id:'core.dekurz.my.kontrola.v1',domain:'core',kind:'my',slotKey:'dekurz',name:'Krátka kontrola (moja)',codes:true,ver:1,
+  sections:[{label:'Subj.',src:'S'},{label:'Obj.',src:'O'},{label:'Dg.',src:'A'},{label:'Plán',src:'P'}]}
 ];
 let TPL_SEL=null,SLOT_SEL='dekurz';
 const SLOTS=[{k:'dekurz',n:'Dekurz / správa'},{k:'consent',n:'Informovaný súhlas'}];
@@ -3459,13 +3482,38 @@ const TPL_SRC=[
  {k:'GA',n:'GA — gynekologická anamnéza',g:'pt'},
  {k:'consent',n:'Informovaný súhlas',g:'doc'}
 ];
-let TPL_EDIT=null,TPL_TAB='edit';
+let TPL_EDIT=null,TPL_TAB='edit',TPL_SCOPE='system',TPL_NEW=false;
+const TPL_SCOPES=[{k:'system',n:'Systémové'},{k:'provider',n:'Zariadenia'},{k:'my',n:'Moje šablóny'}];
+function tplScope(k){TPL_SCOPE=k;TPL_NEW=false;TPL_IMP=null;TPL_TAB='edit';
+  const l=TPL_REG.filter(x=>x.kind===k);
+  TPL_EDIT=l.length?JSON.parse(JSON.stringify(l[0])):null;tplMgrRender();}
+function tplNewOpen(){TPL_NEW=true;TPL_IMP=null;TPL_EDIT=null;tplMgrRender();}
+function tplTopHTML(){
+  const tabs=TPL_SCOPES.map(s=>{const n=TPL_REG.filter(x=>x.kind===s.k).length;
+    return `<button class="${TPL_SCOPE===s.k?'on':''}" onclick="tplScope('${s.k}')">${escT(tt(s.n))}<span class="cnt">${n}</span></button>`;}).join('');
+  return `<div class="scopetabs">${tabs}</div>
+    <button class="btn primary tplnewb" onclick="tplNewOpen()">+ ${tt('Vytvoriť šablónu')}</button>`;
+}
+function tplNewHTML(){
+  const card=(ic,ti,de,fn)=>`<button class="newcard" onclick="${fn}">
+    <span class="nci"><svg class="ico s18" aria-hidden="true"><use href="#i-${ic}"/></svg></span>
+    <b>${escT(tt(ti))}</b><span>${escT(tt(de))}</span></button>`;
+  return `<div class="newhead">${tt('Ako chcete šablónu vytvoriť?')}</div>
+    <div class="newgrid">
+      ${card('plus','Od začiatku','Prázdna šablóna, sekcie doplníte ručne',"tplMgrNew()")}
+      ${card('file','Nahrať súbor','Z existujúcej správy vo formáte PDF alebo DOCX',"tplImport('file')")}
+      ${card('cam','Odfotiť','Odfoťte vytlačenú správu, rozpoznáme jej štruktúru',"tplImport('photo')")}
+    </div>
+    <div class="newnote">${tt('Zo vzorky sa preberá iba štruktúra. Údaje pacienta ani zdrojový obrázok sa neukladajú.')}</div>`;
+}
 function tplTab(k){TPL_TAB=k;tplMgrRender();}
-function tplMgr(){TPL_EDIT=JSON.parse(JSON.stringify(tplCur()));mOpen('tplwrap');tplMgrRender();}
+function tplMgr(){const c=tplCur();TPL_EDIT=JSON.parse(JSON.stringify(c));TPL_SCOPE=c.kind||'system';
+  TPL_NEW=false;TPL_IMP=null;TPL_TAB='edit';mOpen('tplwrap');tplMgrRender();}
 function tplMgrPick(id){const s=TPL_REG.find(x=>x.id===id);if(s){TPL_IMP=null;TPL_TAB='edit';TPL_EDIT=JSON.parse(JSON.stringify(s));tplMgrRender();}}
 function tplMgrNew(){
-  TPL_IMP=null;
-  TPL_EDIT={id:'core.dekurz.user.'+Date.now(),domain:'core',kind:'user',slotKey:'dekurz',
+  TPL_IMP=null;TPL_NEW=false;
+  const sc=TPL_SCOPE==='system'?'my':TPL_SCOPE;
+  TPL_EDIT={id:'core.dekurz.'+sc+'.'+Date.now(),domain:'core',kind:sc,slotKey:SLOT_SEL,
             name:tt('Nová šablóna'),codes:true,ver:0,sections:[{label:'A',src:'A'},{label:'P',src:'P'}]};
   tplMgrRender();
 }
@@ -3490,16 +3538,15 @@ function tplSecMv(i,d){const a=TPL_EDIT.sections,j=i+d;if(j<0||j>=a.length)retur
 function tplMgrRender(){
   const side=document.getElementById('tplside'),ed=document.getElementById('tpledit');
   if(!side||!ed)return;
-  const grp=(k,lbl)=>{const l=TPL_REG.filter(t=>t.kind===k);if(!l.length)return '';
-    return `<div class="tgrp">${lbl}</div>`+l.map(t=>
-      `<div class="titem ${TPL_EDIT&&t.id===TPL_EDIT.id?'on':''}" onclick="tplMgrPick('${t.id}')">${escT(tt(t.name))}
-        <span class="kb">${t.domain} · ${t.slotKey} · v${t.ver||1}</span></div>`).join('');};
-  side.innerHTML=grp('system',tt('Systémové'))+grp('user',tt('Poskytovateľa'))
-    +`<div class="tgrp">&nbsp;</div>
-      <button class="btn" style="width:100%" onclick="tplMgrNew()">+ ${tt('Nová šablóna')}</button>
-      <button class="btn" style="width:100%;margin-top:6px" onclick="tplImport()">${tt('Nahrať šablónu')}…</button>`;
+  const top=document.getElementById('tpltop');if(top)top.innerHTML=tplTopHTML();
+  const list=TPL_REG.filter(x=>x.kind===TPL_SCOPE);
+  side.innerHTML=list.length
+    ? list.map(t=>`<div class="titem ${TPL_EDIT&&t.id===TPL_EDIT.id?'on':''}" onclick="tplMgrPick('${t.id}')">${escT(tt(t.name))}
+        <span class="kb">${t.slotKey} · v${t.ver||1}</span></div>`).join('')
+    : `<div class="tempty">${tt('V tomto okruhu zatiaľ nie je žiadna šablóna.')}</div>`;
+  if(TPL_NEW){ed.innerHTML=tplNewHTML();return;}
   if(TPL_IMP){ed.innerHTML=tplImpHTML();return;}
-  if(!TPL_EDIT){ed.innerHTML='';return;}
+  if(!TPL_EDIT){ed.innerHTML=`<div class="tempty">${tt('Vyberte šablónu vľavo alebo vytvorte novú.')}</div>`;return;}
   const ro=TPL_EDIT.kind==='system',v=tplValidate(TPL_EDIT);
   const opts=(sel)=>TPL_SRC.map(s=>`<option value="${s.k}"${s.k===sel?' selected':''}>${escT(tt(s.n))}</option>`).join('');
   const tabs=`<div class="edtabs">
@@ -3545,6 +3592,7 @@ function tplMgrRender(){
 function tplSave(){
   if(!TPL_EDIT)return;
   if(TPL_EDIT.kind==='system'){showToast('Systémovú šablónu nemožno prepísať');return;}
+  TPL_SCOPE=TPL_EDIT.kind;
   const v=tplValidate(TPL_EDIT);
   if(!v.ok){showToast('Šablóna neprešla kontrolou minima trhu');return;}   /* TPL-02 */
   const i=TPL_REG.findIndex(t=>t.id===TPL_EDIT.id);
@@ -3772,6 +3820,10 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
+["Zariadenia","Facility"],["Moje šablóny","My templates"],["Vytvoriť šablónu","Create template"],["Ako chcete šablónu vytvoriť?","How do you want to create the template?"],
+["Od začiatku","From scratch"],["Prázdna šablóna, sekcie doplníte ručne","Blank template, you add the sections"],["Nahrať súbor","Upload file"],["Z existujúcej správy vo formáte PDF alebo DOCX","From an existing report in PDF or DOCX"],
+["Odfotiť","Take a photo"],["Odfoťte vytlačenú správu, rozpoznáme jej štruktúru","Photograph a printed report and we will recognise its structure"],
+["V tomto okruhu zatiaľ nie je žiadna šablóna.","There are no templates in this scope yet."],["Vyberte šablónu vľavo alebo vytvorte novú.","Select a template on the left or create a new one."],["Krátka kontrola (moja)","Short follow-up (mine)"],
 ["Sekcie","Sections"],["Náhľad","Preview"],["Náhľad s dnešnými údajmi. Anamnéza sa preberá z pacientskej úrovne.","Preview with today\u2019s data. History is projected from the patient level."],
 ["Dokument","Document"],["Dekurz / správa","Encounter note / report"],["Informovaný súhlas — samostatný","Informed consent — standalone"],["Znenie súhlasu","Consent wording"],
 ["Všeobecný informovaný súhlas","General informed consent"],["Prevzatie lekárskej správy","Receipt of the medical report"],["Spracúvanie osobných údajov","Personal data processing"],
