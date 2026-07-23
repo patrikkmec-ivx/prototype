@@ -4,8 +4,39 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v120 (Next step — zjednotený flow termín/order/referral)</title>
+<title>Hilbi Cockpit — v129 (Report conformance — provenance, audit, AI transparentnosť)</title>
 <!-- CHANGELOG
+v129 (2026-07-23): G5+G7. Provenance + AuditEvent ako first-class: atribúcia
+  (create/sign/amend/verify) a prístupový log (copy/print/share) s agentom, rolou
+  a purpose-of-use; audit panel v reporte. DSI transparentnosť podľa US HTI-1 —
+  každý AI návrh (výkaz, E/M) deklaruje typ, verziu, vstupy, logiku a že rozhoduje
+  lekár. Normatívny zdroj: cp-17 §6, §8.
+v128 (2026-07-23): G2 terminológia. Dual coding — záznam SNOMED CT + LOINC, výkaz
+  MKCH-10/ICD-10/ICD-10-CM per trh. CodeableConcept tvar (coding[] + text), naratív
+  sa zachováva; nie select. TERM_BIND per SOAP slot (S = naratív, A/O/P kódované).
+  Lieky ATC (EÚ/IN) vs RxNorm (US) cez market_rules — oprava natvrdo zapísaného
+  seamu z v126. CODEMAP = demo ValueSet. Normatívny zdroj: cp-17 §3.
+v127 (2026-07-23): Akčná lišta reportu (Generovať / Uložiť verziu / Kopírovať /
+  Tlačiť / Zdieľať) + amendment verziovanie: Composition.status preliminary → final
+  → amended, originál sa zachováva, história verzií. Zdieľanie viazané na súhlasový
+  kontext per trh. Normatívny zdroj: cp-17 §5, §7.
+v126 (2026-07-23): Report-shell refactor. Mode-aware (overlay/core), identita
+  z kontextu (ABHA/HPR/HFR · MRN/NPI seam) namiesto natvrdo zapísaných hodnôt,
+  jednotný shell — koniec duplikovaného chrome, dokumentový profil a podpisová
+  úroveň per trh. Normatívny zdroj: cp-17 §1, §2.
+v125 (2026-07-22): Hero key-facts chipy — .chips .row flex-wrap nowrap → wrap,
+  gap 6px 8px. Chipy sa pri zúžení zalomia namiesto orezania.
+v124 (2026-07-22): Špecializácie → medzinárodné tituly (Neurologist/Cardiologist/
+  Internist/Surgeon). NS_SPEC nahradený SPECBY + specOf (kľúč = priezvisko,
+  normalizácia diakritiky, rieši SK aj EN naraz). Aplikované vrátane hover tooltipu
+  na ceste pacienta.
+v123 (2026-07-22): Magenta preč z mien → mená v --text-heading (navy, 700).
+  Specializačný pill aj v položkách dropdown menu. Oprava nsSave — číta len .nm,
+  aby do FHIR mapovania nepribral text pillu.
+v122 (2026-07-22): Expert-identity vzor (avatar + akcentový odznak + meno +
+  specializačný pill) tam, kde je lekár subjektom: dropdown + PLANNED riadok.
+v121 (2026-07-22): Odstránený ⏎ (kb2) odznak zo všetkých 3 primary pätiek.
+  Avatary do Clinician dropdownu (NS_AV, nsAvHtml), reálny avatar aj v PLANNED riadku.
 v120 (2026-07-22): ZJEDNOTENIE termín + order + interné odoslanie do JEDNÉHO
   modalu "Next step" (nswrap), 1 vstup cez +. Typová os (FHIR mapovanie):
   Follow-up/Tele=Appointment (date/time), Specialist/Hospitalization=ServiceRequest
