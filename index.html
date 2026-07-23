@@ -4,8 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v154 (Hlavička dokumentu v editore šablóny)</title>
+<title>Hilbi Cockpit — v155 (Demo zariadenie: FN Trnava)</title>
 <!-- CHANGELOG
+v155 (2026-07-23): Demo zariadenie zmenené z ExpertMed na Fakultnú nemocnicu Trnava,
+  Neurologická klinika — Centrum SM, A. Žarnova 11, 917 05 Trnava — podľa dodanej
+  vzorky. Hlavička sa prejaví vo všetkých šablónach, náhľadoch aj textovom výstupe.
+  Prepínač zariadení v navigácii má FN Trnava ako predvolenú (logo aj gradient).
+  Funkcie podpisovateľov zosúladené (prednosta / primár Neurologickej kliniky).
+  Mená lekárov ostávajú vymyslené — zo vzorky sa preberá iba štruktúra (TPL-08).
 v154 (2026-07-23): Hlavička dokumentu ako prvý a výrazný blok editora šablóny —
   ukazuje aktuálnu hlavičku zariadenia s tlačidlom Upraviť. Predtým bol odkaz
   len drobným textom pod podpismi. Hlavička je prvá vec na dokumente, preto je
@@ -731,7 +737,7 @@ button{font-family:inherit}
 /* NavRail */
 .nav{background:var(--surface-navy);border-radius:16px;color:#B9C0D6;display:flex;flex-direction:column;padding:20px 12px;position:relative;overflow:visible}
 .nav .org{display:flex;gap:10px;align-items:center;padding:0 6px 22px}
-.nav .org .logo{width:42px;height:42px;border-radius:10px;background:var(--grad-brand);color:#fff;font-weight:800;font-size:15px;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;flex:none}
+.nav .org .logo{width:42px;height:42px;border-radius:10px;background:var(--org-fn);color:#fff;font-weight:800;font-size:15px;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;flex:none}
 .org .orgtxt{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px}
 .org .orgtxt b{color:#fff;font-size:14px;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .org .orgtxt span{font-size:11.5px;color:#8891AE}
@@ -2012,8 +2018,8 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
 
   <nav class="nav">
     <div class="org">
-      <div class="logo" id="orgLogo">MG</div>
-      <div class="orgtxt"><b id="orgName">Miami General Hospital</b><span id="orgLoc">Florida · US</span></div>
+      <div class="logo" id="orgLogo">FN</div>
+      <div class="orgtxt"><b id="orgName">Fakultná nemocnica Trnava</b><span id="orgLoc">Trnava · SK</span></div>
       <button class="orgchev" onclick="orgSwitch(event)" title="Prepnúť zariadenie"><svg width="14" height="8" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <div class="orgdrop" id="orgdrop">
         <button onclick="pickOrg('Miami General Hospital','Florida · US','MG',this)"><span class="odlogo mg">MG</span><span class="odtxt"><b>Miami General Hospital</b><small>Florida · US</small></span></button>
@@ -3275,7 +3281,7 @@ function fuPick(btn){
   if(document.getElementById('rendout').classList.contains('show'))renderOut();
 }
 /* Report identity — z kontextu (seam: nesie ABHA/HPR/HFR · NPI · EÚ ID), nie hardcoded */
-const RPT_ID={patient:'Jane Carter',pid:'76157 8787',clinician:'Dr. Novak',org:'ExpertMed',date:'17.07.2026'};
+const RPT_ID={patient:'Jane Carter',pid:'76157 8787',clinician:'Dr. Novak',org:'Fakultná nemocnica Trnava',date:'17.07.2026'};
 /* Report mód: overlay = kompilácia, autoritatívny záznam drží host EHR · core = Hilbi je system of record */
 let RPT_MODE='overlay';
 function rptModeNote(){return RPT_MODE==='core'?tt('autoritatívny záznam (Hilbi = system of record)'):tt('kompilácia — zápis do zdrojového systému (system of record: host EHR)');}
@@ -3705,12 +3711,12 @@ function langName(k){const l=LANGS.find(x=>x.k===k);return l?l.n:k;}
 /* HLAVIČKA A PÄTKA POSKYTOVATEĽA (TPL-07) — patria ORGANIZÁCII, nie šablóne.
    Šablóna ich nikdy nenesie natvrdo; zmena adresy sa prejaví vo všetkých dokumentoch. */
 const ORG={
-  name:'ExpertMed',
-  fac:'Neurologická ambulancia',
-  addr:'Pažítková 4, 821 01 Bratislava',
-  ico:'35 123 456',
-  pzs:'P40707004209',
-  contact:'+421 2 1234 5678 · info@expertmed.sk',
+  name:'Fakultná nemocnica Trnava',
+  fac:'Neurologická klinika — Centrum SM',
+  addr:'A. Žarnova 11, 917 05 Trnava',
+  ico:'',
+  pzs:'P00000000000',            /* demo kód */
+  contact:'',
   stamp:'Pečiatka a podpis lekára',
   jurisdiction:'SK',
   lang:'sk',         /* jazyk dokumentu — z jurisdikcie, potvrdzuje zariadenie (I18N-03) */
@@ -3718,8 +3724,8 @@ const ORG={
      objavia, určuje ŠABLÓNA (TPL-19). Samotný podpis je runtime akt (SIG-*). */
   signatories:[
     {k:'clinician',name:'Dr. E. Rodriguez',title:'ošetrujúci lekár',code:'A12345'},
-    {k:'head',     name:'MUDr. M. Novák, PhD.',title:'prednosta kliniky',code:''},
-    {k:'senior',   name:'MUDr. J. Horák, PhD.',title:'primár',code:''},
+    {k:'head',     name:'MUDr. M. Novák, PhD.',title:'prednosta Neurologickej kliniky',code:''},
+    {k:'senior',   name:'MUDr. J. Horák, PhD.',title:'primár Neurologickej kliniky',code:''},
     {k:'patient',  name:'',title:'podpis pacienta alebo zákonného zástupcu',code:''}
   ]
 };
