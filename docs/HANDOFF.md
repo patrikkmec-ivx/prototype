@@ -90,6 +90,24 @@ zabezpečiť znenie súhlasu v jazyku dokumentu → **vybrať podpisovateľov** 
 Hlavička, pätka a podpisovatelia sa editujú v **nastaveniach zariadenia**, nie v šablóne;
 z editora šablóny tam vedie odkaz.
 
+## 3e. Ďalší krok — tvorba dokumentov
+
+Všetky tri predpoklady sú uzavreté (`DOC-*`, `STO-*`). Tvorba dokumentov znamená:
+
+1. **Vstup** — vytvorenie dokumentu z kokpitu alebo z časovej osi
+2. **Výber typu a šablóny** — `slotKey` + šablóna z okruhu (`TPL-03`, `TPL-16`)
+3. **Naplnenie zo zdrojov** — encounter + pacientska úroveň (`TPL-04`, `TPL-17`)
+4. **Náhľad a coverage** — čo ešte chýba pred podpisom (`INT-03`)
+5. **Podpis** — snímka, ľudské číslo, zápis do registra (`AMD-05`, `DOC-04`)
+6. **Výstup** — štruktúra, plain text do schránky, **tlač v jazyku dokumentu** (`I18N-13`)
+
+Tlačový výstup zatiaľ **neexistuje** — nie je tlačová šablóna ani `@media print`.
+Patrí k tomuto kroku.
+
+Potom nasleduje **rozhranie dekurzu** (`INT-01..05`): IQ intake, kandidáti z OCR ako
+`validated=false`, validácia po položkách, označenie prenesených položiek
+z predchádzajúcej návštevy (`INT-04`, klonovaná dokumentácia).
+
 ## 3d. Predpoklady tvorby dokumentov
 
 Tri veci treba uzavrieť **pred** tvorbou dokumentov — nie sú to doplnky:
