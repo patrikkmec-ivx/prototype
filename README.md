@@ -4,7 +4,7 @@
 **v akom poradí ho čítať** a **kto vyhráva pri konflikte**.
 
 - **Live prototyp:** https://patrikkmec-ivx.github.io/prototype/
-- **Aktuálna verzia prototypu:** **v160** — changelog je v hlavičke `index.html`
+- **Aktuálna verzia prototypu:** **v161** — changelog je v hlavičke `index.html`
 - Desktop ≥ 745 px, mobil ≤ 744 px; jazyky EN/SK (prepínač v menu)
 
 > **Prototyp nie je produkčný kód.** Žiadne reálne údaje pacientov. Prototyp implementuje
@@ -67,6 +67,7 @@ cp-17 (report conformance)  >  cp-15 (záznamový model)  >  index.html (impleme
 | `docs/core-12-tech-sync-standard.md` | **NORMATIVE** | Synchronizačný kontrakt. |
 | `docs/DEV-SUMMARY.md` | **INFORMATIVE** | Orientácia pre dev tím + mapa „pravidlo → kde v kóde". |
 | `docs/HANDOFF.md` | **INFORMATIVE** | Kontext na pokračovanie práce v novej relácii. |
+| `tokens.json` | **REFERENCE** | Dizajn tokeny v DTCG formáte, generované z `:root`. Vstup pre Style Dictionary → Figma Variables. Neupravovať ručne. |
 | `index.html` | — | Prototyp. Implementácia, nikdy nie norma. |
 
 > **Poradie čítania pri zmene:** norma (`cp-17`) → mapa do kódu (`DEV-SUMMARY` §4) →
