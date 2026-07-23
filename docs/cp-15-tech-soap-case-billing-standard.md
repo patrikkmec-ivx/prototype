@@ -10,7 +10,7 @@ domain: dev
 visibility: internal
 market: [SK, CZ, DE, IN, AE, US]
 status: draft — čaká na schválenie (Roman) a compliance kontrolu (Marek)
-related: [cp-01-tech-standard, cp-13-tech-smplus-mapping, cp-14-tech-soap-screen-flow]
+related: [cp-01-tech-standard, cp-13-tech-smplus-mapping, cp-14-tech-soap-screen-flow, cp-17-tech-report-conformance-standard, cp-18-tech-report-lifecycle]
 ---
 
 # SOAP jadro, case vrstva a billing derivácia
@@ -18,6 +18,11 @@ related: [cp-01-tech-standard, cp-13-tech-smplus-mapping, cp-14-tech-soap-screen
 Účel: jeden klinický záznamový model pre všetky trhy (US, EU, India). Lekár vykonáva
 akcie; systém ich mapuje do SOAP štruktúry na pozadí. Flows sa líšia poradím vstupov,
 nie dátovým modelom.
+
+> **Rozsah.** Tento dokument definuje **záznamový model**. Čo sa so záznamom smie stať —
+> kódovanie, podpis, verziovanie, provenance, zdieľanie a transparentnosť AI — definuje
+> `cp-17-tech-report-conformance-standard` (normatívny). Pri konflikte v týchto oblastiach
+> má prednosť cp-17.
 
 ## 1. Normatívne pravidlá — jadro
 
