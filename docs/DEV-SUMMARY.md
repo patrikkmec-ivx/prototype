@@ -50,7 +50,10 @@ label, a kódové systémy (záznam / výkaz / lieky / laboratórne).
 | Shell reportu | `REP-06` | `reportShell()` |
 | Identita | `REP-07` | `RPT_ID`, `rptIdLine()` |
 | Dokumentový profil | `REP-08` | `MKT[…].doc` |
-| Register templatov | `REP-09` | `RPT_TPL`, `rptSource()`, `rptSec()` |
+| Register šablón | `REP-09`, `TPL-05` | `TPL_REG` (doménovo neutrálny), `rptSource()`, `rptSec()` |
+| Výber šablóny | `TPL-03` | `tplCur()`, `tplPick()` — trh dáva default a minimum, nevyberá |
+| Coverage | `INT-03` | `tplCoverage()` |
+| Dva renderery | `TPL-06` | `rptSec()` (štruktúra) · `rptPlain()` (text pre schránku) |
 | Tvar položky | `TERM-03`, `TERM-05` | `rptItem()` → `{slot, text, coding}` |
 | Kódová väzba slotu | `TERM-04` | `TERM_BIND` |
 | Dual coding | `TERM-02`, `TERM-03` | `codeChipsOf()`, `codeOf()` |
