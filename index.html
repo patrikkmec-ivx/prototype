@@ -1340,6 +1340,14 @@ body[data-tab="comm"] .timeline{display:none}
 .orghd{border-bottom:2px solid var(--text-heading);padding-bottom:6px;margin-bottom:10px;line-height:17px}
 .orghd b{font-size:13.5px;color:var(--text-heading)}
 .orghd span{display:block;font-size:11px;color:var(--text-muted)}
+.rendout .rsec.key{margin-top:13px}
+.rendout .rsec.key>b{font-size:13px;color:var(--text-heading);letter-spacing:.01em}
+.rendout .rsec.key .itm{font-weight:600}
+.rendout .rsec.norm{margin-top:9px}
+.rendout .rsec.anam{margin-top:2px;font-size:12px;line-height:18px}
+.rendout .rsec.anam>b{color:var(--text-heading);font-weight:700}
+.rendout .itm.inl{display:inline}
+.rendout .sep{color:var(--text-muted)}
 .rendout .itm.pt{color:var(--text-body)}
 .rendout .ptm{margin-left:6px;font-size:10px;color:var(--text-muted);border:1px dotted var(--border-strong);border-radius:999px;padding:0 6px;white-space:nowrap}
 .tplbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border-default)}
@@ -1373,6 +1381,11 @@ body[data-tab="comm"] .timeline{display:none}
 .tplval{margin:10px 0;padding:8px 10px;border-radius:8px;font-size:11.5px;line-height:17px}
 .tplval.ok{background:var(--brand-cyan-soft);color:var(--brand-teal-text)}
 .tplval.bad{border:1px solid var(--warning);color:var(--text-body)}
+.edtabs{display:flex;gap:0;border:1px solid var(--border-default);border-radius:9px;overflow:hidden;margin-bottom:12px;width:fit-content}
+.edtabs button{font:inherit;font-size:12.5px;padding:6px 15px;border:0;background:var(--surface-0);color:var(--text-muted);cursor:pointer}
+.edtabs button.on{background:var(--brand-cyan-soft);color:var(--brand-teal-text);font-weight:600}
+.tprev{border:1px solid var(--border-default);border-radius:10px;padding:14px;max-height:340px;overflow:auto;background:var(--surface-white)}
+.tprevn{font-size:10.5px;color:var(--text-muted);margin-top:7px;font-style:italic}
 .tplmeta{font-size:11px;color:var(--text-muted);margin-bottom:8px;font-variant-numeric:tabular-nums}
 .tplro{font-size:11.5px;color:var(--text-muted);margin-bottom:10px;font-style:italic}
 .tplbar .genrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 10px}
@@ -3413,11 +3426,14 @@ const TPL_REG=[
   sections:[{label:'Dg',src:'A'},{label:'Rx',src:'rx'},{label:'Follow-up',src:'fu'}]},
  {id:'core.consent.v1',domain:'core',kind:'system',slotKey:'consent',name:'Informovaný súhlas — samostatný',codes:false,ver:1,
   consentId:'cns.general.v2',sections:[{label:'Informovaný súhlas',src:'consent'}]},
- {id:'core.dekurz.struct.v1',domain:'core',kind:'user',slotKey:'dekurz',name:'Dekurz — členený (ukážka poskytovateľa)',codes:false,ver:1,
+ {id:'core.dekurz.struct.v1',domain:'core',kind:'user',slotKey:'dekurz',name:'Ambulantná správa — nález (vzor poskytovateľa)',codes:false,ver:1,
   consentId:'cns.handover.v1',
-  sections:[{label:'Subjektívne',src:'S'},{label:'Objektívne',src:'O'},
-            {label:'Záver',src:'A'},{label:'Terapia a plán',src:'P'},
-            {label:'Naratív',src:'narr',hideIfEmpty:true},
+  sections:[{label:'Subj.',src:'S'},
+            {label:'OA',src:'OA'},{label:'SA',src:'SA'},{label:'AA',src:'AA'},
+            {label:'FA',src:'FA'},{label:'RA',src:'RA'},
+            {label:'Obj.',src:'O'},
+            {label:'Dg.',src:'A'},{label:'Odporúčanie',src:'P'},
+            {label:'Epikríza',src:'narr',hideIfEmpty:true},
             {label:'Informovaný súhlas',src:'consent'}]}
 ];
 let TPL_SEL=null,SLOT_SEL='dekurz';
@@ -3443,9 +3459,10 @@ const TPL_SRC=[
  {k:'GA',n:'GA — gynekologická anamnéza',g:'pt'},
  {k:'consent',n:'Informovaný súhlas',g:'doc'}
 ];
-let TPL_EDIT=null;
+let TPL_EDIT=null,TPL_TAB='edit';
+function tplTab(k){TPL_TAB=k;tplMgrRender();}
 function tplMgr(){TPL_EDIT=JSON.parse(JSON.stringify(tplCur()));mOpen('tplwrap');tplMgrRender();}
-function tplMgrPick(id){const s=TPL_REG.find(x=>x.id===id);if(s){TPL_IMP=null;TPL_EDIT=JSON.parse(JSON.stringify(s));tplMgrRender();}}
+function tplMgrPick(id){const s=TPL_REG.find(x=>x.id===id);if(s){TPL_IMP=null;TPL_TAB='edit';TPL_EDIT=JSON.parse(JSON.stringify(s));tplMgrRender();}}
 function tplMgrNew(){
   TPL_IMP=null;
   TPL_EDIT={id:'core.dekurz.user.'+Date.now(),domain:'core',kind:'user',slotKey:'dekurz',
@@ -3485,7 +3502,19 @@ function tplMgrRender(){
   if(!TPL_EDIT){ed.innerHTML='';return;}
   const ro=TPL_EDIT.kind==='system',v=tplValidate(TPL_EDIT);
   const opts=(sel)=>TPL_SRC.map(s=>`<option value="${s.k}"${s.k===sel?' selected':''}>${escT(tt(s.n))}</option>`).join('');
-  ed.innerHTML=`
+  const tabs=`<div class="edtabs">
+    <button class="${TPL_TAB==='edit'?'on':''}" onclick="tplTab('edit')">${tt('Sekcie')}</button>
+    <button class="${TPL_TAB==='prev'?'on':''}" onclick="tplTab('prev')">${tt('Náhľad')}</button></div>`;
+  if(TPL_TAB==='prev'){
+    ed.innerHTML=tabs+`<div class="tprev rendout show">${orgHeadHTML()}
+      <h4>${escT(tt(TPL_EDIT.name))}</h4>
+      <div class="rsec">${rptIdLine()} · ${escT(RPT_ID.clinician)}</div>
+      ${tplBodyHTML(TPL_EDIT)}
+      <div class="rft">${escT(ORG.stamp)}</div></div>
+      <div class="tprevn">${tt('Náhľad s dnešnými údajmi. Anamnéza sa preberá z pacientskej úrovne.')}</div>`;
+    return;
+  }
+  ed.innerHTML=tabs+`
     ${ro?`<div class="tplro">${tt('Systémová šablóna je len na čítanie — vytvorte kópiu cez Nová šablóna.')}</div>`:''}
     <div class="tplmeta">${TPL_EDIT.ver?('v'+TPL_EDIT.ver+(TPL_EDIT.updatedAt?' · '+escT(TPL_EDIT.updatedAt):'')):tt('nová — zatiaľ neuložená')}</div>
     <div class="fr"><label class="fl">${tt('Názov')}</label>
@@ -3558,17 +3587,32 @@ function rptPlain(tpl){
       }
       return x;
     }).join('; '):'—';
-    L.push(tt(s.label)+': '+txt);
+    L.push((SRC_STYLE[s.src]==='key'?'':'')+tt(s.label)+': '+txt);
   });
   L.push('');
   L.push(tt('podpis')+': '+RPT_ID.clinician+' · '+m.sig+' · '+rptStatus());
   L.push(ORG.stamp);
   return L.join('\n');
 }
-function rptSec(label,items){
-  return `<div class="rsec"><b>${label}:</b> ${items.length
-    ? items.map(it=>`<span class="itm${it.pt?' pt':''}">${escT(it.text)}${it.slot?codeChipsOf(it):''}${it.pt?`<span class="ptm" title="${tt('Pacientska úroveň — pretrváva medzi návštevami')}">${tt('anamnéza')}</span>`:''}</span>`).join('')
-    : '—'}</div>`;
+/* Vizuálna hierarchia sekcií — odvodená zo zdroja, nie z nastavenia šablóny,
+   aby bola rovnaká vo všetkých šablónach:
+   key  = nosné klinické sekcie (dg., plán) — zvýraznené
+   norm = bežné sekcie (S, O, naratív)
+   anam = anamnestické okruhy — kompaktne v jednom riadku, ako v tlačenej správe */
+const SRC_STYLE={A:'key',P:'key',S:'norm',O:'norm',narr:'norm',rx:'norm',fu:'norm',
+ RA:'anam',OA:'anam',AA:'anam',FA:'anam',SA:'anam',PA:'anam',GA:'anam'};
+function rptItmHTML(it,inline){
+  return `<span class="itm${it.pt?' pt':''}${inline?' inl':''}">${escT(it.text)}${it.slot?codeChipsOf(it):''}${
+    (it.pt&&!inline)?`<span class="ptm" title="${tt('Pacientska úroveň — pretrváva medzi návštevami')}">${tt('anamnéza')}</span>`:''}</span>`;
+}
+function rptSec(label,items,src){
+  const st=SRC_STYLE[src]||'norm';
+  if(st==='anam'){
+    return `<div class="rsec anam"><b>${label}:</b> ${items.length
+      ? items.map(it=>rptItmHTML(it,true)).join('<span class="sep">; </span>') : '—'}</div>`;
+  }
+  return `<div class="rsec ${st}"><b>${label}:</b> ${items.length
+    ? items.map(it=>rptItmHTML(it,false)).join('') : '—'}</div>`;
 }
 function tplBarHTML(tpl,cov){
   const opts=tplList(tpl.slotKey).map(t=>
@@ -3589,20 +3633,21 @@ function tplBarHTML(tpl,cov){
     </span>
   </div>${cov.missing.length?`<div class="covmiss">${tt('Chýba')}: ${escT(cov.missing.join(', '))}</div>`:''}`;
 }
+/* Telo dokumentu podľa šablóny — jeden zdroj pre report aj pre náhľad v editore */
+function tplBodyHTML(tpl){
+  return tpl.sections.map(s=>{
+    if(s.src==='consent')return cnsBlockHTML(tpl);
+    const items=rptSource(s.src);
+    if(s.hideIfEmpty&&!items.length)return '';
+    return rptSec(tt(s.label),items,s.src);
+  }).join('');
+}
 function renderOut(){
   const ro=document.getElementById('rendout');ro.classList.add('show');
   const tpl=tplCur(),cov=tplCoverage(tpl);
-  let body;
-  if(RPT_VIEW==='text'){
-    body=`<pre class="rtext" id="rtext">${escT(rptPlain(tpl))}</pre>`;
-  }else{
-    body=tpl.sections.map(s=>{
-      if(s.src==='consent')return cnsBlockHTML(tpl);
-      const items=rptSource(s.src);
-      if(s.hideIfEmpty&&!items.length)return '';
-      return rptSec(tt(s.label),items);
-    }).join('');
-  }
+  const body=RPT_VIEW==='text'
+    ? `<pre class="rtext" id="rtext">${escT(rptPlain(tpl))}</pre>`
+    : tplBodyHTML(tpl);
   ro.innerHTML=tplBarHTML(tpl,cov)+reportShell(tt(tpl.name),body);
 }
 /* K-20: billing derivation (BILL-01..04) — suggestion engine, lekár potvrdzuje */
@@ -3727,6 +3772,7 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
+["Sekcie","Sections"],["Náhľad","Preview"],["Náhľad s dnešnými údajmi. Anamnéza sa preberá z pacientskej úrovne.","Preview with today\u2019s data. History is projected from the patient level."],
 ["Dokument","Document"],["Dekurz / správa","Encounter note / report"],["Informovaný súhlas — samostatný","Informed consent — standalone"],["Znenie súhlasu","Consent wording"],
 ["Všeobecný informovaný súhlas","General informed consent"],["Prevzatie lekárskej správy","Receipt of the medical report"],["Spracúvanie osobných údajov","Personal data processing"],
 ["podpis pacienta alebo zákonného zástupcu","patient or legal representative signature"],["podpis a pečiatka lekára","clinician signature and stamp"],["dátum","date"],
@@ -3748,7 +3794,7 @@ const I18N=[
 ["Šablóna uložená a použitá","Template saved and applied"],["Šablóna neprešla kontrolou minima trhu","Template failed the market minimum check"],["Systémovú šablónu nemožno prepísať","A system template cannot be overwritten"],
 ["Subjektívne (S)","Subjective (S)"],["Objektívne (O)","Objective (O)"],["Zhodnotenie / dg. (A)","Assessment / dx (A)"],["Plán (P)","Plan (P)"],["Preskripcia","Prescription"],["Naratív lekára","Clinician narrative"],
 ["Šablóna","Template"],["Štruktúra","Structure"],["Text","Text"],["polí","fields"],["Chýba","Missing"],["Všetky sekcie naplnené","All sections filled"],
-["Dekurz — SOAP","Encounter note — SOAP"],["Rx slip","Rx slip"],["Dekurz — členený (ukážka poskytovateľa)","Encounter note — sectioned (provider sample)"],
+["Dekurz — SOAP","Encounter note — SOAP"],["Rx slip","Rx slip"],["Ambulantná správa — nález (vzor poskytovateľa)","Outpatient report — findings (provider sample)"],["Odporúčanie","Recommendation"],["Epikríza","Summary"],
 ["Subjektívne","Subjective"],["Objektívne","Objective"],["Záver","Assessment"],["Terapia a plán","Therapy and plan"],["Lekár","Clinician"],
 ["Audit","Audit"],["Skryť audit","Hide audit"],["Zatiaľ žiadne záznamy","No entries yet"],
 ["AI návrh","AI suggestion"],["vstupy","inputs"],["logika","logic"],
