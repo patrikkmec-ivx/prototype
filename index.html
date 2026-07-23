@@ -4,8 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v157 (Audit: tokeny, i18n, prístupnosť)</title>
+<title>Hilbi Cockpit — v158 (Identita dokumentu)</title>
 <!-- CHANGELOG
+v158 (2026-07-23): Identita dokumentu (DOC-01..06). Tri úrovne podľa FHIR:
+  masterIdentifier (urn:uuid) stabilný naprieč všetkými verziami a dodatkami —
+  toto je „ten dokument", na ktorý odkazuje časová os aj Records; version; a ľudsky
+  čitateľné číslo (FNT-2026-000123) pre vytlačený papier, pridelené až pri PRVOM
+  podpise, aby zahodené koncepty netrhali číselný rad. Identita ide do snímky
+  (zmrazená s obsahom), do Provenance aj AuditEvent, a zobrazuje sa v štruktúrovanom
+  aj textovom výstupe. Pridaný DOC_REG — jeden register pre časovú os aj Records
+  (jeden dokument, dva pohľady, nikdy dve kópie).
 v157 (2026-07-23): Audit pred tvorbou dokumentov. 1) DIZAJN TOKENY — 45 natvrdo
   zapísaných farieb nahradených existujúcimi tokenmi (#1c93ac x10, #0e7d92 x8,
   #2e5fb5 x7 a ďalších 14); drift je na nule, zmena značkovej farby je teraz
@@ -1462,6 +1470,10 @@ body[data-tab="comm"] .timeline{display:none}
 .trbar select{font:inherit;font-size:14px;line-height:20px;padding:10px 14px;min-height:40px;border:none;border-radius:8px;background:var(--surface-1);color:var(--text-heading)}
 .trwarn{font-size:11px;line-height:16px;color:var(--warning);flex:1 1 240px;min-width:0}
 .rendout .itm.trmiss{border-bottom:1px dotted var(--warning)}
+.docid{margin-top:12px;padding-top:8px;border-top:1px solid var(--border-default);
+  font-size:11.5px;line-height:17px;color:var(--text-muted);display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.docid b{font-size:13px;color:var(--text-heading);font-variant-numeric:tabular-nums}
+.docid .drafttag{color:var(--warning);font-weight:600}
 .snapmark{margin-top:10px;padding:7px 10px;background:var(--brand-cyan-soft);border-radius:8px;
   font-size:11px;line-height:16px;color:var(--brand-teal-text)}
 .hash{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px}
@@ -3308,11 +3320,14 @@ function rptStatus(){return RPT_VERS.length===0?'preliminary':(RPT_VERS.length==
 function rptVerNo(){return RPT_VERS.length;}
 function rptSaveVersion(){
   const first=RPT_VERS.length===0;
+  if(first)docAssignHuman();                    /* ľudské číslo až pri podpise */
   const sn=rptSnapshot(tplCur());
+  sn.doc.humanId=DOC.humanId;
   sn.n=sn.ver; sn.st=first?'final':'amended';
+  docRegister(sn);                              /* jeden register pre obidva pohľady */
   RPT_VERS.push(sn);                      /* zmrazený obsah, nie len stav */
   RPT_VIEW_VER=sn.ver;                    /* po podpise ukáž zmrazenú verziu */
-  logProv(first?'sign':'amend','Composition v'+sn.ver+' · '+sn.hash,{role:'attester'});
+  logProv(first?'sign':'amend',(DOC.humanId||docShort(DOC.master))+' v'+sn.ver+' · '+sn.hash,{role:'attester'});
   renderOut();
   showToast(first?'Verzia 1 uložená · status: final':('Addendum uložené · verzia '+RPT_VERS.length+' · status: amended'),'ok');
 }
@@ -3335,14 +3350,14 @@ function rptBarHTML(){
 function rptCopy(){
   const t=rptPlain(tplCur());
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).catch(()=>{});
-  logAudit('copy','Composition');showToast('Správa skopírovaná','ok');
+  logAudit('copy',(DOC&&DOC.humanId)||'Composition');showToast('Správa skopírovaná','ok');
 }
-function rptPrint(){logAudit('print','DocumentReference');showToast(RPT_VERS.length?'Tlač — podpísaná verzia v'+rptVerNo():'Tlač — draft (nepodpísané)');}
+function rptPrint(){logAudit('print',(DOC&&DOC.humanId)||'DocumentReference');showToast(RPT_VERS.length?'Tlač — podpísaná verzia v'+rptVerNo():'Tlač — draft (nepodpísané)');}
 /* Zdieľanie (G6): vyžaduje súhlasový kontext — IN Consent Manager · EU purpose-of-use · US info-blocking */
 function rptShare(){
   if(!RPT_VERS.length){showToast('Zdieľanie až po uložení verzie');return;}
   const m=MKTC==='IN'?'ABDM Consent Manager':(MKTC==='US'?'purpose-of-use · info-blocking':'EHDS purpose-of-use');
-  logAudit('share','DocumentReference',{pou:MKTC==='IN'?'CONSENT-GATED':'TREAT'});
+  logAudit('share',(DOC&&DOC.humanId)||'DocumentReference',{pou:MKTC==='IN'?'CONSENT-GATED':'TREAT'});
   showToast('Zdieľanie vyžaduje súhlas: '+m);
 }
 /* ── G5 Provenance + AuditEvent ────────────────────────────────────────────────
@@ -3382,6 +3397,50 @@ function dsiHTML(k){const d=DSI[k];if(!d)return '';
     <div>${tt('logika')}: ${d.logic}</div>
     <div class="dsirole">${d.role}</div></div>`;
 }
+/* ── IDENTITA DOKUMENTU (DOC-01..05) ───────────────────────────────────────────
+   Tri úrovne, prevzaté z FHIR:
+   masterIdentifier — stabilný NAPRIEČ všetkými verziami a dodatkami. Toto je
+                      „ten dokument". Časová os aj Records odkazujú naň, nie na kópiu.
+   version          — poradie; každá verzia má vlastnú Composition.id.
+   humanId          — ľudsky čitateľné číslo pre vytlačený papier a telefonickú
+                      referenciu. Prideľuje sa až pri PRVOM PODPISE, aby zahodené
+                      koncepty netrhali číselný rad.
+   POZOR: nezamieňať s doc_id znalostnej bázy podľa gsr-13 — to je iná vrstva
+   (identifikátor dokumentácie, nie pacientovej správy). Nezdieľajú schému.        */
+function uuid4(){
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{
+    const r=Math.random()*16|0, v=c==='x'?r:(r&0x3|0x8); return v.toString(16);});
+}
+let DOC=null, DOC_SEQ=122;          /* DOC_SEQ = demo počítadlo poskytovateľa */
+function docPrefix(){
+  const w=(ORG.name||'DOC').split(/\s+/).filter(Boolean).map(x=>x[0].toUpperCase());
+  return (w.join('')||'DOC').slice(0,4);
+}
+function docNew(){
+  DOC={master:'urn:uuid:'+uuid4(),created:new Date().toISOString(),humanId:null};
+  logProv('create','DocumentReference '+DOC.master,{role:'author'});
+  return DOC;
+}
+function docEnsure(){return DOC||docNew();}
+function docAssignHuman(){
+  const d=docEnsure();
+  if(d.humanId)return d.humanId;                       /* prideľuje sa raz */
+  DOC_SEQ++;
+  d.humanId=docPrefix()+'-'+new Date().getFullYear()+'-'+String(DOC_SEQ).padStart(6,'0');
+  return d.humanId;
+}
+function docShort(m){return m?m.replace('urn:uuid:','').slice(0,8):'—';}
+/* Register dokumentov — JEDEN zdroj pre časovú os aj Records (jeden dokument,
+   dva pohľady, nikdy dve kópie). */
+const DOC_REG=[];
+function docRegister(sn){
+  const i=DOC_REG.findIndex(x=>x.master===sn.doc.master);
+  const rec={master:sn.doc.master,humanId:sn.doc.humanId,version:sn.ver,status:sn.st,
+             title:sn.tpl.name,slotKey:'dekurz',date:sn.id.date,ts:sn.ts,
+             by:sn.by,lang:sn.lang,hash:sn.hash};
+  if(i>=0)DOC_REG[i]=rec;else DOC_REG.push(rec);
+  return rec;
+}
 /* ── ZMRAZENIE OBSAHU PRI PODPISE ──────────────────────────────────────────────
    Podpis nie je len zmena stavu — vytvára SNÍMKU. Podpísaný dokument sa od tej
    chvíle číta zo snímky, NIKDY sa neskladá zo živých dát. Zmrazuje sa:
@@ -3393,7 +3452,9 @@ function rptHash(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCode
   return h.toString(16).padStart(8,'0');}
 function rptSnapshot(tpl){
   const m=MKT[MKTC];
+  const d=docEnsure();
   const snap={
+    doc:{master:d.master,humanId:d.humanId,created:d.created},
     ver:RPT_VERS.length+1,
     ts:new Date().toLocaleString('sk-SK'),
     by:RPT_ID.clinician,
@@ -3434,6 +3495,9 @@ function snapShellHTML(sn){
       <br>${tt('záznam')}: ${sn.codes.rec} + ${sn.codes.lab} · ${tt('výkaz')}: ${sn.codes.rep}
       · ${tt('jazyk dokumentu')}: ${escT(sn.lang.toUpperCase())}
       <br>${escT(o.stamp)}</div>
+    <div class="docid"><b>${escT(sn.doc.humanId||'—')}</b>
+      <span class="hash">${tt('identifikátor')} ${escT(docShort(sn.doc.master))}</span>
+      · ${tt('verzia')} ${sn.ver}</div>
     <div class="snapmark">${tt('Zmrazený obsah')} · v${sn.ver} · ${escT(sn.ts)}
       · ${tt('šablóna')} ${escT(sn.tpl.id)} v${sn.tpl.ver}
       · <span class="hash">${tt('odtlačok')} ${sn.hash}</span></div>`;
@@ -3477,6 +3541,8 @@ function reportShell(title,bodyHTML){
   <div class="rft">${tt('podpis')}: ${escT(RPT_ID.clinician)} · ${m.sig} · ${tt('profil')}: ${escT(m.doc)} · ${rptModeNote()} · Composition.status: ${rptStatus()}
   <br>${tt('záznam')}: ${m.rec} + ${m.lab} · ${tt('výkaz')}: ${m.rep} · ${tt('lieky')}: ${m.med}
   <br>${escT(ORG.stamp)}${bill}</div>
+  <div class="docid">${DOC&&DOC.humanId?`<b>${escT(DOC.humanId)}</b>`:`<span class="drafttag">${tt('koncept — číslo sa pridelí pri podpise')}</span>`}
+    <span class="hash">${tt('identifikátor')} ${escT(docShort(DOC?DOC.master:''))}</span></div>
   ${sigBlockHTML(tplCur())}
   ${rptVerHTML()}
   ${rptBarHTML()}
@@ -4030,6 +4096,8 @@ function rptView(v){RPT_VIEW=v;renderOut();}
 function rptPlain(tpl){
   const m=MKT[MKTC],L=[];
   L.push(orgHeadText());L.push('');
+  const _d=docEnsure();
+  L.push(tt('Číslo dokumentu')+': '+(_d.humanId||tt('koncept'))+'  ('+docShort(_d.master)+')');
   L.push(tt(tpl.name).toUpperCase()+' · '+RPT_ID.date);
   L.push(RPT_ID.patient+' · '+m.idlbl+' '+RPT_ID.pid);
   L.push(tt('Lekár')+': '+RPT_ID.clinician+' · '+RPT_ID.org);
@@ -4115,6 +4183,7 @@ function tplBodyHTML(tpl){
 }
 function renderOut(){
   const ro=document.getElementById('rendout');ro.classList.add('show');
+  docEnsure();   /* dokument dostane identitu už ako koncept (DOC-02) */
   const tpl=tplCur(),cov=tplCoverage(tpl);
   const sn=RPT_VIEW_VER?RPT_VERS.find(v=>v.ver===RPT_VIEW_VER):null;
   if(sn){                                  /* podpísaná verzia — iba zo snímky */
@@ -4252,6 +4321,7 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
+["identifikátor","identifier"],["verzia","version"],["Číslo dokumentu","Document number"],["koncept","draft"],["koncept — číslo sa pridelí pri podpise","draft — number is assigned on signature"],
 ["hypertenzia","hypertension"],["India","India"],["PHR","PHR"],["QR — Z4K-882","QR — Z4K-882"],
 ["Skryť menu","Hide menu"],["Cesta pacienta","Patient pathway"],["Plány starostlivosti","Care plans"],["Komunikácia","Communication"],["Plán starostlivosti — demencia","Dementia Care plan"],["Plán starostlivosti — Fabryho choroba","Fabry Care plan"],["Plán starostlivosti — kolorektálny","Colorectal Care plan"],["Správanie","Behavioral"],["Osobné","Personal"],["Nahrať reláciu","Record session"],["Digitalizovať dokument","Digitize document"],["Platba a QR synchronizácia","Pay & Synch QR"],["Formát výstupu","Output format"],["Vytvoriť šablónu","Create a template"],["Zastaviť a skontrolovať","Stop & review"],["Ďalší krok","Next step"],["Ďalší krok — termín / žiadanka / odoslanie","Next step — appointment / order / referral"],["Špecialista","Specialist"],["Laboratórne vyšetrenie","Lab test"],["Hospitalizácia","Hospitalization"],["Telemedicína","Tele"],["Oddelenie","Department"],["Neurológia","Neurology"],["Vytvoriť","Create"],["PHR — pripravujeme (Health data + Records)","PHR — coming soon (Health data + Records)"],["Správanie — ďalší inkrement","Behavioral — next increment"],["Osobné — ďalší inkrement","Personal — next increment"],["Prepnúť zariadenie","Switch facility"],["Potiahnutím zmeníte šírku","Drag to resize"],["Dôvod / indikácia (nepovinné)…","Reason / indication (optional)…"],["Profil","Profile"],["Menu","Menu"],["Drobčeková navigácia","Breadcrumb"],["Krvný tlak","Blood pressure"],["Pulz","Pulse"],["Hmotnosť","Weight"],["Dátum","Date"],["Čas","Time"],["Pracovisko","Clinic"],
 ["Zahodiť zmeny","Discard changes"],["Zmrazený obsah","Frozen content"],["odtlačok","fingerprint"],["šablóna","template"],["zmrazené","frozen"],["Koncept — živé údaje","Draft — live data"],["jazyk dokumentu","document language"],["kompilácia (overlay)","compilation (overlay)"],["nová — zatiaľ neuložená","new — not saved yet"],["Preklad","Translation"],["Originál","Original"],["Strojový preklad — needitovaný. Originál ostáva autoritatívny, preklad sa neukladá a nededí podpis.","Machine translation — unedited. The original remains authoritative; the translation is not stored and does not inherit the signature."],["Preklad nie je k dispozícii — zobrazený originál","Translation unavailable — original shown"],["Jazyk dokumentácie","Documentation language"],["Vyplýva z jurisdikcie poskytovateľa a otlačí sa na dokument pri jeho vzniku. Neskoršia zmena neprepíše staršie dokumenty.","Derived from the provider jurisdiction and stamped on the document when it is created. A later change does not rewrite older documents."],["Pre jazyk dokumentu","For the document language"],["neexistuje schválené znenie tohto súhlasu. Súhlas sa nesmie použiť — doplňte znenie v registri.","there is no approved wording for this consent. It must not be used — add the wording to the register."],["chýba schválené znenie súhlasu pre jazyk dokumentu","approved consent wording for the document language is missing"],["chýba v jazyku dokumentu","missing in document language"],["claim 837P","claim 837P"],
