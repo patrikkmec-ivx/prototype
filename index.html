@@ -4,8 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v151 (Šablóny ako podstránka · zmrazenie pri podpise · jazyková vrstva)</title>
+<title>Hilbi Cockpit — v152 (Poskytovateľská šablóna FNTT SM · zdroje ako podmnožiny slotov)</title>
 <!-- CHANGELOG
+v152 (2026-07-23): Šablóna FNTT SM podľa reálnej ambulantnej správy Neurologickej
+  kliniky — Centrum SM (okruh zariadenia). Sekcie TO / Obj. / HK-DK / Laboratórne
+  a likvorové vyšetrenia / Záver / Dop. / Recepty / Diagnózy / Vyhlásenie pacienta.
+  Pridané tri zdroje ako podmnožiny slotov rozlíšené kategóriou: exam-neuro, labs
+  (LOINC) a dx-coded (SNOMED + klasifikácia trhu) — reálna správa rozlišuje Obj. vs
+  neurologický nález vs laboratórium a Záver (próza) vs Diagnózy (kód).
+  Zo vzorky prevzatá iba štruktúra, klinické hodnoty a znenie sú vlastné (TPL-08).
+  Normatívny zdroj: cp-17 TPL-17, TPL-18.
 v151 (2026-07-23): OBNOVA + oprava. v148 omylom prepísal v145–v147 (lokálny súbor
   sa po reštarte prostredia vrátil do staršieho stavu a nebol znovu stiahnutý
   z main). Podstránka šablón obnovená, modal tplwrap odstránený z kódu.
