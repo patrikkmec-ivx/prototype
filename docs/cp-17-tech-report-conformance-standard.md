@@ -1,7 +1,7 @@
 ---
 doc_id: TBD (priradiť podľa gsr-13)
 title: "Report conformance — shell, terminológia, podpis, provenance, AI transparentnosť"
-version: 1.5-draft
+version: 1.6-draft
 date: 2026-07-23
 authority: "navrhol: Patrik (CEO) · schvaľuje: Roman (CBO) · aplikuje: Dominika/Viktor · kontroluje: Marek"
 type: normative
@@ -113,6 +113,21 @@ Rozsah: klinický report a jeho životný cyklus. Mimo rozsah: Records knižnica
   NIKDY tichou editáciou.
 - **AMD-03** Originál MUSÍ byť zachovaný a dohľadateľný pri každej revízii.
 - **AMD-04** Každá revízia MUSÍ niesť dôvod opravy a vlastný `Provenance` záznam.
+- **AMD-05** Podpis **zmrazuje obsah**. Podpísaný dokument sa od tej chvíle číta
+  výhradne zo snímky a NIKDY sa neskladá zo živých dát.
+- **AMD-06** Snímka zmrazuje tri vrstvy: **odkazy na klinické dáta s verziou**
+  (`Observation/123/_history/2`), **vyrenderovaný naratív** (`Composition.text` — to,
+  čo lekár čítal a atestoval) a **kontext** (šablóna a jej verzia, hlavička organizácie,
+  identita, jazyk dokumentu, trh, kódové systémy, mód `overlay`/`core`).
+- **AMD-07** Naratív a štruktúra sa zmrazujú **oboje**. Samotná štruktúra nestačí —
+  prekreslenie novším rendererom môže dať iný výstup než ten, ktorý bol podpísaný.
+  Autoritatívny pre to, čo bolo atestované, je **naratív**.
+- **AMD-08** Snímka nesie **odtlačok obsahu** (produkčne SHA-256), ktorý sa zaznamenáva
+  v `Provenance` a v `DocumentReference.content.attachment.hash`. Je to doklad
+  o neporušenosti dokumentu.
+- **AMD-09** V móde `overlay` sa snímka vytvára tiež — je dôkazom, **čo systém predložil
+  a čo lekár potvrdil** pred zápisom do hostiteľského systému; označí sa módom.
+  Autoritatívny podpis však ostáva v hostiteľskom systéme (`REP-02`).
 
 ## 6. Provenance a audit
 
@@ -296,7 +311,7 @@ vedome placeholdery a NIE sú zhodné s normou:
 | SYS-01..04 | ✗ integrácia zatiaľ nepostavená |
 | SIG-04..07 | ✗ seam pre regionálne overenie zatiaľ nie je |
 | I18N-01..15 | ✗ jazyková vrstva zatiaľ nepostavená |
-| **Zmrazenie obsahu pri podpise** | ✗ **telo sa rendruje zo živých dát — podpísaný dokument sa môže ticho zmeniť** |
+| AMD-05..09 | ✓ snímka pri podpise, render výhradne zo snímky, odtlačok obsahu · verziované odkazy sú v prototype hodnotami |
 
 ## 15. Otvorené body
 
