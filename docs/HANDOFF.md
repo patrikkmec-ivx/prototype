@@ -4,7 +4,7 @@
 > ako sa v repozitári správať určuje `CLAUDE.md`; čo je čo určuje `README.md`.
 > **Aktualizuje sa na konci každej relácie.**
 
-Aktualizované: 2026-07-23 · Verzia prototypu: **v160**
+Aktualizované: 2026-07-23 (uzávierka relácie) · Verzia prototypu: **v161** (`f00e0845`)
 
 ---
 
@@ -127,12 +127,35 @@ Obnovené vo **v151**.
 Preto platí: **pred úpravami over zhodu lokálneho súboru s `main`** a opakuj to po
 každom náznaku reštartu (napr. keď zmizne obsah `/tmp`). Pravidlo je v `CLAUDE.md` §4.
 
+## 4c. Stav pri uzávierke relácie 2026-07-23
+
+**Všetko je na GitHube**, lokálny súbor sedí s `main`. Sedem sanity brán prechádza:
+brace balance −1 · `node --check` · 89 handlerov · poradie CSS · tokeny bez driftu ·
+preklady (650 párov, 144 volaní `tt()`) · konzistencia kľúčov zdrojov.
+
+**Zdravie kódu:** 4 983 riadkov (CSS 1 312 / JS 2 187 / HTML 1 484), 584 kB,
+225 funkcií, najdlhšia `tplMgrRender` (64 riadkov). **Refaktor netreba** — jeden súbor
+je pri tejto veľkosti stále v poriadku a rozdelenie by rozbilo commit workflow
+aj GitHub Pages. Sledovať pri prekročení ~700 kB.
+
+**Dizajn tokeny:** 95 tokenov v `:root`, **drift nula** — žiadna hex farba mimo `:root`,
+ktorá by už mala token. Vygenerovaný `tokens.json` (DTCG, 18 skupín, 16 aliasov)
+ako code-first SSOT.
+
+**Figma:** ďalší krok je `tokens.json` → Style Dictionary → Figma Variables do súboru
+Design System '26 (`ombR6X345rSPGaJPfnye7e`). Komponenty v Figme sa **neaktualizujú
+z kódu** — smer je opačný: Figma je zdroj pre komponenty, kód je zdroj pre tokeny.
+Čo sa v prototype odchýlilo od DS (napr. veľkosti tlačidiel pred v143), sa opravilo
+v kóde, nie v Figme.
+
 ## 5. Overené, neoverené
 
-- Overené staticky: brace balance, `node --check`, smoke test kódového resolvera,
-  mermaid parser.
-- **Neoverené vizuálne:** vykreslenie kódových chipov, audit panelu a DSI boxu
-  v prehliadači. Odporúča sa vizuálna kontrola pred ďalšou iteráciou.
+- Overené staticky: sedem sanity brán (viď §4c) plus cielené testy — nemennosť
+  snímky pri zmene živých dát, životný cyklus identity dokumentu, jeden dokument
+  v dvoch pohľadoch bez duplikátu, rozhranie úložiska.
+- **Neoverené vizuálne:** väčšina UI od v126. Vizuálne chyby sanity brány
+  nezachytia — zachytili sa tak už dvakrát (nedostupné tlačidlo vo v133,
+  zalomený náhľad vo v147). Pred ďalšou iteráciou sa oplatí prototyp otvoriť.
 
 ## 6. Staršie, mimo report vrstvy
 
