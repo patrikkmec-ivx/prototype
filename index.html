@@ -4,8 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v153 (Podpisový blok dokumentu)</title>
+<title>Hilbi Cockpit — v154 (Hlavička dokumentu v editore šablóny)</title>
 <!-- CHANGELOG
+v154 (2026-07-23): Hlavička dokumentu ako prvý a výrazný blok editora šablóny —
+  ukazuje aktuálnu hlavičku zariadenia s tlačidlom Upraviť. Predtým bol odkaz
+  len drobným textom pod podpismi. Hlavička je prvá vec na dokumente, preto je
+  prvá aj v editore; spravuje ju zariadenie a platí pre všetky šablóny (TPL-07).
 v153 (2026-07-23): Podpisový blok dokumentu. Identita podpisovateľov (meno, funkcia,
   kód) patrí ZARIADENIU a edituje sa v nastaveniach; ktorí z nich sa objavia na
   dokumente, určuje ŠABLÓNA (zaškrtávacie polia v editore). FNTT SM má štyri podpisy
@@ -1413,9 +1417,15 @@ body[data-tab="comm"] .timeline{display:none}
 .sgl .sgn{display:block;border-bottom:1px solid var(--text-muted);height:20px}
 .sgl .sgc{display:block;font-size:10.5px;color:var(--text-muted);margin-top:3px;text-align:center}
 .cnsbox.cnsmiss{background:var(--warning-soft);border-color:var(--warning);color:var(--text-body);font-size:11.5px;line-height:17px}
+.orgcard{display:flex;gap:16px;align-items:center;flex-wrap:wrap;max-width:720px;margin-bottom:20px;
+  padding:16px 18px;border-radius:12px;background:var(--brand-cyan-soft);border:1px solid var(--brand-cyan)}
+.orgcard .occ{flex:1 1 240px;min-width:0}
+.orgcard .oct{font-size:15px;line-height:22px;font-weight:700;color:var(--text-heading)}
+.orgcard .ocs{font-size:12px;line-height:17px;color:var(--brand-teal-text)}
+.orgcard .ocn{font-size:11px;line-height:16px;color:var(--text-muted);margin-top:5px}
+.orgcard .btn{flex:none}
 .sgpick{display:flex;gap:9px;align-items:center;padding:7px 0;font-size:14px;line-height:20px;color:var(--text-body);cursor:pointer}
 .sgpick b{color:var(--text-heading);font-weight:600}
-.lnkbtn{background:none;border:none;padding:0;margin-left:6px;font:inherit;font-size:11px;font-weight:700;color:var(--brand-teal-text);cursor:pointer;text-decoration:underline}
 .cnsnote{font-size:10.5px;color:var(--text-muted);line-height:15px;margin-top:5px;font-style:italic}
 .orghd{border-bottom:2px solid var(--text-heading);padding-bottom:6px;margin-bottom:10px;line-height:17px}
 .orghd b{font-size:13.5px;color:var(--text-heading)}
@@ -3920,7 +3930,17 @@ function tplMgrRender(){
       <div class="tprevn">${tt('Náhľad s dnešnými údajmi. Anamnéza sa preberá z pacientskej úrovne.')}</div>`;
     return;
   }
-  ed.innerHTML=tabs+`
+  /* Hlavička je prvá vec na dokumente, preto je prvá aj v editore.
+     Spravuje ju zariadenie (TPL-07), šablóna ju nikdy nenesie. */
+  const orgCard=`<div class="orgcard">
+    <div class="occ">
+      <div class="oct">${escT(ORG.name)}${ORG.fac?' · '+escT(ORG.fac):''}</div>
+      <div class="ocs">${escT(ORG.addr)}${ORG.pzs?' · '+tt('kód PZS')+' '+escT(ORG.pzs):''}</div>
+      <div class="ocn">${tt('Hlavička, pätka a podpisy — spravuje zariadenie, platia pre všetky šablóny')}</div>
+    </div>
+    <button class="btn" onclick="orgOpen()"><svg class="ico s18" aria-hidden="true"><use href="#i-bldg"/></svg><span>${tt('Upraviť')}</span></button>
+  </div>`;
+  ed.innerHTML=tabs+orgCard+`
     ${ro?`<div class="tplro">${tt('Systémová šablóna je len na čítanie — vytvorte kópiu cez Nová šablóna.')}</div>`:''}
     <div class="tplmeta">${TPL_EDIT.ver?('v'+TPL_EDIT.ver+(TPL_EDIT.updatedAt?' · '+escT(TPL_EDIT.updatedAt):'')):tt('nová — zatiaľ neuložená')}</div>
     <div class="fr"><label class="fl">${tt('Názov')}</label>
@@ -3947,8 +3967,7 @@ function tplMgrRender(){
         <input type="checkbox" ${(TPL_EDIT.signers||['clinician']).includes(s.k)?'checked':''} ${ro?'disabled':''}
           onchange="tplSigner('${s.k}',this.checked)">
         <span><b>${escT(tt(s.title))}</b>${s.name?' · '+escT(s.name):''}</span></label>`).join('')}
-      <div class="cnsnote">${tt('Mená, tituly a kódy podpisovateľov spravuje zariadenie.')}
-        <button class="lnkbtn" onclick="orgOpen()">${tt('Hlavička, pätka a podpisy zariadenia')}</button></div>
+      <div class="cnsnote">${tt('Mená, tituly a kódy podpisovateľov spravuje zariadenie.')}</div>
     </div>
     <div class="fr"><label class="fl">
       <input type="checkbox" ${TPL_EDIT.codes?'checked':''} ${ro?'disabled':''}
@@ -4210,6 +4229,7 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
+["Upraviť","Edit"],["Hlavička, pätka a podpisy — spravuje zariadenie, platia pre všetky šablóny","Header, footer and signatures — managed by the facility, applied to all templates"],
 ["Podpisy na dokumente","Signatures on the document"],["Podpisovatelia","Signatories"],["Meno a titul","Name and title"],["Funkcia","Role"],["Kód","Code"],
 ["Mená, tituly a kódy podpisovateľov spravuje zariadenie.","Names, titles and codes of signatories are managed by the facility."],
 ["Hlavička, pätka a podpisy zariadenia","Facility header, footer and signatures"],["Ktorí z nich sa objavia na konkrétnom dokumente, určuje šablóna.","Which of them appear on a given document is decided by the template."],
