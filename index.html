@@ -1260,6 +1260,16 @@ body[data-tab="comm"] .timeline{display:none}
 .rendout .cd{display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:0 6px;border:1px solid var(--border-default);border-radius:999px;font-size:10.5px;color:var(--text-muted);white-space:nowrap}
 .rendout .cd.rec{border-color:var(--brand-cyan);color:var(--brand-teal-text)}
 .rendout .cd.none{border-style:dashed}
+.audbox{margin-top:10px;border-top:1px solid var(--border-default);padding-top:8px;font-size:11px;color:var(--text-muted);max-height:180px;overflow:auto}
+.audbox .arow{padding:3px 0;line-height:16px;border-bottom:1px dotted var(--border-default)}
+.audbox .ak{display:inline-block;border-radius:999px;padding:0 6px;font-size:10px;font-weight:700;margin-right:4px}
+.audbox .ak.p{background:var(--brand-cyan-soft);color:var(--brand-teal-text)}
+.audbox .ak.a{background:var(--surface-1);color:var(--text-muted);border:1px solid var(--border-default)}
+.audbox .at{font-variant-numeric:tabular-nums}
+.audbox .arole{font-style:italic}
+.dsibox{margin:8px 0;padding:8px 10px;border:1px dashed var(--border-strong);border-radius:8px;background:var(--surface-1);font-size:11.5px;color:var(--text-muted);line-height:17px}
+.dsibox b{color:var(--text-heading)}
+.dsibox .dsirole{margin-top:3px;font-weight:600;color:var(--brand-teal-text)}
 .rendout .rft{margin-top:10px;padding-top:8px;border-top:1px dashed var(--border-strong);font-size:11.5px;color:var(--text-muted)}
 .rptbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--border-default)}
 .rptbar .btn{padding:7px 13px;min-height:34px;font-size:13px}
@@ -2351,6 +2361,7 @@ body[data-tab="comm"] .timeline{display:none}
       <div class="billbox" id="billbox">
         <h5><svg class="ico s14" style="flex:none"><use href="#i-dash"/></svg><span>Výkaz — návrh z udalostí dňa</span></h5>
         <div class="bnote">Systém navrhuje, lekár potvrdzuje. Odškrtnite, čo nemá byť vykázané.</div>
+        <div id="dsibill"></div>
         <div id="billrows"></div>
         <div class="emrow" id="emrow" style="display:none"></div>
         <div class="billfoot"><button class="btn primary" onclick="finalizeSign()" id="billconfirm">Potvrdiť výkaz a podpísať</button></div>
@@ -2614,6 +2625,7 @@ function dekAddEv(slot,text,who){
   const row=document.createElement('div');row.className='evrow';row.dataset.soap=slot;
   row.innerHTML=`<span class="tm">${tm}</span><span class="soap s${slot}" title="${SOAPTITLE[slot]}">${slot}</span><span>${escT(text)}</span><span class="who">${escT(who)}</span>`;
   d.insertBefore(row,d.querySelector('.narr'));
+  if(typeof logProv==='function')logProv('create','Composition.section['+slot+']',{agent:who||RPT_ID.clinician});
   updComp();
 }
 function updComp(){
@@ -2915,6 +2927,7 @@ function rptVerNo(){return RPT_VERS.length;}
 function rptSaveVersion(){
   const first=RPT_VERS.length===0;
   RPT_VERS.push({n:RPT_VERS.length+1,st:first?'final':'amended',ts:new Date().toLocaleTimeString('sk-SK',{hour:'2-digit',minute:'2-digit'}),by:RPT_ID.clinician});
+  logProv(first?'sign':'amend','Composition v'+RPT_VERS.length,{role:'attester'});
   renderOut();
   showToast(first?'Verzia 1 uložená · status: final':('Addendum uložené · verzia '+RPT_VERS.length+' · status: amended'),'ok');
 }
@@ -2930,6 +2943,7 @@ function rptBarHTML(){
     <button class="btn" onclick="rptCopy()">${tt('Kopírovať')}</button>
     <button class="btn" onclick="rptPrint()">${tt('Tlačiť')}</button>
     <button class="btn" onclick="rptShare()">${tt('Zdieľať')}</button>
+    <button class="btn" onclick="auditToggle()">${AUDOPEN?tt('Skryť audit'):tt('Audit')} (${AUDIT.length})</button>
     <span class="vinfo">v${rptVerNo()||'—'} · ${rptStatus()}</span>
   </div>`;
 }
@@ -2940,14 +2954,52 @@ function rptPlainText(){
 function rptCopy(){
   const t=rptPlainText();
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).catch(()=>{});
-  showToast('Správa skopírovaná','ok');
+  logAudit('copy','Composition');showToast('Správa skopírovaná','ok');
 }
-function rptPrint(){showToast(RPT_VERS.length?'Tlač — podpísaná verzia v'+rptVerNo():'Tlač — draft (nepodpísané)');}
+function rptPrint(){logAudit('print','DocumentReference');showToast(RPT_VERS.length?'Tlač — podpísaná verzia v'+rptVerNo():'Tlač — draft (nepodpísané)');}
 /* Zdieľanie (G6): vyžaduje súhlasový kontext — IN Consent Manager · EU purpose-of-use · US info-blocking */
 function rptShare(){
   if(!RPT_VERS.length){showToast('Zdieľanie až po uložení verzie');return;}
   const m=MKTC==='IN'?'ABDM Consent Manager':(MKTC==='US'?'purpose-of-use · info-blocking':'EHDS purpose-of-use');
+  logAudit('share','DocumentReference',{pou:MKTC==='IN'?'CONSENT-GATED':'TREAT'});
   showToast('Zdieľanie vyžaduje súhlas: '+m);
+}
+/* ── G5 Provenance + AuditEvent ────────────────────────────────────────────────
+   Provenance = kto/čo/kedy/prečo vytvoril alebo zmenil záznam (atribúcia).
+   AuditEvent = kto k záznamu pristúpil / exportoval (prístupový log).
+   Certifikačná brána: HIPAA audit (US) · EEHRxF logging (EU) · DPDP + CERT-In (IN). */
+const AUDIT=[];
+function auditTs(){return new Date().toLocaleTimeString('sk-SK',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+function logProv(act,tgt,o){o=o||{};AUDIT.push({k:'Provenance',ts:auditTs(),act:act,tgt:tgt,agent:o.agent||RPT_ID.clinician,role:o.role||'author',pou:o.pou||'TREAT'});}
+function logAudit(act,tgt,o){o=o||{};AUDIT.push({k:'AuditEvent',ts:auditTs(),act:act,tgt:tgt,agent:o.agent||RPT_ID.clinician,role:o.role||'reader',pou:o.pou||'TREAT'});}
+let AUDOPEN=false;
+function auditToggle(){AUDOPEN=!AUDOPEN;renderOut();}
+function auditHTML(){
+  if(!AUDOPEN)return '';
+  if(!AUDIT.length)return `<div class="audbox">${tt('Zatiaľ žiadne záznamy')}</div>`;
+  return `<div class="audbox">`+AUDIT.slice().reverse().map(a=>
+    `<div class="arow"><span class="ak ${a.k==='Provenance'?'p':'a'}">${a.k}</span>
+     <span class="at">${a.ts}</span> · ${escT(a.act)} → ${escT(a.tgt)}
+     · ${escT(a.agent)} <span class="arole">${escT(a.role)}</span> · pou: ${escT(a.pou)}</div>`).join('')+`</div>`;
+}
+/* ── G7 Transparentnosť AI (DSI) ───────────────────────────────────────────────
+   US HTI-1 Decision Support Intervention: musí byť zrejmé, ŽE ide o AI návrh,
+   z akých vstupov a akou logikou. EU: drží nás mimo MDR — návrh, nie rozhodnutie. */
+const DSI={
+ em:{name:'E/M úroveň — návrh',kind:'deterministické pravidlo (nie ML)',ver:'1.0',
+     inputs:'počet A · počet O + order · prítomnosť preskripcie',
+     logic:'99214 ak (preskripcia alebo A≥2), inak 99213',
+     role:'návrh — rozhoduje a potvrdzuje lekár'},
+ bill:{name:'Výkaz — kandidáti',kind:'deterministické pravidlo (nie ML)',ver:'1.0',
+     inputs:'udalosti dňa podľa SOAP slotu',
+     logic:'mapovanie vzoru udalosti na položku číselníka',
+     role:'návrh — rozhoduje a potvrdzuje lekár'}
+};
+function dsiHTML(k){const d=DSI[k];if(!d)return '';
+  return `<div class="dsibox"><b>⚙ ${tt('AI návrh')} — ${d.name}</b> · ${d.kind} · v${d.ver}
+    <div>${tt('vstupy')}: ${d.inputs}</div>
+    <div>${tt('logika')}: ${d.logic}</div>
+    <div class="dsirole">${d.role}</div></div>`;
 }
 /* Jednotný report-shell: hlavička + telo + pätka RAZ (SOAP-08: jeden objekt, žiadne duplikované chrome) */
 function reportShell(title,bodyHTML){
@@ -2959,7 +3011,8 @@ function reportShell(title,bodyHTML){
   <div class="rft">${tt('podpis')}: ${escT(RPT_ID.clinician)} · ${m.sig} · ${tt('profil')}: ${escT(m.doc)} · ${rptModeNote()} · Composition.status: ${rptStatus()}
   <br>${tt('záznam')}: ${m.rec} + ${m.lab} · ${tt('výkaz')}: ${m.rep} · ${tt('lieky')}: ${m.med}${bill}</div>
   ${rptVerHTML()}
-  ${rptBarHTML()}`;
+  ${rptBarHTML()}
+  ${auditHTML()}`;
 }
 /* ── G2 Terminológia ────────────────────────────────────────────────────────────
    Dual coding: záznam v SNOMED CT (referenčná terminológia), výkaz v MKCH-10/ICD
@@ -3036,6 +3089,7 @@ function buildBill(){
   const rows=document.getElementById('billrows');
   rows.innerHTML=billCandidates().map((c,i)=>`<label class="brow"><input type="checkbox" checked data-i="${i}"><span>${c.name}</span><span class="bcode">${c.code}</span></label>`).join('');
   const em=document.getElementById('emrow');
+  const dz=document.getElementById('dsibill');if(dz)dz.innerHTML=dsiHTML('bill')+(MKTC==='US'?dsiHTML('em'):'');
   if(MKTC==='US'){const e=emCalc();EMsel=e.lvl;
     em.style.display='';
     em.innerHTML=`<span style="font-weight:800">${tt('E/M úroveň')}:</span>
@@ -3067,6 +3121,7 @@ function finalizeSign(){
   const now=new Date();const tm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   const hdr=document.querySelector('#dkwrap .sh-h .tag');
   if(hdr){hdr.classList.remove('st-ver');hdr.innerHTML='✓ '+tt('podpísané')+' · Dr. Novak · '+tm;hdr.style.color='var(--success)'}
+  logProv('verify','Claim · '+BILLN+' položiek',{role:'verifier'});
   renderOut();dTab(2,document.querySelectorAll('.dtabs button')[2]);
   if(ENC){ENC.signed=true;ENC.open=false;renderEnc(false)}
   showToast(MKT[MKTC].tpl==='slip'?'Podpísané · Rx slip pripravený':'Podpísané · správa pripravená','ok');
@@ -3132,6 +3187,8 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
+["Audit","Audit"],["Skryť audit","Hide audit"],["Zatiaľ žiadne záznamy","No entries yet"],
+["AI návrh","AI suggestion"],["vstupy","inputs"],["logika","logic"],
 ["záznam","record"],["výkaz","report"],["lieky","medication"],
 ["Uložiť addendum","Save addendum"],["Uložiť verziu","Save version"],["Kopírovať","Copy"],["Tlačiť","Print"],["Zdieľať","Share"],
 ["Verzie","Versions"],["zatiaľ neuložené — draft","not saved yet — draft"],["originál sa zachováva, oprava = addendum","original is preserved, correction = addendum"],
