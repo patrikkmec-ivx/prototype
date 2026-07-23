@@ -1,7 +1,7 @@
 ---
 doc_id: TBD (priradiť podľa gsr-13)
 title: "Report conformance — shell, terminológia, podpis, provenance, AI transparentnosť"
-version: 1.3-draft
+version: 1.4-draft
 date: 2026-07-23
 authority: "navrhol: Patrik (CEO) · schvaľuje: Roman (CBO) · aplikuje: Dominika/Viktor · kontroluje: Marek"
 type: normative
@@ -167,6 +167,9 @@ Rozsah: klinický report a jeho životný cyklus. Mimo rozsah: Records knižnica
 - **TPL-11** Anamnestické okruhy sa označujú ustálenými skratkami klinickej praxe
   (RA, OA, AA, FA, SA, PA, GA). Každý okruh zodpovedá samostatnému FHIR zdroju
   a patrí na pacientsku úroveň (`TPL-04`); popisok v šablóne je iba forma.
+- **TPL-16** Šablóny majú **tri okruhy vlastníctva**: `system` (dodané, read-only),
+  `provider` (zdravotnícke zariadenie) a `my` (lekár). Okruh určuje, kto smie šablónu
+  meniť. Systémovú šablónu NIE JE možné prepísať — vytvára sa z nej kópia.
 - **TPL-12** Znenie informovaného súhlasu je **právny artefakt** a patrí registru
   súhlasov, NIE šablóne. Register vedie **verziu a dátum účinnosti** každého znenia.
 - **TPL-13** Súhlas sa MUSÍ dať vydať v oboch podobách z jedného zdroja: ako
@@ -240,6 +243,7 @@ vedome placeholdery a NIE sú zhodné s normou:
 | TPL-04, TPL-11 | ✓ RA/OA/AA/FA/SA/PA/GA na pacientskej úrovni, mapované na FHIR zdroje |
 | TPL-07 | ✓ hlavička a pätka v nastaveniach organizácie |
 | TPL-08..10 | ✓ extrakcia zo vzorky: iba štruktúra, mapovanie ako návrh, brána TPL-02 |
+| TPL-16 | ✓ tri okruhy vlastníctva, systémové read-only |
 | TPL-12, TPL-13, TPL-15 | ✓ register súhlasov, obe podoby z jedného zdroja, typovo citlivá validácia |
 | TPL-14 | ~ verzia znenia sa zobrazuje; väzba na podpísaný `Consent` chýba |
 | INT-03 | ✓ coverage |
