@@ -4,7 +4,7 @@
 **v akom poradí ho čítať** a **kto vyhráva pri konflikte**.
 
 - **Live prototyp:** https://patrikkmec-ivx.github.io/prototype/
-- **Aktuálna verzia prototypu:** **v129** — changelog je v hlavičke `index.html`
+- **Aktuálna verzia prototypu:** **v149** — changelog je v hlavičke `index.html`
 - Desktop ≥ 745 px, mobil ≤ 744 px; jazyky EN/SK (prepínač v menu)
 
 > **Prototyp nie je produkčný kód.** Žiadne reálne údaje pacientov. Prototyp implementuje
@@ -69,6 +69,11 @@ cp-17 (report conformance)  >  cp-15 (záznamový model)  >  index.html (impleme
 | `docs/HANDOFF.md` | **INFORMATIVE** | Kontext na pokračovanie práce v novej relácii. |
 | `index.html` | — | Prototyp. Implementácia, nikdy nie norma. |
 
+> **Poradie čítania pri zmene:** norma (`cp-17`) → mapa do kódu (`DEV-SUMMARY` §4) →
+> implementácia. Každý normatívny krok sa premieta do `cp-17` §14 (stav prototypu),
+> `DEV-SUMMARY` §4 a §5, a `HANDOFF`. Dokumentácia sa aktualizuje **v tom istom kroku**,
+> nie neskôr.
+
 ---
 
 ## Pravidlo, ktoré rieši väčšinu otázok
@@ -81,9 +86,11 @@ cp-17 (report conformance)  >  cp-15 (záznamový model)  >  index.html (impleme
 ## Konformita v jednej vete
 
 Výstup je konformný, keď je klinický obsah **kódovaný dual coding** (záznam SNOMED CT, výkaz
-klasifikácia trhu) so **zachovaným naratívom**, nesie **podpisovú úroveň trhu**, má **nemenný
-audit s purpose-of-use**, opravuje sa **výhradne addendom**, zdieľa sa **len po podpise a so
-súhlasovým kontextom**, a každý **AI výstup je označený ako návrh** s deklarovanou logikou.
+klasifikácia trhu) so **zachovaným naratívom**, nesie **podpisovú úroveň trhu**, **podpis zmrazí
+obsah do snímky s odtlačkom**, má **nemenný audit s purpose-of-use**, opravuje sa **výhradne
+addendom**, zdieľa sa **len po podpise a so súhlasovým kontextom**, každý **AI výstup je označený
+ako návrh** s deklarovanou logikou, a **jazyk dokumentu je nezávislý od jazyka rozhrania**
+(klinický obsah sa neprekladá automaticky, súhlas nikdy).
 
 ---
 
