@@ -84,13 +84,16 @@ Kontrolný skript konzistencie kľúčov to overí.
 3. **Pred zavedením novej CSS triedy over, či názov už neexistuje.** Prototyp je jeden
    súbor so spoločným menným priestorom; nová trieda s existujúcim názvom ticho prepíše
    nesúvisiacu časť rozhrania (stalo sa s `.card`).
-4. **Sanity brány — všetky štyri musia prejsť:**
+4. **Sanity brány — všetky musia prejsť:**
    - brace balance: `t.count('{') - t.count('}')` — **baseline je `-1`**, nie `0`
    - extrahuj `<script>` do `_js.js` a spusti `node --check _js.js`
    - **kontrola handlerov**: vytiahni všetky `onclick` / `onchange` / `oninput`
      z HTML aj zo šablónových reťazcov v JS a over, že každý má definíciu.
      Syntaktická kontrola toto NEODHALÍ — tlačidlo volajúce neexistujúcu funkciu
      je platný JavaScript. Rovnako neodhalí prvok, ktorý je v DOM nedosiahnuteľný.
+   - **kontrola prekladov**: každý reťazec v `tt('…')` musí mať pár v `I18N`.
+     `tt()` bez páru vráti **slovenský originál**, takže v anglickom rozhraní
+     ticho presakuje slovenčina. Syntaktická kontrola to neodhalí.
    - **kontrola poradia CSS**: pre každé pravidlo v `@media` over, že rovnaký
      selektor nemá základné pravidlo **až za ním** — inak ho prebije a media query
      nikdy nezaberie. Porovnávaj **celé selektory** (`.a .b` nie je `.b`) a media
@@ -164,6 +167,15 @@ Podporné akcie sú sekundárne (biele s rámom), potichu ghost.
 Vlastné rozmery tlačidiel sa **nedefinujú**. Ak niektorý rozmer chýba, je to zmena
 dizajn systému a musí sa nahlásiť — nie prepísať lokálne.
 
+### Umiestnenie akcií panela
+
+Akcie, ktoré platia pre celý panel (uložiť, zahodiť, potvrdiť), patria do **hornej
+lišty**, zarovnané vpravo v riadku s tabmi — **nikdy pod obsah**. Ak je obsah
+scrollovateľný, tlačidlá pod ním používateľ nevidí a nevie, že existujú.
+
+Aktivujú sa podľa stavu panela (`disabled`, keď akcia nedáva zmysel), nie skrývajú —
+skrývanie mení rozloženie a používateľ stratí orientáciu.
+
 ### Formulárové polia
 
 Podľa handoffu dizajn systému: **bez rámu v pokojovom stave**, výplň `surface/1`,
@@ -194,6 +206,9 @@ v `sh-b`. Prázdne miesto pod krátkym obsahom je chyba.
 ## 7. i18n
 
 Zdroj je slovenčina, default zobrazenie angličtina. Pole `I18N` obsahuje páry `[SK, EN]`;
+**každý nový reťazec vo `tt()` musí dostať pár v tom istom kroku** — inak sa v anglickom
+rozhraní zobrazí po slovensky.
+
 `swapText` prekladá textové uzly aj `title` / `placeholder` / `aria-label` / `data-tip`.
 **Nové páry pridávaj na začiatok poľa.** Každý nový používateľský reťazec musí mať pár.
 
