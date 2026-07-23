@@ -4,7 +4,7 @@
 **v akom poradí ho čítať** a **kto vyhráva pri konflikte**.
 
 - **Live prototyp:** https://patrikkmec-ivx.github.io/prototype/
-- **Aktuálna verzia prototypu:** **v159** — changelog je v hlavičke `index.html`
+- **Aktuálna verzia prototypu:** **v160** — changelog je v hlavičke `index.html`
 - Desktop ≥ 745 px, mobil ≤ 744 px; jazyky EN/SK (prepínač v menu)
 
 > **Prototyp nie je produkčný kód.** Žiadne reálne údaje pacientov. Prototyp implementuje
