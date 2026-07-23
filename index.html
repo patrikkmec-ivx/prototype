@@ -4,8 +4,59 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v129 (Report conformance — provenance, audit, AI transparentnosť)</title>
+<title>Hilbi Cockpit — v151 (Šablóny ako podstránka · zmrazenie pri podpise · jazyková vrstva)</title>
 <!-- CHANGELOG
+v151 (2026-07-23): OBNOVA + oprava. v148 omylom prepísal v145–v147 (lokálny súbor
+  sa po reštarte prostredia vrátil do staršieho stavu a nebol znovu stiahnutý
+  z main). Podstránka šablón obnovená, modal tplwrap odstránený z kódu.
+  Premenná --appmax sa nikdy nezadefinovala → var() v .dockwrap bol neplatný,
+  right sa vyhodnotil ako auto a plávajúci widget spadol vľavo dole. Opravené.
+v150 (2026-07-23): Responzíva na širokých monitoroch. Plávajúci dock a IQ modal
+  ukotvené na kontajner aplikácie, nie na viewport. --appmax 1600 → 1920.
+  Formulár editora capovaný na 720 px.
+v149 (2026-07-23): Jazyková vrstva (I18N-01..15). Jazykovo neutrálne kľúče zdrojov,
+  SRC_DISP = skratka v jazyku dokumentu vs. názov v jazyku rozhrania, jazyk dokumentu
+  v nastaveniach organizácie, register súhlasov kľúčovaný (id, verzia, jazyk),
+  preklad tela na vyžiadanie ako čítacia pomôcka. Normatívny zdroj: cp-17 §12.
+v148 (2026-07-23): Zmrazenie obsahu pri podpise (AMD-05..09). rptSnapshot() mrazí
+  štruktúru, naratív aj kontext; podpísaná verzia sa nikdy neskladá zo živých dát;
+  odtlačok obsahu v dokumente, histórii verzií aj Provenance.
+v147 (2026-07-23): Oprava poradia CSS — media query pre tri stĺpce bol pred základným
+  pravidlom .tplmgr a neskoršia definícia ho prebíjala.
+v146 (2026-07-23): Rozostupy podstránky na škálu 8/16/24/32; PHR stĺpec sa na
+  podstránke nerezervuje; náhľad vedľa od 1200 px a sticky.
+v145 (2026-07-23): Šablóny ako PODSTRÁNKA podľa skladby IQ Doc (drobčeky, nadpis
+  s akciou, karta). Modal zrušený. Tri stĺpce: zoznam / editor / živý náhľad.
+v144 (2026-07-23): Šírka komponentu 820 → 1040 px, text náhľadu obmedzený na
+  čitateľnú mieru 680 px.
+v143 (2026-07-23): Oprava podľa DS '26 Atoms. Tlačidlá: M 40 je default pre panely
+  a formuláre, S 32 len pre husté riadky. Polia prepísané podľa Input handoffu —
+  bez rámu, výplň surface/1, S 40 / M 48, cyan focus prstenec.
+v142 (2026-07-23): Typografická hierarchia editora — nadpis skupiny, popisok poľa,
+  obsah poľa; názov sekcie je nositeľ významu.
+v141 (2026-07-23): Škála tlačidiel L 48 / M 40 / S 32, max 1 primary na obrazovku,
+  výšku modalu určuje obsah.
+v140 (2026-07-23): Zjednotenie tabov na kanonický vzor kokpitu (plochý button,
+  ikona + popisok, 3px podčiarknutie). Nová trieda .tabbar.
+v139 (2026-07-23): Tri okruhy vlastníctva šablón — Systémové / Zariadenia / Moje,
+  prostredie tvorby (od začiatku / nahrať súbor / odfotiť).
+v138 (2026-07-23): Živý náhľad v editore + vizuálna hierarchia sekcií (key / norm /
+  anam) odvodená zo zdroja.
+v137 (2026-07-23): Informovaný súhlas — register znení, samostatný dokument aj sekcia
+  na konci správy, podpisové polia, typovo citlivá validácia.
+v136 (2026-07-23): Anamnestické okruhy na pacientskej úrovni, hlavička poskytovateľa
+  do nastavení organizácie, extrakcia šablóny zo vzorky s potvrdením mapovania.
+v135 (2026-07-23): Jediný vstup do správy šablón (profil lekára), verziovanie šablón,
+  oprava orezaného layoutu.
+v134 (2026-07-23): Profilové menu v ľavej lište so vstupom do šablón.
+v133 (2026-07-23): Oprava prístupnosti — lišta s generovaním bola vnútri #rendout,
+  ktorý sa plnil až po podpise dňa (cyklická závislosť).
+v132 (2026-07-23): Rozhranie správy šablón — zoznam, editor sekcií, validácia proti
+  minimu trhu (TPL-02).
+v131 (2026-07-23): Šablónový povrch — doménovo neutrálny register, picker, coverage,
+  dvojitý renderer (štruktúra / plain text pre schránku).
+v130 (2026-07-23): Štrukturálny krok — register šablón ako dáta namiesto vetvenia,
+  položka reportu má tvar {slot, text, coding}.
 v129 (2026-07-23): G5+G7. Provenance + AuditEvent ako first-class: atribúcia
   (create/sign/amend/verify) a prístupový log (copy/print/share) s agentom, rolou
   a purpose-of-use; audit panel v reporte. DSI transparentnosť podľa US HTI-1 —
