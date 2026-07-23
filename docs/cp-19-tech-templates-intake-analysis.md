@@ -189,10 +189,73 @@ Kokpit nie je SM. Potrebuje vlastný doménový plug-in `core`, ktorého tokeny 
   Validácia je vedomý akt lekára a zaznamenáva sa (`Provenance`, `AuditEvent`).
 - **INT-03** Coverage (vyplnené / chýbajúce polia) MUSÍ byť viditeľné pred podpisom.
 
-## 8. Otvorené body
+## 8. Integračný model — Dash a Care Plan
+
+- **Dash je system of record.** Úložisko Care Planu je **odvodené** (projekcia/cache),
+  nie rovnocenný zdroj. Invariant: **žiadny klinický fakt nesmie existovať iba
+  v Care Plane.** Bez toho neplatí požiadavka „ak Care Plan vypadne, všetko ostáva
+  v Dash".
+- **Komunikácia výhradne cez API.** Žiadny priamy prístup do cudzej databázy.
+  Pravidlá synchronizácie sa dorobia pri integrácii (nadväzuje na `core-12`).
+- **Care Plan je integrovaný cez iFrame** — je to *vymeniteľný povrch*, nie závislosť.
+
+Dôsledky, ktoré treba navrhnúť (nie predpokladať):
+
+| Téma | Otázka |
+|---|---|
+| Autentifikácia cez hranicu | obmedzenia cookies tretích strán; obe aplikácie sú pod `hilbi.com`, mechanizmus treba navrhnúť |
+| Kto renderuje šablónový povrch | ak Care Plan vnútri iFrame, potrebuje naše komponenty a tokeny **ako balík** — závisí od `tokens.json` (DTCG) |
+| Provenance cez hranicu | akcia v iFrame MUSÍ vytvoriť `Provenance` v Dash; API nesie agenta, rolu a purpose-of-use |
+| Verziovanie kontraktu | povrch a API sa vyvíjajú nezávisle — potrebná verzia kontraktu |
+
+## 9. Vstupné body IQ
+
+IQ vstupuje do dekurzu tromi spôsobmi. Všetky podliehajú `INT-01` a `INT-02` —
+výstup je **kandidát**, nie záznam.
+
+| Vstup | Popis |
+|---|---|
+| **Predvyplnenie z opakovanej návštevy** | prenos obsahu z predchádzajúceho encounteru |
+| **Doplnenie cez speech-to-note** | prepis hovoreného slova do slotov |
+| **Vytvorenie z nahrávky** | celý dekurz zostavený z audia |
+
+### 9.1 Riziko: klonovaná dokumentácia
+
+Prenášanie obsahu z predchádzajúcej návštevy je známy problém klonovanej
+dokumentácie — v zázname sa objaví nález, ktorý v danom dni nikto nevykonal.
+V USA ide o audit red flag; cez E/M úroveň vedie k nadhodnotenému vykazovaniu.
+Keďže výkaz sa **deriviuje z klinických dát** (`cp-15`, BILL), prenesený obsah by
+úroveň umelo nafúkol.
+
+Ošetrenie:
+
+- **INT-04** Položka prenesená z predchádzajúceho encounteru MUSÍ byť viditeľne
+  označená ako prenesená, MUSÍ sa potvrdzovať **po položkách** (nikdy hromadne)
+  a jej `Provenance` MUSÍ niesť zdrojový encounter — nie dnešné pozorovanie.
+- **INT-05** Prenesená a nepotvrdená položka sa NESMIE započítať do derivácie výkazu.
+
+### 9.2 Riziko: nahrávka ako osobný údaj
+
+- **INT-06** Nahrávanie konzultácie vyžaduje súhlas pacienta; rozsah a forma súhlasu
+  sa riadia trhom.
+- **INT-07** MUSÍ byť rozhodnuté, či sa audio po prepise **uchováva alebo zahadzuje**,
+  a či je nahrávka súčasťou zdravotnej dokumentácie. Do rozhodnutia sa audio
+  neuchováva.
+
+## 10. Sada šablón poskytovateľa
+
+Jedna šablóna neprodukuje dekurz aj žiadanku — tie majú odlišný `slotKey`. Lekár
+nahráva **sadu šablón** so spoločným štýlom a názvoslovím sekcií (`provider profile`).
+Dekurz a jeho exporty sú tá istá šablóna cez dva renderery (§3.5).
+
+## 11. Otvorené body
 
 - Rozsah domény `core` — ktoré anamnestické okruhy sú v základe a ktoré voliteľné.
 - Formát importu poskytovateľskej šablóny (nahratie textu vs. sprievodca).
 - Vlastníctvo a verziovanie šablón na úrovni organizácie vs. lekára.
 - Či sa kódy vkladajú do textového výstupu predvolene, alebo per šablóna.
 - Perzistencia kandidátov pred validáciou a ich retencia, ak lekár nevaliduje.
+- Pravidlá synchronizácie Dash ↔ Care Plan a riešenie konfliktov.
+- Mechanizmus autentifikácie cez hranicu iFrame.
+- Súhlas s nahrávaním a retencia audia (`INT-06`, `INT-07`) — rozhoduje compliance.
+- Balíčkovanie šablónového povrchu a tokenov pre spotrebu v Care Plane.
