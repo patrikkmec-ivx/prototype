@@ -4,7 +4,7 @@
 > ako sa v repozitári správať určuje `CLAUDE.md`; čo je čo určuje `README.md`.
 > **Aktualizuje sa na konci každej relácie.**
 
-Aktualizované: 2026-07-23 · Verzia prototypu: **v159**
+Aktualizované: 2026-07-23 · Verzia prototypu: **v160**
 
 ---
 
@@ -98,9 +98,10 @@ Tri veci treba uzavrieť **pred** tvorbou dokumentov — nie sú to doplnky:
    verzie, ľudské číslo pri podpise, `DOC_REG` ako jeden register.
 2. ~~Zobrazenie v obidvoch pohľadoch~~ — **hotové vo v159**: časová os aj Records
    čítajú z `DOC_REG`, kópia nevzniká, addendum aktualizuje existujúci záznam.
-3. **Perzistenčný seam** — šablóny, verzie, snímky aj audit žijú v pamäti. Netreba
-   databázu, ale rozhranie úložiska (vzor `TemplateAdapter` z Care Planu), aby sa
-   produkcia zapojila bez prepisu.
+3. ~~Perzistenčný seam~~ — **hotové vo v160** (`STO-01..05`): `Store` s piatimi
+   kolekciami, pamäťový adaptér, všetky zápisy cez seam.
+
+**Všetky tri predpoklady sú uzavreté — tvorba dokumentov môže začať.**
 
 Tlačový výstup (`I18N-13`) patrí k tvorbe dokumentov a spraví sa s ňou.
 
