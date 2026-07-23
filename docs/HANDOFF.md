@@ -4,7 +4,7 @@
 > ako sa v repozitári správať určuje `CLAUDE.md`; čo je čo určuje `README.md`.
 > **Aktualizuje sa na konci každej relácie.**
 
-Aktualizované: 2026-07-23 · Verzia prototypu: **v139** (`tpl scopes`)
+Aktualizované: 2026-07-23 · Verzia prototypu: **v149** (`b0e6bfdc`)
 
 ---
 
@@ -49,7 +49,10 @@ hotové a čo je placeholder — nie tento súbor.
 | 3a | Šablónový povrch — picker, coverage, dva renderery (v131) | **hotová** |
 | 3b | Rozhranie správy šablón — zoznam, editor sekcií, validácia TPL-02 (v132); vstup z profilového menu (v134) | **hotová** |
 | 3b+ | Šablóny: register, editor, náhľad, extrakcia zo vzorky, hlavička organizácie, anamnéza, súhlas, okruhy vlastníctva (v136–v139) | **hotová** |
-| 3c | **Rozhranie dekurzu** — intake, kandidáti z IQ, validácia po položkách (INT-01..05) | **ďalšia na rade** |
+| 3c1 | Šablóny ako podstránka, dizajn systém (tlačidlá, polia, taby, rozostupy) — v140–v147 | **hotová** |
+| 3c2 | Zmrazenie obsahu pri podpise — snímka + odtlačok (AMD-05..09), v148 | **hotová** |
+| 3c3 | Jazyková vrstva — neutrálne kľúče, jazyk dokumentu, súhlas per jazyk, preklad na vyžiadanie (I18N-01..15), v149 | **hotová** |
+| 3d | **Rozhranie dekurzu** — intake, kandidáti z IQ, validácia po položkách (INT-01..05) | **ďalšia na rade** |
 | 3d | Anamnestické okruhy na pacientskej úrovni (TPL-04) | čaká |
 | 4 | UX podpis, amendment s dôvodom, súhlasový dialóg | čaká |
 | 5 | Audit a verzie ako systémová plocha (nie len v reporte) | čaká |
@@ -60,6 +63,15 @@ hotové a čo je placeholder — nie tento súbor.
 renderi (`codeOf` sa volá len v `renderOut`). To je obrátene — kód patrí do udalosti,
 lebo udalosti sú SSOT. Fáza 3 mení dátový model udalosti (pribudne `coding[]`), preto
 sa dotýka `cp-16` a musí sa premietnuť do `cp-17` §10 v tom istom commite.
+
+## 3b. Čo z jazykovej vrstvy ešte chýba
+
+- Systémové šablóny sú lokalizované len čiastočne (`I18N-04`).
+- Taxonómia sa zatiaľ neprekladá cez **zobrazovací termín kódu** (`I18N-05`) — dnes
+  cez `SRC_DISP`; produkčne má čerpať z terminologického servera.
+- Cudzie dokumenty na časovej osi (`I18N-10`), jazyk tlače (`I18N-13`) a locale
+  formátovanie čísel a dátumov (`I18N-14`) zatiaľ neriešené.
+- Jazyk pacienta ako samostatná os (riadi súhlasy a pacientske listy).
 
 ## 4. Otvorené body mimo kódu
 
