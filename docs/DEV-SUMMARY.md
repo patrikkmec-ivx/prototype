@@ -72,6 +72,7 @@ label, a kódové systémy (záznam / výkaz / lieky / laboratórne).
 | Preklad na vyžiadanie | `I18N-07`, `I18N-08` | `TR_LANG`, `trSet()`, `trBarHTML()` |
 | Súhlas per jazyk | `I18N-11` | `CNS_REG` `(id, ver, lang)`, `cnsPick()` |
 | Zdroje ako podmnožiny slotov | `TPL-17`, `TPL-18` | `ENC_SRC` — `exam-neuro`, `labs`, `dx-coded` |
+| Podpisový blok | `TPL-19` | `ORG.signatories` (identita) · `tpl.signers` (výber) · `sigBlockHTML()` |
 
 ## 5. Čo musí produkcia nahradiť
 
