@@ -651,7 +651,7 @@ v40: DS '26 alignment — Rx + dekurz modaly.
 }
 [hidden]{display:none!important}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Mulish',sans-serif;background:var(--surface-2);color:var(--text-body);font-size:14px;line-height:1.45;--navw:208px;--phrw:280px}
+body{font-family:'Mulish',sans-serif;background:var(--surface-2);color:var(--text-body);font-size:14px;line-height:1.45;--navw:208px;--phrw:280px;--appmax:1920px}
 @media (min-width:745px){body{min-width:1100px}}
 body[data-nav="min"]{--navw:64px}
 body[data-phr="min"]{--phrw:46px!important}
@@ -1382,6 +1382,24 @@ body[data-tab="comm"] .timeline{display:none}
 .tplbar .vsw button.on{background:var(--brand-cyan-soft);color:var(--brand-teal-text);font-weight:600}
 
 .tpltop{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px;border-bottom:1px solid var(--border-default)}
+
+/* PODSTRÁNKA — skladba podľa IQ Doc: drobčeky · nadpis + akcia · karta */
+.page{display:none;flex-direction:column;gap:24px;padding:24px 32px;overflow-y:auto;
+  background:var(--surface-0);border-radius:16px;min-width:0}
+/* PHR patrí len do detailu pacienta — na podstránke sa stĺpec nerezervuje */
+body[data-page="tpl"] .app{grid-template-columns:var(--navw) minmax(0,1fr)}
+body[data-page="tpl"] .page#pageTpl{display:flex}
+body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
+.crumb{font-size:12px;line-height:16px;color:var(--text-muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.crumb a{color:var(--text-muted);text-decoration:none}
+.crumb a:hover{color:var(--text-heading)}
+.crumb b{color:var(--text-heading);font-weight:600}
+.pghead{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.pghead h1{flex:1;min-width:0;margin:0;font-size:24px;line-height:32px;font-weight:700;color:var(--text-heading)}
+.pgcard{background:var(--surface-white);border:1px solid var(--border-default);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:24px}
+.cardhead{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;border-bottom:1px solid var(--border-default)}
+.tplprevcol{display:none}
+.edfoot{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;max-width:720px}
 /* TABY — kanonický vzor. Zhodný s hlavnou lištou kokpitu (.tabs) a s .dtabs:
    plochý button bez rámu a pozadia, ikona + popisok, neaktívny --text-muted,
    aktívny --text-heading + 700 + 3px podčiarknutie. Nikdy pilulky ani segmenty. */
@@ -1404,9 +1422,14 @@ body[data-tab="comm"] .timeline{display:none}
 .newcard b{font-size:13px;color:var(--text-heading)}
 .newcard span:not(.nci){font-size:11px;color:var(--text-muted);line-height:15px}
 .newnote{font-size:10.5px;color:var(--text-muted);margin-top:11px;font-style:italic;line-height:15px}
-.tplmgr{display:grid;grid-template-columns:236px minmax(0,1fr);gap:16px;align-items:start}
+.tplmgr{display:grid;grid-template-columns:260px minmax(0,1fr);gap:24px;align-items:start}
+@media(min-width:1200px){
+  .tplmgr{grid-template-columns:260px minmax(320px,1fr) minmax(320px,400px)}
+  .tplprevcol{display:block;position:sticky;top:0}
+  .edtabs{display:none}
+}
 @media(max-width:820px){.tplmgr{grid-template-columns:1fr}.tplside{border-right:0;border-bottom:1px solid var(--border-default);padding:0 0 12px}}
-.tplside{border-right:1px solid var(--border-default);padding-right:12px}
+.tplside{border-right:1px solid var(--border-default);padding-right:24px}
 .tplside .tgrp{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);margin:10px 0 5px}
 .tplside .titem{padding:7px 9px;border-radius:8px;cursor:pointer;font-size:12.5px;color:var(--text-body);line-height:16px;border:1px solid transparent}
 .tplside .titem:hover{background:var(--surface-1)}
@@ -2221,6 +2244,24 @@ body[data-tab="comm"] .timeline{display:none}
       </div>
     </div>
   </main>
+  <main class="page" id="pageTpl">
+    <nav class="crumb" aria-label="Drobčeková navigácia">
+      <a href="#" onclick="pageClose();return false">Home</a><span>/</span><a href="#" onclick="pageClose();return false">Settings</a><span>/</span><b>Document templates</b>
+    </nav>
+    <div class="pghead">
+      <h1>Document templates</h1>
+      <button class="btn" onclick="tplNewOpen()"><svg class="ico s18" aria-hidden="true"><use href="#i-plus"/></svg><span>Create template</span></button>
+    </div>
+    <div class="pgcard">
+      <div class="cardhead" id="tpltop"></div>
+      <div class="tplmgr">
+        <div class="tplside" id="tplside"></div>
+        <div class="tpledit" id="tpledit"></div>
+        <div class="tpledit tplprevcol" id="tplprev"></div>
+      </div>
+    </div>
+  </main>
+
 
   <aside class="phr">
     <div class="phrgrip" id="phrGrip" title="Potiahnutím zmeníte šírku"></div>
@@ -2383,20 +2424,6 @@ body[data-tab="comm"] .timeline{display:none}
       <div class="tpledit" id="orgform"></div>
     </div>
     <div class="sh-f"><button class="btn" onclick="mClose('orgwrap')">Zrušiť</button><button class="btn primary" onclick="orgSave()">Uložiť</button></div>
-  </div>
-</div>
-
-<div class="sheetwrap" id="tplwrap"><div class="scrim" onclick="mClose('tplwrap')"></div>
-  <div class="sheet wide">
-    <div class="sh-h"><span class="hic c-note"><svg class="ico s14"><use href="#i-pen"/></svg></span><b>Šablóny dokumentov</b><button class="x" onclick="mClose('tplwrap')" title="Zavrieť">&times;</button></div>
-    <div class="sh-b">
-      <div class="tpltop" id="tpltop"></div>
-      <div class="tplmgr">
-        <div class="tplside" id="tplside"></div>
-        <div class="tpledit" id="tpledit"></div>
-      </div>
-    </div>
-    <div class="sh-f"><button class="btn" onclick="mClose('tplwrap')">Zavrieť</button><button class="btn primary" id="tplSaveBtn" onclick="tplSave()">Uložiť šablónu</button></div>
   </div>
 </div>
 
@@ -3664,8 +3691,7 @@ function tplNewOpen(){TPL_NEW=true;TPL_IMP=null;TPL_EDIT=null;tplMgrRender();}
 function tplTopHTML(){
   const tabs=TPL_SCOPES.map(s=>{const n=TPL_REG.filter(x=>x.kind===s.k).length;
     return `<button class="${TPL_SCOPE===s.k?'on':''}" onclick="tplScope('${s.k}')"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-${s.i}"/></svg>${escT(tt(s.n))}<span class="cnt">${n}</span></button>`;}).join('');
-  return `<div class="tabbar">${tabs}</div>
-    <button class="btn tplnewb" onclick="tplNewOpen()">+ ${tt('Vytvoriť šablónu')}</button>`;
+  return `<div class="tabbar">${tabs}</div>`;
 }
 function tplNewHTML(){
   const card=(ic,ti,de,fn)=>`<button class="newcard" onclick="${fn}">
@@ -3680,8 +3706,10 @@ function tplNewHTML(){
     <div class="newnote">${tt('Zo vzorky sa preberá iba štruktúra. Údaje pacienta ani zdrojový obrázok sa neukladajú.')}</div>`;
 }
 function tplTab(k){TPL_TAB=k;tplMgrRender();}
+function pageOpen(k){document.body.dataset.page=k;window.scrollTo(0,0);}
+function pageClose(){delete document.body.dataset.page;}
 function tplMgr(){const c=tplCur();TPL_EDIT=JSON.parse(JSON.stringify(c));TPL_SCOPE=c.kind||'system';
-  TPL_NEW=false;TPL_IMP=null;TPL_TAB='edit';mOpen('tplwrap');tplMgrRender();}
+  TPL_NEW=false;TPL_IMP=null;TPL_TAB='edit';pageOpen('tpl');tplMgrRender();}
 function tplMgrPick(id){const s=TPL_REG.find(x=>x.id===id);if(s){TPL_IMP=null;TPL_TAB='edit';TPL_EDIT=JSON.parse(JSON.stringify(s));tplMgrRender();}}
 function tplMgrNew(){
   TPL_IMP=null;TPL_NEW=false;
@@ -3716,23 +3744,29 @@ function tplMgrRender(){
   const side=document.getElementById('tplside'),ed=document.getElementById('tpledit');
   if(!side||!ed)return;
   const top=document.getElementById('tpltop');if(top)top.innerHTML=tplTopHTML();
-  /* max 1 primary na obrazovku (dizajn systém): pri importe a pri výbere spôsobu
-     tvorby je hlavnou akciou tlačidlo v paneli, pätkové Uložiť sa vypína */
-  const sb=document.getElementById('tplSaveBtn');
-  if(sb)sb.disabled=!!(TPL_IMP||TPL_NEW||!TPL_EDIT||TPL_EDIT.kind==='system');
+
   const list=TPL_REG.filter(x=>x.kind===TPL_SCOPE);
   side.innerHTML=list.length
     ? list.map(t=>`<div class="titem ${TPL_EDIT&&t.id===TPL_EDIT.id?'on':''}" onclick="tplMgrPick('${t.id}')">${escT(tt(t.name))}
         <span class="kb">${t.slotKey} · v${t.ver||1}</span></div>`).join('')
     : `<div class="tempty">${tt('V tomto okruhu zatiaľ nie je žiadna šablóna.')}</div>`;
-  if(TPL_NEW){ed.innerHTML=tplNewHTML();return;}
-  if(TPL_IMP){ed.innerHTML=tplImpHTML();return;}
-  if(!TPL_EDIT){ed.innerHTML=`<div class="tempty">${tt('Vyberte šablónu vľavo alebo vytvorte novú.')}</div>`;return;}
+  const pv=document.getElementById('tplprev');
+  const setPrev=(html)=>{if(pv)pv.innerHTML=html;};
+  if(TPL_NEW){ed.innerHTML=tplNewHTML();setPrev('');return;}
+  if(TPL_IMP){ed.innerHTML=tplImpHTML();setPrev('');return;}
+  if(!TPL_EDIT){ed.innerHTML=`<div class="tempty">${tt('Vyberte šablónu vľavo alebo vytvorte novú.')}</div>`;setPrev('');return;}
   const ro=TPL_EDIT.kind==='system',v=tplValidate(TPL_EDIT);
   const opts=(sel)=>TPL_SRC.map(s=>`<option value="${s.k}"${s.k===sel?' selected':''}>${escT(srcName(s.k))}</option>`).join('');
   const tabs=`<div class="edtabs"><div class="tabbar">
     <button class="${TPL_TAB==='edit'?'on':''}" onclick="tplTab('edit')"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-rows"/></svg>${tt('Sekcie')}</button>
     <button class="${TPL_TAB==='prev'?'on':''}" onclick="tplTab('prev')"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-file"/></svg>${tt('Náhľad')}</button></div></div>`;
+  const prevHTML=`<div class="grph">${tt('Náhľad')}</div><div class="tprev rendout show">${orgHeadHTML()}
+      <h4>${escT(tt(TPL_EDIT.name))}</h4>
+      <div class="rsec">${rptIdLine()} · ${escT(RPT_ID.clinician)}</div>
+      ${tplBodyHTML(TPL_EDIT)}
+      <div class="rft">${escT(ORG.stamp)}</div></div>
+      <div class="tprevn">${tt('Náhľad s dnešnými údajmi. Anamnéza sa preberá z pacientskej úrovne.')}</div>`;
+  setPrev(prevHTML);
   if(TPL_TAB==='prev'){
     ed.innerHTML=tabs+`<div class="tprev rendout show">${orgHeadHTML()}
       <h4>${escT(tt(TPL_EDIT.name))}</h4>
@@ -3767,6 +3801,10 @@ function tplMgrRender(){
     <div class="fr"><label class="fl">
       <input type="checkbox" ${TPL_EDIT.codes?'checked':''} ${ro?'disabled':''}
         onchange="TPL_EDIT.codes=this.checked"> ${tt('Vkladať kódy do textového výstupu')}</label></div>
+    <div class="edfoot">
+      <button class="btn primary" ${(ro||TPL_IMP||TPL_NEW)?'disabled':''} onclick="tplSave()">${tt('Uložiť šablónu')}</button>
+      <button class="btn" onclick="tplImpCancel()">${tt('Zahodiť zmeny')}</button>
+    </div>
     <div class="tplval ${v.ok?'ok':'bad'}">${v.ok
       ? '✓ '+tt('Šablóna spĺňa minimum trhu')+' ('+MKTC+')'
       : '⚠ '+(v.empty?tt('Šablóna nemá žiadnu sekciu'):tt('Chýba povinné minimum trhu')+' ('+MKTC+'): '+v.miss.join(', '))}</div>`;
@@ -3783,7 +3821,7 @@ function tplSave(){
   if(i>=0)TPL_REG[i]=TPL_EDIT;else TPL_REG.push(TPL_EDIT);
   TPL_SEL=TPL_EDIT.id;
   logProv(i>=0?'amend':'create','SummaryTemplate '+TPL_EDIT.id+' v'+TPL_EDIT.ver,{role:'author'});
-  mClose('tplwrap');renderOut();showToast('Šablóna uložená a použitá','ok');
+  renderOut();showToast('Šablóna uložená a použitá','ok');
 }
 /* Coverage (INT-03) — koľko sekcií je naplnených a ktoré chýbajú */
 function tplCoverage(tpl){
