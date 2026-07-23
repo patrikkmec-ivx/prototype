@@ -1,0 +1,81 @@
+%% cp-18-tech-report-lifecycle
+%% Životný cyklus reportu: capture → dekurz → podpis → render → zdieľanie
+%% Normatívny zdroj: cp-17-tech-report-conformance-standard
+%% type: informative (vizualizácia normy, nie samostatná autorita)
+
+flowchart TD
+
+  subgraph CAP["1 · CAPTURE — udalosti sú SSOT (cp-16)"]
+    A1["Akcia lekára<br/>eRx · order · poznámka · vitály"]
+    A2["Výber kódu pri zázname<br/>type-ahead nad ValueSet<br/>TERM-05 TERM-06"]
+    A3["Udalosť = coding[] + text<br/>TERM-01 TERM-03"]
+    A4["IQ návrh<br/>označený, nezapisuje ticho<br/>DSI-01 DSI-03"]
+    A1 --> A2 --> A3
+    A4 -. "potvrdí lekár" .-> A3
+  end
+
+  subgraph DEK["2 · DEKURZ — priebežná kompilácia (SOAP-03)"]
+    B1["Composition<br/>sekcie S / O / A / P"]
+    B2["status: preliminary<br/>AMD-01"]
+    B1 --- B2
+  end
+
+  subgraph SGN["3 · PODPIS"]
+    C1{"Minimálny set<br/>podľa market_rules?<br/>SOAP-06"}
+    C2["Podpisová úroveň trhu<br/>eIDAS QES · HIPAA · IT Act<br/>SIG-01"]
+    C3{"Mód systému?<br/>REP-01"}
+    C4["overlay — podpis vykonáva<br/>hostiteľský systém<br/>REP-02 SIG-03"]
+    C5["core — autoritatívna<br/>Composition Hilbi<br/>REP-03"]
+    C6["status: final<br/>AMD-01"]
+    C1 -- "áno" --> C2 --> C3
+    C1 -- "nie" --> B1
+    C3 -- "overlay" --> C4 --> C6
+    C3 -- "core" --> C5 --> C6
+  end
+
+  subgraph REN["4 · RENDER — jeden objekt, viac templatov (SOAP-08)"]
+    D1["Report shell<br/>hlavička · telo · pätka<br/>REP-06"]
+    D2["Identita z kontextu<br/>ABHA/HPR/HFR · MRN/NPI<br/>REP-07"]
+    D3["Dokumentový profil trhu<br/>EEHRxF · US Core · ABDM<br/>REP-08"]
+    D4["DocumentReference"]
+    D1 --- D2
+    D1 --- D3
+    D1 --> D4
+  end
+
+  subgraph SHR["5 · ZDIEĽANIE"]
+    E1{"Podpísaná verzia?<br/>CNS-05"}
+    E2["Súhlasový kontext<br/>ABDM CM · EHDS pou · info-blocking<br/>CNS-01..04"]
+    E3["Odovzdanie príjemcovi"]
+    E1 -- "áno" --> E2 --> E3
+    E1 -- "nie" --> D1
+  end
+
+  subgraph AMD["6 · OPRAVA — nikdy tichý edit"]
+    F1["Dôvod opravy<br/>AMD-04"]
+    F2["Addendum<br/>originál zachovaný<br/>AMD-02 AMD-03"]
+    F3["status: amended"]
+    F1 --> F2 --> F3
+  end
+
+  CAP --> DEK --> SGN --> REN --> SHR
+  C6 -.-> F1
+  F3 -.-> D1
+
+  subgraph PRV["Provenance a audit — priečna vrstva (PROV / AUD)"]
+    G1["Provenance · create<br/>agent: lekár | Hilbi IQ<br/>PROV-01 PROV-03"]
+    G2["Provenance · sign / amend<br/>rola: attester"]
+    G3["Provenance · verify<br/>rola: verifier — výkaz"]
+    G4["AuditEvent · copy / print / share<br/>+ purpose-of-use<br/>AUD-01"]
+    G5[("Perzistentný, nemenný<br/>tamper-evident log<br/>AUD-02 AUD-03")]
+    G1 --> G5
+    G2 --> G5
+    G3 --> G5
+    G4 --> G5
+  end
+
+  A3 -.-> G1
+  C6 -.-> G2
+  F2 -.-> G2
+  D4 -.-> G4
+  E3 -.-> G4
