@@ -50,8 +50,10 @@ label, a kódové systémy (záznam / výkaz / lieky / laboratórne).
 | Shell reportu | `REP-06` | `reportShell()` |
 | Identita | `REP-07` | `RPT_ID`, `rptIdLine()` |
 | Dokumentový profil | `REP-08` | `MKT[…].doc` |
+| Register templatov | `REP-09` | `RPT_TPL`, `rptSource()`, `rptSec()` |
+| Tvar položky | `TERM-03`, `TERM-05` | `rptItem()` → `{slot, text, coding}` |
 | Kódová väzba slotu | `TERM-04` | `TERM_BIND` |
-| Dual coding | `TERM-02`, `TERM-03` | `codeChips()`, `codeOf()` |
+| Dual coding | `TERM-02`, `TERM-03` | `codeChipsOf()`, `codeOf()` |
 | ValueSet (demo) | `TERM-06` | `CODEMAP` |
 | Priznaná medzera | `TERM-08` | trieda `.cd.none` |
 | Podpisová úroveň | `SIG-01` | `MKT[…].sig` |
