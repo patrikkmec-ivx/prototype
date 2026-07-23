@@ -4,7 +4,7 @@
 > ako sa v repozitári správať určuje `CLAUDE.md`; čo je čo určuje `README.md`.
 > **Aktualizuje sa na konci každej relácie.**
 
-Aktualizované: 2026-07-23 · Verzia prototypu: **v157** (`f6b60046`)
+Aktualizované: 2026-07-23 · Verzia prototypu: **v158** (`55e15c0b`)
 
 ---
 
@@ -94,11 +94,11 @@ z editora šablóny tam vedie odkaz.
 
 Tri veci treba uzavrieť **pred** tvorbou dokumentov — nie sú to doplnky:
 
-1. **`doc_id`** — dokument nemá stabilný identifikátor. Nedá sa naň odkázať z časovej
-   osi, presne auditovať ani prepojiť s verziami a addendom. Otvorené v `cp-19`, `gsr-13`.
-2. **Kam dokument pristane** — Records vrstva je odložená (`cp-16`), časová os je
-   seedovaná staticky. Vytvorený dokument dnes nemá cieľ. **Vyžaduje rozhodnutie:**
-   udalosť na časovej osi, záznam v Records, alebo oboje s odkazom?
+1. ~~Identita dokumentu~~ — **hotové vo v158** (`DOC-01..07`): `masterIdentifier`,
+   verzie, ľudské číslo pri podpise, `DOC_REG` ako jeden register.
+2. **Zobrazenie v obidvoch pohľadoch** — rozhodnuté: **oboje**, jeden dokument cez
+   `masterIdentifier` (`DOC-06`). Register existuje; **vykreslenie na časovej osi
+   a v Records ešte nie je postavené.**
 3. **Perzistenčný seam** — šablóny, verzie, snímky aj audit žijú v pamäti. Netreba
    databázu, ale rozhranie úložiska (vzor `TemplateAdapter` z Care Planu), aby sa
    produkcia zapojila bez prepisu.
