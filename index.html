@@ -1360,14 +1360,19 @@ body[data-tab="comm"] .timeline{display:none}
 .tplbar .vsw button{font:inherit;font-size:12px;padding:5px 11px;border:0;background:var(--surface-0);color:var(--text-muted);cursor:pointer}
 .tplbar .vsw button.on{background:var(--brand-cyan-soft);color:var(--brand-teal-text);font-weight:600}
 
-.tpltop{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border-default)}
-.scopetabs{display:flex;border:1px solid var(--border-default);border-radius:9px;overflow:hidden}
-.scopetabs button{font:inherit;font-size:12.5px;padding:7px 14px;border:0;background:var(--surface-0);color:var(--text-muted);cursor:pointer;display:flex;gap:6px;align-items:center}
-.scopetabs button+button{border-left:1px solid var(--border-default)}
-.scopetabs button.on{background:var(--brand-cyan-soft);color:var(--brand-teal-text);font-weight:600}
-.scopetabs .cnt{font-size:10.5px;background:var(--surface-1);border-radius:999px;padding:0 6px;color:var(--text-muted)}
-.scopetabs button.on .cnt{background:#fff;color:var(--brand-teal-text)}
-.tpltop .tplnewb{margin-left:auto;padding:7px 14px;min-height:0;font-size:12.5px}
+.tpltop{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px;border-bottom:1px solid var(--border-default)}
+/* TABY — kanonický vzor. Zhodný s hlavnou lištou kokpitu (.tabs) a s .dtabs:
+   plochý button bez rámu a pozadia, ikona + popisok, neaktívny --text-muted,
+   aktívny --text-heading + 700 + 3px podčiarknutie. Nikdy pilulky ani segmenty. */
+.tabbar{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.tabbar button{font:inherit;background:none;border:none;padding:10px 0;font-size:13.5px;font-weight:600;
+  color:var(--text-muted);cursor:pointer;position:relative;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.tabbar button .tic{flex:none;stroke:currentColor}
+.tabbar button.on{color:var(--text-heading);font-weight:700}
+.tabbar button.on::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:3px;border-radius:2px;background:var(--text-heading)}
+.tabbar .cnt{font-size:10.5px;background:var(--surface-1);border-radius:999px;padding:0 6px;color:var(--text-muted);font-weight:600}
+.tabbar button.on .cnt{background:var(--brand-cyan-soft);color:var(--brand-teal-text)}
+.tpltop .tplnewb{margin-left:auto;margin-bottom:8px;padding:7px 14px;min-height:0;font-size:12.5px}
 .tempty{font-size:12px;color:var(--text-muted);padding:14px 4px;line-height:18px}
 .newhead{font-size:12.5px;font-weight:700;color:var(--text-heading);margin-bottom:10px}
 .newgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
@@ -1399,9 +1404,7 @@ body[data-tab="comm"] .timeline{display:none}
 .tplval{margin:10px 0;padding:8px 10px;border-radius:8px;font-size:11.5px;line-height:17px}
 .tplval.ok{background:var(--brand-cyan-soft);color:var(--brand-teal-text)}
 .tplval.bad{border:1px solid var(--warning);color:var(--text-body)}
-.edtabs{display:flex;gap:0;border:1px solid var(--border-default);border-radius:9px;overflow:hidden;margin-bottom:12px;width:fit-content}
-.edtabs button{font:inherit;font-size:12.5px;padding:6px 15px;border:0;background:var(--surface-0);color:var(--text-muted);cursor:pointer}
-.edtabs button.on{background:var(--brand-cyan-soft);color:var(--brand-teal-text);font-weight:600}
+.edtabs{border-bottom:1px solid var(--border-default);margin-bottom:13px}
 .tprev{border:1px solid var(--border-default);border-radius:10px;padding:14px;max-height:340px;overflow:auto;background:var(--surface-white)}
 .tprevn{font-size:10.5px;color:var(--text-muted);margin-top:7px;font-style:italic}
 .tplmeta{font-size:11px;color:var(--text-muted);margin-bottom:8px;font-variant-numeric:tabular-nums}
@@ -3483,15 +3486,15 @@ const TPL_SRC=[
  {k:'consent',n:'Informovaný súhlas',g:'doc'}
 ];
 let TPL_EDIT=null,TPL_TAB='edit',TPL_SCOPE='system',TPL_NEW=false;
-const TPL_SCOPES=[{k:'system',n:'Systémové'},{k:'provider',n:'Zariadenia'},{k:'my',n:'Moje šablóny'}];
+const TPL_SCOPES=[{k:'system',n:'Systémové',i:'layers'},{k:'provider',n:'Zariadenia',i:'bldg'},{k:'my',n:'Moje šablóny',i:'user'}];
 function tplScope(k){TPL_SCOPE=k;TPL_NEW=false;TPL_IMP=null;TPL_TAB='edit';
   const l=TPL_REG.filter(x=>x.kind===k);
   TPL_EDIT=l.length?JSON.parse(JSON.stringify(l[0])):null;tplMgrRender();}
 function tplNewOpen(){TPL_NEW=true;TPL_IMP=null;TPL_EDIT=null;tplMgrRender();}
 function tplTopHTML(){
   const tabs=TPL_SCOPES.map(s=>{const n=TPL_REG.filter(x=>x.kind===s.k).length;
-    return `<button class="${TPL_SCOPE===s.k?'on':''}" onclick="tplScope('${s.k}')">${escT(tt(s.n))}<span class="cnt">${n}</span></button>`;}).join('');
-  return `<div class="scopetabs">${tabs}</div>
+    return `<button class="${TPL_SCOPE===s.k?'on':''}" onclick="tplScope('${s.k}')"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-${s.i}"/></svg>${escT(tt(s.n))}<span class="cnt">${n}</span></button>`;}).join('');
+  return `<div class="tabbar">${tabs}</div>
     <button class="btn primary tplnewb" onclick="tplNewOpen()">+ ${tt('Vytvoriť šablónu')}</button>`;
 }
 function tplNewHTML(){
@@ -3549,9 +3552,9 @@ function tplMgrRender(){
   if(!TPL_EDIT){ed.innerHTML=`<div class="tempty">${tt('Vyberte šablónu vľavo alebo vytvorte novú.')}</div>`;return;}
   const ro=TPL_EDIT.kind==='system',v=tplValidate(TPL_EDIT);
   const opts=(sel)=>TPL_SRC.map(s=>`<option value="${s.k}"${s.k===sel?' selected':''}>${escT(tt(s.n))}</option>`).join('');
-  const tabs=`<div class="edtabs">
-    <button class="${TPL_TAB==='edit'?'on':''}" onclick="tplTab('edit')">${tt('Sekcie')}</button>
-    <button class="${TPL_TAB==='prev'?'on':''}" onclick="tplTab('prev')">${tt('Náhľad')}</button></div>`;
+  const tabs=`<div class="edtabs"><div class="tabbar">
+    <button class="${TPL_TAB==='edit'?'on':''}" onclick="tplTab('edit')"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-rows"/></svg>${tt('Sekcie')}</button>
+    <button class="${TPL_TAB==='prev'?'on':''}" onclick="tplTab('prev')"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-file"/></svg>${tt('Náhľad')}</button></div></div>`;
   if(TPL_TAB==='prev'){
     ed.innerHTML=tabs+`<div class="tprev rendout show">${orgHeadHTML()}
       <h4>${escT(tt(TPL_EDIT.name))}</h4>
