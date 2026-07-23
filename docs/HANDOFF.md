@@ -4,7 +4,7 @@
 > ako sa v repozitári správať určuje `CLAUDE.md`; čo je čo určuje `README.md`.
 > **Aktualizuje sa na konci každej relácie.**
 
-Aktualizované: 2026-07-23 · Verzia prototypu: **v152** (`859418d8`)
+Aktualizované: 2026-07-23 · Verzia prototypu: **v153** (`fe64b943`)
 
 ---
 
@@ -85,7 +85,10 @@ pacienta ani cudzie právne texty sa nekopírujú; demo dáta a znenie súhlasu 
 
 Ďalšie poskytovateľské šablóny sa pridávajú rovnako: rozpoznať sekcie → namapovať na
 zdroje (v prípade potreby doplniť nový zdroj podľa `TPL-17`) → overiť minimum trhu →
-zabezpečiť znenie súhlasu v jazyku dokumentu.
+zabezpečiť znenie súhlasu v jazyku dokumentu → **vybrať podpisovateľov** (`TPL-19`).
+
+Hlavička, pätka a podpisovatelia sa editujú v **nastaveniach zariadenia**, nie v šablóne;
+z editora šablóny tam vedie odkaz.
 
 ## 4. Otvorené body mimo kódu
 
