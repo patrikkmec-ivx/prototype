@@ -4,8 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v160 (Perzistenčný seam)</title>
+<title>Hilbi Cockpit — v161 (tokens.json · refaktor)</title>
 <!-- CHANGELOG
+v161 (2026-07-23): Uzávierka relácie. tokens.json vygenerovaný z :root (95 tokenov,
+  16 aliasov, 18 skupín) v DTCG formáte — code-first SSOT pre Style Dictionary
+  a Figma Variables. Refaktor tplMgrRender: vyčlenené tplSideHTML a tplPreviewHTML,
+  odstránená duplicita náhľadu (bol vykresľovaný dvakrát rovnakým kódom).
 v160 (2026-07-23): Perzistenčný seam (STO-01..05). Úložisko je za rozhraním Store
   s piatimi kolekciami (templates, documents, snapshots, audit, consents);
   prototype používa pamäťový adaptér, produkcia zapojí REST alebo Core bez zmeny
@@ -4089,17 +4093,31 @@ function tplSigner(k,on){
 function tplSecAdd(){TPL_EDIT.sections.push({label:srcAbbr('S'),src:'S'});tplMgrRender();}
 function tplSecMv(i,d){const a=TPL_EDIT.sections,j=i+d;if(j<0||j>=a.length)return;
   const x=a[i];a[i]=a[j];a[j]=x;tplMgrRender();}
+/* Bočný zoznam — samostatná zodpovednosť */
+function tplSideHTML(){
+  const list=TPL_REG.filter(x=>x.kind===TPL_SCOPE);
+  return list.length
+    ? list.map(t=>`<div class="titem ${TPL_EDIT&&t.id===TPL_EDIT.id?'on':''}" onclick="tplMgrPick('${t.id}')">${escT(tt(t.name))}
+        <span class="kb">${t.slotKey} · v${t.ver||1}</span></div>`).join('')
+    : `<div class="tempty">${tt('V tomto okruhu zatiaľ nie je žiadna šablóna.')}</div>`;
+}
+/* Náhľad dokumentu podľa upravovanej šablóny */
+function tplPreviewHTML(){
+  if(!TPL_EDIT)return '';
+  return `<div class="grph">${tt('Náhľad')}</div><div class="tprev rendout show">${orgHeadHTML()}
+      <h4>${escT(tt(TPL_EDIT.name))}</h4>
+      <div class="rsec">${rptIdLine()} · ${escT(RPT_ID.clinician)}</div>
+      ${tplBodyHTML(TPL_EDIT)}
+      <div class="rft">${escT(ORG.stamp)}</div></div>
+      <div class="tprevn">${tt('Náhľad s dnešnými údajmi. Anamnéza sa preberá z pacientskej úrovne.')}</div>`;
+}
 function tplMgrRender(){
   const side=document.getElementById('tplside'),ed=document.getElementById('tpledit');
   if(!side||!ed)return;
   const top=document.getElementById('tpltop');if(top)top.innerHTML=tplTopHTML();
   const sb2=document.getElementById('storebar');if(sb2)sb2.innerHTML=storeBadgeHTML();  /* akcie sa prekreslia so stavom */
 
-  const list=TPL_REG.filter(x=>x.kind===TPL_SCOPE);
-  side.innerHTML=list.length
-    ? list.map(t=>`<div class="titem ${TPL_EDIT&&t.id===TPL_EDIT.id?'on':''}" onclick="tplMgrPick('${t.id}')">${escT(tt(t.name))}
-        <span class="kb">${t.slotKey} · v${t.ver||1}</span></div>`).join('')
-    : `<div class="tempty">${tt('V tomto okruhu zatiaľ nie je žiadna šablóna.')}</div>`;
+  side.innerHTML=tplSideHTML();
   const pv=document.getElementById('tplprev');
   const setPrev=(html)=>{if(pv)pv.innerHTML=html;};
   if(TPL_NEW){ed.innerHTML=tplNewHTML();setPrev('');return;}
@@ -4110,22 +4128,8 @@ function tplMgrRender(){
   const tabs=`<div class="edtabs"><div class="tabbar">
     <button class="${TPL_TAB==='edit'?'on':''}" onclick="tplTab('edit')"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-rows"/></svg>${tt('Sekcie')}</button>
     <button class="${TPL_TAB==='prev'?'on':''}" onclick="tplTab('prev')"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-file"/></svg>${tt('Náhľad')}</button></div></div>`;
-  const prevHTML=`<div class="grph">${tt('Náhľad')}</div><div class="tprev rendout show">${orgHeadHTML()}
-      <h4>${escT(tt(TPL_EDIT.name))}</h4>
-      <div class="rsec">${rptIdLine()} · ${escT(RPT_ID.clinician)}</div>
-      ${tplBodyHTML(TPL_EDIT)}
-      <div class="rft">${escT(ORG.stamp)}</div></div>
-      <div class="tprevn">${tt('Náhľad s dnešnými údajmi. Anamnéza sa preberá z pacientskej úrovne.')}</div>`;
-  setPrev(prevHTML);
-  if(TPL_TAB==='prev'){
-    ed.innerHTML=tabs+`<div class="tprev rendout show">${orgHeadHTML()}
-      <h4>${escT(tt(TPL_EDIT.name))}</h4>
-      <div class="rsec">${rptIdLine()} · ${escT(RPT_ID.clinician)}</div>
-      ${tplBodyHTML(TPL_EDIT)}
-      <div class="rft">${escT(ORG.stamp)}</div></div>
-      <div class="tprevn">${tt('Náhľad s dnešnými údajmi. Anamnéza sa preberá z pacientskej úrovne.')}</div>`;
-    return;
-  }
+  setPrev(tplPreviewHTML());
+  if(TPL_TAB==='prev'){ed.innerHTML=tabs+tplPreviewHTML();return;}
   /* Hlavička je prvá vec na dokumente, preto je prvá aj v editore.
      Spravuje ju zariadenie (TPL-07), šablóna ju nikdy nenesie. */
   const orgCard=`<div class="orgcard">
