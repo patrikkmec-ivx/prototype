@@ -1,7 +1,7 @@
 ---
 doc_id: TBD (priradiť podľa gsr-13)
 title: "Report conformance — shell, terminológia, podpis, provenance, AI transparentnosť"
-version: 1.1-draft
+version: 1.2-draft
 date: 2026-07-23
 authority: "navrhol: Patrik (CEO) · schvaľuje: Roman (CBO) · aplikuje: Dominika/Viktor · kontroluje: Marek"
 type: normative
@@ -156,6 +156,17 @@ Rozsah: klinický report a jeho životný cyklus. Mimo rozsah: Records knižnica
   úroveň**; šablóna ich do dokumentu premieta. NESMÚ sa ukladať ako súčasť encounteru.
 - **TPL-05** Šablónový povrch je **doménovo neutrálny**. NESMIE obsahovať doménovo
   špecifické sekcie natvrdo; vykresľuje to, čo mu dodá register a doménový plug-in.
+- **TPL-07** Dokument má tri vrstvy s odlišným životným cyklom: **hlavička a pätka**
+  (organizácia), **telo** (šablóna), **súhlas** (register). Šablóna NIKDY nenesie
+  hlavičku natvrdo — zmena údajov zariadenia sa musí prejaviť vo všetkých dokumentoch naraz.
+- **TPL-08** Extrakcia šablóny z nahratej vzorky získava **iba štruktúru**. Hodnoty
+  (údaje pacienta) ani zdrojový obrázok sa NESMÚ uložiť. Vzorka sa spracuje a zahodí.
+- **TPL-09** Rozpoznané popisky sa mapujú na kanonické zdroje cez **alias mapu**.
+  Mapovanie je NÁVRH a potvrdzuje ho lekár (`DSI-01`); NIKDY sa neuplatní ticho.
+- **TPL-10** Šablóna získaná extrakciou prechádza rovnakou bránou ako ručne vytvorená (`TPL-02`).
+- **TPL-11** Anamnestické okruhy sa označujú ustálenými skratkami klinickej praxe
+  (RA, OA, AA, FA, SA, PA, GA). Každý okruh zodpovedá samostatnému FHIR zdroju
+  a patrí na pacientsku úroveň (`TPL-04`); popisok v šablóne je iba forma.
 - **TPL-06** Šablóna definuje sekcie a väzby; **renderery sú vymeniteľné**
   (štruktúrovaný a textový). Textový výstup slúži na prenos do cudzieho systému
   a MÔŽE niesť kódy podľa nastavenia šablóny.
@@ -217,7 +228,9 @@ vedome placeholdery a NIE sú zhodné s normou:
 | REP-01..09 | ✓ |
 | TPL-01, TPL-03, TPL-05, TPL-06 | ✓ register doménovo neutrálny, tri osi, dva renderery |
 | TPL-02 | ✗ validácia šablóny proti minimu trhu chýba |
-| TPL-04 | ✗ anamnestické okruhy zatiaľ nie sú na pacientskej úrovni |
+| TPL-04, TPL-11 | ✓ RA/OA/AA/FA/SA/PA/GA na pacientskej úrovni, mapované na FHIR zdroje |
+| TPL-07 | ✓ hlavička a pätka v nastaveniach organizácie |
+| TPL-08..10 | ✓ extrakcia zo vzorky: iba štruktúra, mapovanie ako návrh, brána TPL-02 |
 | INT-03 | ✓ coverage |
 | INT-01, INT-02, INT-04..07 | ✗ intake vrstva zatiaľ nepostavená |
 | SYS-01..04 | ✗ integrácia zatiaľ nepostavená |
