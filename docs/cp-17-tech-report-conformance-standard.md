@@ -350,7 +350,7 @@ vedome placeholdery a NIE sú zhodné s normou:
 | I18N-12, I18N-15 | ✓ chýbajúci preklad ukáže originál · vyžiadanie sa loguje |
 | I18N-04, I18N-05 | ~ systémové šablóny lokalizované len čiastočne; taxonómia zatiaľ nečerpá zobrazovací termín kódu |
 | I18N-10, I18N-13, I18N-14 | ✗ cudzie dokumenty, jazyk tlače a locale formátovanie zatiaľ neriešené |
-| DOC-01..06 | ✓ masterIdentifier, verzie, ľudské číslo pri podpise, register pre obidva pohľady · zobrazenie v Records a na časovej osi zatiaľ nepostavené |
+| DOC-01..07 | ✓ masterIdentifier, verzie, ľudské číslo pri podpise, `DOC_REG`, zobrazenie na časovej osi aj v Records z jedného registra |
 | AMD-05..09 | ✓ snímka pri podpise, render výhradne zo snímky, odtlačok obsahu · verziované odkazy sú v prototype hodnotami |
 
 ## 16. Otvorené body
