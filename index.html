@@ -657,7 +657,7 @@ body[data-nav="min"]{--navw:64px}
 body[data-phr="min"]{--phrw:46px!important}
 button{font-family:inherit}
 :is(a,button,[tabindex]):focus-visible{outline:2px solid var(--brand-teal);outline-offset:2px;border-radius:8px}
-.app{display:grid;grid-template-columns:var(--navw) minmax(640px,1fr) var(--phrw);gap:14px;max-width:1600px;margin:0 auto;padding:16px;height:100vh}
+.app{display:grid;grid-template-columns:var(--navw) minmax(640px,1fr) var(--phrw);gap:14px;max-width:var(--appmax);margin:0 auto;padding:16px;height:100vh}
 
 /* NavRail */
 .nav{background:var(--surface-navy);border-radius:16px;color:#B9C0D6;display:flex;flex-direction:column;padding:20px 12px;position:relative;overflow:visible}
@@ -1320,7 +1320,7 @@ body[data-tab="comm"] .timeline{display:none}
 .rendout .cd{display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:0 6px;border:1px solid var(--border-default);border-radius:999px;font-size:10.5px;color:var(--text-muted);white-space:nowrap}
 .rendout .cd.rec{border-color:var(--brand-cyan);color:var(--brand-teal-text)}
 .rendout .cd.none{border-style:dashed}
-.impwrap{min-width:0}
+.impwrap{min-width:0;max-width:720px}
 .imphead{font-size:13px;line-height:18px;font-weight:700;color:var(--text-heading);margin-bottom:11px}
 .improw{display:flex;gap:8px;align-items:center;margin-bottom:6px;min-width:0}
 .improw.off{opacity:.45}
@@ -1434,7 +1434,7 @@ body[data-tab="comm"] .timeline{display:none}
 .secrow input[type=text]{flex:1 1 90px;min-width:0;font-weight:700}
 .secrow select{flex:0 1 190px;min-width:0;color:var(--text-muted)}
 
-.tplval{margin:10px 0;padding:8px 10px;border-radius:8px;font-size:11.5px;line-height:17px}
+.tplval{max-width:720px;margin:10px 0;padding:8px 10px;border-radius:8px;font-size:11.5px;line-height:17px}
 .tplval.ok{background:var(--brand-cyan-soft);color:var(--brand-teal-text)}
 .tplval.bad{border:1px solid var(--warning);color:var(--text-body)}
 .edtabs{border-bottom:1px solid var(--border-default);margin-bottom:13px}
@@ -1628,7 +1628,9 @@ body[data-tab="comm"] .timeline{display:none}
 .toast.ok{background:var(--success)}
 .toast.ok .ico{stroke:#fff!important}
 .toast{z-index:90}
-.dockwrap{position:fixed;right:34px;bottom:26px;display:flex;flex-direction:column;align-items:flex-end;gap:10px;z-index:50}
+/* Plávajúce prvky musia byť zarovnané s kontajnerom aplikácie, nie s viewportom.
+   Bez tohto prepočtu utečú na širokých monitoroch do sivého okraja. */
+.dockwrap{position:fixed;right:calc(max(0px,(100vw - var(--appmax))/2) + 34px);bottom:26px;display:flex;flex-direction:column;align-items:flex-end;gap:10px;z-index:50}
 .dockmenu{display:none;background:var(--surface-white);border:1px solid var(--border-default);border-radius:14px;box-shadow:0 12px 32px rgba(27,35,64,.18);padding:8px;min-width:210px}
 .dockmenu.open{display:block}
 .dockmenu button{display:flex;gap:11px;align-items:center;width:100%;padding:10px 12px;border:none;background:none;font-size:13.5px;color:var(--text-heading);font-weight:600;border-radius:9px;cursor:pointer;min-height:44px}
@@ -1645,7 +1647,7 @@ body[data-tab="comm"] .timeline{display:none}
 .dock .iq svg{width:22px;height:22px}
 
 /* IQ chat modal */
-.iqmodal{display:none;position:fixed;right:34px;bottom:86px;width:380px;height:520px;background:#fff;border-radius:16px;box-shadow:0 16px 40px rgba(27,35,64,.22);z-index:70;flex-direction:column;overflow:hidden}
+.iqmodal{display:none;position:fixed;right:calc(max(0px,(100vw - var(--appmax))/2) + 34px);bottom:86px;width:380px;height:520px;background:#fff;border-radius:16px;box-shadow:0 16px 40px rgba(27,35,64,.22);z-index:70;flex-direction:column;overflow:hidden}
 .iqmodal.open{display:flex}
 .iqh{height:46px;flex:none;background:linear-gradient(115deg,#1C93AC 0%,#2E5FB5 55%,#22346E 100%);display:flex;align-items:center;gap:10px;padding:0 14px;color:#fff}
 .iqh .drag{display:grid;grid-template-columns:3px 3px;gap:3px}
