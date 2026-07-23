@@ -1,7 +1,7 @@
 ---
 doc_id: TBD (priradiť podľa gsr-13)
 title: "Report conformance — shell, terminológia, podpis, provenance, AI transparentnosť"
-version: 1.0-draft
+version: 1.1-draft
 date: 2026-07-23
 authority: "navrhol: Patrik (CEO) · schvaľuje: Roman (CBO) · aplikuje: Dominika/Viktor · kontroluje: Marek"
 type: normative
@@ -10,7 +10,7 @@ domain: dev
 visibility: internal
 market: [SK, CZ, DE, IN, AE, US]
 status: draft — čaká na schválenie (Roman) a compliance kontrolu (Marek)
-related: [cp-15-tech-soap-case-billing-standard, cp-16-tech-records-simple-note-analysis, cp-18-tech-report-lifecycle, core-01-tech-clinical-core-standard]
+related: [cp-15-tech-soap-case-billing-standard, cp-16-tech-records-simple-note-analysis, cp-18-tech-report-lifecycle, cp-19-tech-templates-intake-analysis, core-01-tech-clinical-core-standard]
 ---
 
 # Report conformance
@@ -144,7 +144,48 @@ Rozsah: klinický report a jeho životný cyklus. Mimo rozsah: Records knižnica
   Hranica návrh/rozhodnutie je zároveň hranicou voči MDR — posudzuje compliance.
 - **DSI-05** Zmena verzie logiky návrhu MUSÍ byť zaznamenaná a viditeľná.
 
-## 9. Trhová matica
+## 9. Šablóny
+
+- **TPL-01** Šablóna určuje **formu** výstupu a NIKDY nie je miestom uloženia údaja.
+  Sekcia šablóny vyberá a zoraďuje položky; položky si nesú svoju FHIR identitu.
+- **TPL-02** Šablóna sa pri uložení MUSÍ validovať proti povinnému minimu trhu.
+  Nevalidná šablóna sa NESMIE stať aktívnou.
+- **TPL-03** Typ dokumentu (`slotKey`), šablóna poskytovateľa a pravidlá trhu sú **tri
+  nezávislé osi**. Trh NIKDY nevyberá šablónu — trh určuje minimum a kódové systémy.
+- **TPL-04** Anamnestické okruhy (OA, AA, FA, RA, SA, PA) patria na **pacientsku
+  úroveň**; šablóna ich do dokumentu premieta. NESMÚ sa ukladať ako súčasť encounteru.
+- **TPL-05** Šablónový povrch je **doménovo neutrálny**. NESMIE obsahovať doménovo
+  špecifické sekcie natvrdo; vykresľuje to, čo mu dodá register a doménový plug-in.
+- **TPL-06** Šablóna definuje sekcie a väzby; **renderery sú vymeniteľné**
+  (štruktúrovaný a textový). Textový výstup slúži na prenos do cudzieho systému
+  a MÔŽE niesť kódy podľa nastavenia šablóny.
+
+## 10. Vstup cez Hilbi IQ
+
+- **INT-01** Výstup OCR a AI extrakcie vzniká ako **kandidát** (`validated=false`),
+  atribuovaný agentovi Hilbi IQ, označený ako návrh.
+- **INT-02** Nevalidovaný kandidát sa NESMIE dostať do podpísaného dokumentu.
+  Validácia je vedomý akt lekára a zaznamenáva sa (`Provenance`, `AuditEvent`).
+- **INT-03** Coverage — vyplnené a chýbajúce sekcie — MUSÍ byť viditeľná pred podpisom.
+- **INT-04** Položka prenesená z predchádzajúceho encounteru MUSÍ byť viditeľne
+  označená ako prenesená, MUSÍ sa potvrdzovať **po položkách** (nikdy hromadne)
+  a jej `Provenance` MUSÍ niesť zdrojový encounter — nie dnešné pozorovanie.
+- **INT-05** Prenesená a nepotvrdená položka sa NESMIE započítať do derivácie výkazu.
+- **INT-06** Nahrávanie konzultácie vyžaduje súhlas pacienta; rozsah a forma sa riadia trhom.
+- **INT-07** MUSÍ byť rozhodnuté, či sa audio po prepise uchováva alebo zahadzuje,
+  a či je súčasťou zdravotnej dokumentácie. Do rozhodnutia sa audio NEUCHOVÁVA.
+
+## 11. Integrácia modulov
+
+- **SYS-01** Dash je **system of record**. Úložisko integrovaného modulu (napr. Care Plan)
+  je **odvodené** — projekcia, nie rovnocenný zdroj.
+- **SYS-02** Žiadny klinický fakt NESMIE existovať iba v integrovanom module.
+- **SYS-03** Komunikácia medzi Dash a integrovaným modulom prebieha **výhradne cez API**.
+  Priamy prístup do cudzej databázy NIE JE prípustný.
+- **SYS-04** Akcia vykonaná v integrovanom povrchu MUSÍ vytvoriť `Provenance` v Dash.
+  API preto nesie agenta, rolu a purpose-of-use — audit sa NESMIE končiť na hranici modulu.
+
+## 12. Trhová matica
 
 | Vrstva | EÚ | US | IN |
 |---|---|---|---|
@@ -158,7 +199,7 @@ Rozsah: klinický report a jeho životný cyklus. Mimo rozsah: Records knižnica
 | Súhlas | EHDS purpose-of-use | info-blocking | ABDM Consent Manager |
 | Certifikácia (mód `core`) | EHDS CE režim | certifikované Health IT | ABDM + CERT-In audit |
 
-## 10. Stav prototypu voči tejto norme
+## 13. Stav prototypu voči tejto norme
 
 Prototype (`index.html`, v129) implementuje **štruktúru**; nasledujúce body sú
 vedome placeholdery a NIE sú zhodné s normou:
@@ -174,8 +215,14 @@ vedome placeholdery a NIE sú zhodné s normou:
 | CNS-01..05 | ~ súhlasový kontext deklarovaný, dialóg chýba |
 | DSI-01..04 | ✓ · DSI-05 ✗ |
 | REP-01..09 | ✓ |
+| TPL-01, TPL-03, TPL-05, TPL-06 | ✓ register doménovo neutrálny, tri osi, dva renderery |
+| TPL-02 | ✗ validácia šablóny proti minimu trhu chýba |
+| TPL-04 | ✗ anamnestické okruhy zatiaľ nie sú na pacientskej úrovni |
+| INT-03 | ✓ coverage |
+| INT-01, INT-02, INT-04..07 | ✗ intake vrstva zatiaľ nepostavená |
+| SYS-01..04 | ✗ integrácia zatiaľ nepostavená |
 
-## 11. Otvorené body
+## 14. Otvorené body
 
 - **Marek** — MDR hranica pre Hilbi IQ (`DSI-04`); rozsah EHDS CE režimu a Cyber
   Resilience Act pri prechode do módu `core`; podpisová úroveň per trh (`SIG-01`);
