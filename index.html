@@ -4,8 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v155 (Demo zariadenie: FN Trnava)</title>
+<title>Hilbi Cockpit — v156 (Akcie v hornej lište · doplnené preklady)</title>
 <!-- CHANGELOG
+v156 (2026-07-23): 1) UX pravidlo — akcie panela (Uložiť / Zahodiť zmeny) presunuté
+  z pätky do HORNEJ lišty, vpravo v riadku s okruhmi šablón. Pri scrollovateľnom
+  obsahu boli tlačidlá pod obsahom mimo dohľadu. Aktivujú sa podľa stavu editora.
+  2) Doplnených 20 chýbajúcich prekladových párov — tt() bez páru vracia slovenský
+  originál, takže v anglickom rozhraní presakovala slovenčina (napr. Zahodiť zmeny).
+  Pridaná sanity brána, ktorá overuje, že každý reťazec v tt() má pár v I18N.
 v155 (2026-07-23): Demo zariadenie zmenené z ExpertMed na Fakultnú nemocnicu Trnava,
   Neurologická klinika — Centrum SM, A. Žarnova 11, 917 05 Trnava — podľa dodanej
   vzorky. Hlavička sa prejaví vo všetkých šablónach, náhľadoch aj textovom výstupe.
@@ -1485,7 +1491,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
 .pgcard{background:var(--surface-white);border:1px solid var(--border-default);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:24px}
 .cardhead{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;border-bottom:1px solid var(--border-default)}
 .tplprevcol{display:none}
-.edfoot{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;max-width:720px}
+.headact{margin-left:auto;display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
 /* TABY — kanonický vzor. Zhodný s hlavnou lištou kokpitu (.tabs) a s .dtabs:
    plochý button bez rámu a pozadia, ikona + popisok, neaktívny --text-muted,
    aktívny --text-heading + 700 + 3px podčiarknutie. Nikdy pilulky ani segmenty. */
@@ -3845,7 +3851,14 @@ function tplNewOpen(){TPL_NEW=true;TPL_IMP=null;TPL_EDIT=null;tplMgrRender();}
 function tplTopHTML(){
   const tabs=TPL_SCOPES.map(s=>{const n=TPL_REG.filter(x=>x.kind===s.k).length;
     return `<button class="${TPL_SCOPE===s.k?'on':''}" onclick="tplScope('${s.k}')"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-${s.i}"/></svg>${escT(tt(s.n))}<span class="cnt">${n}</span></button>`;}).join('');
-  return `<div class="tabbar">${tabs}</div>`;
+  /* Akcie panela patria do HORNEJ lišty. Pri scrollovateľnom obsahu by
+     tlačidlá pod ním používateľ nevidel. */
+  const canSave=!!(TPL_EDIT&&!TPL_IMP&&!TPL_NEW&&TPL_EDIT.kind!=='system');
+  const acts=`<div class="headact">
+    <button class="btn" ${canSave?'':'disabled'} onclick="tplImpCancel()">${tt('Zahodiť zmeny')}</button>
+    <button class="btn primary" ${canSave?'':'disabled'} onclick="tplSave()">${tt('Uložiť šablónu')}</button>
+  </div>`;
+  return `<div class="tabbar">${tabs}</div>${acts}`;
 }
 function tplNewHTML(){
   const card=(ic,ti,de,fn)=>`<button class="newcard" onclick="${fn}">
@@ -3903,7 +3916,7 @@ function tplSecMv(i,d){const a=TPL_EDIT.sections,j=i+d;if(j<0||j>=a.length)retur
 function tplMgrRender(){
   const side=document.getElementById('tplside'),ed=document.getElementById('tpledit');
   if(!side||!ed)return;
-  const top=document.getElementById('tpltop');if(top)top.innerHTML=tplTopHTML();
+  const top=document.getElementById('tpltop');if(top)top.innerHTML=tplTopHTML();  /* akcie sa prekreslia so stavom */
 
   const list=TPL_REG.filter(x=>x.kind===TPL_SCOPE);
   side.innerHTML=list.length
@@ -3978,10 +3991,6 @@ function tplMgrRender(){
     <div class="fr"><label class="fl">
       <input type="checkbox" ${TPL_EDIT.codes?'checked':''} ${ro?'disabled':''}
         onchange="TPL_EDIT.codes=this.checked"> ${tt('Vkladať kódy do textového výstupu')}</label></div>
-    <div class="edfoot">
-      <button class="btn primary" ${(ro||TPL_IMP||TPL_NEW)?'disabled':''} onclick="tplSave()">${tt('Uložiť šablónu')}</button>
-      <button class="btn" onclick="tplImpCancel()">${tt('Zahodiť zmeny')}</button>
-    </div>
     <div class="tplval ${v.ok?'ok':'bad'}">${v.ok
       ? '✓ '+tt('Šablóna spĺňa minimum trhu')+' ('+MKTC+')'
       : '⚠ '+(v.empty?tt('Šablóna nemá žiadnu sekciu'):tt('Chýba povinné minimum trhu')+' ('+MKTC+'): '+v.miss.join(', '))}</div>`;
@@ -4235,6 +4244,7 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
+["Zahodiť zmeny","Discard changes"],["Zmrazený obsah","Frozen content"],["odtlačok","fingerprint"],["šablóna","template"],["zmrazené","frozen"],["Koncept — živé údaje","Draft — live data"],["jazyk dokumentu","document language"],["kompilácia (overlay)","compilation (overlay)"],["nová — zatiaľ neuložená","new — not saved yet"],["Preklad","Translation"],["Originál","Original"],["Strojový preklad — needitovaný. Originál ostáva autoritatívny, preklad sa neukladá a nededí podpis.","Machine translation — unedited. The original remains authoritative; the translation is not stored and does not inherit the signature."],["Preklad nie je k dispozícii — zobrazený originál","Translation unavailable — original shown"],["Jazyk dokumentácie","Documentation language"],["Vyplýva z jurisdikcie poskytovateľa a otlačí sa na dokument pri jeho vzniku. Neskoršia zmena neprepíše staršie dokumenty.","Derived from the provider jurisdiction and stamped on the document when it is created. A later change does not rewrite older documents."],["Pre jazyk dokumentu","For the document language"],["neexistuje schválené znenie tohto súhlasu. Súhlas sa nesmie použiť — doplňte znenie v registri.","there is no approved wording for this consent. It must not be used — add the wording to the register."],["chýba schválené znenie súhlasu pre jazyk dokumentu","approved consent wording for the document language is missing"],["chýba v jazyku dokumentu","missing in document language"],["claim 837P","claim 837P"],
 ["Upraviť","Edit"],["Hlavička, pätka a podpisy — spravuje zariadenie, platia pre všetky šablóny","Header, footer and signatures — managed by the facility, applied to all templates"],
 ["Podpisy na dokumente","Signatures on the document"],["Podpisovatelia","Signatories"],["Meno a titul","Name and title"],["Funkcia","Role"],["Kód","Code"],
 ["Mená, tituly a kódy podpisovateľov spravuje zariadenie.","Names, titles and codes of signatories are managed by the facility."],
