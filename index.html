@@ -3062,10 +3062,14 @@ const CODEMAP=[
  {re:/Tecfidera|dimetyl|dimethyl fumar/i,         atc:'L04AX07', rxnorm:'1373478', sct:'703067007'}
 ];
 function codeOf(text){return CODEMAP.find(c=>c.re.test(text))||null;}
-/* Chipy pre jednu položku podľa väzby slotu a trhu */
-function codeChips(slot,text){
-  const b=TERM_BIND[slot];if(!b||(!b.rec&&!b.rep))return '';
-  const m=codeOf(text),k=MKT[MKTC];let out='';
+/* Položka reportu má TVAR, nie reťazec: {slot, text, coding}.
+   Dnes sa coding odvodzuje (TERM-05 nezhoda, cp-17 §10). Keď príde capture-side
+   kódovanie, naplní sa rovnaký tvar — rozhranie templatov sa NEZMENÍ. */
+function rptItem(slot,text){return {slot:slot,text:text,coding:codeOf(text)};}
+/* Chipy z už rozhodnutého kódu položky */
+function codeChipsOf(it){
+  const b=TERM_BIND[it.slot];if(!b||(!b.rec&&!b.rep))return '';
+  const m=it.coding,k=MKT[MKTC];let out='';
   if(b.rec==='lab'){
     out+=(m&&m.loinc)?`<span class="cd rec">${k.lab} ${m.loinc}</span>`:`<span class="cd none">${k.lab} —</span>`;
   }else if(b.rec==='rec'){
@@ -3076,25 +3080,38 @@ function codeChips(slot,text){
   if(b.rep)out+=(m&&m.icd)?`<span class="cd">${k.rep} ${m.icd}</span>`:`<span class="cd none">${k.rep} —</span>`;
   return out;
 }
+/* Zdroje slotov — jedno miesto, kde sa vie, odkiaľ sa čo berie */
+function rptSource(k){
+  if(k==='S'||k==='O'||k==='A'||k==='P')return slotTexts(k).map(t=>rptItem(k,t));
+  if(k==='rx')return slotTexts('P').filter(t=>/eRecept|ePrescription/i.test(t)).map(t=>rptItem('P',t));
+  if(k==='fu')return FUsel?[rptItem(null,tt('Kontrola o')+' '+tt(FUsel))]:[];
+  if(k==='narr'){const e=document.querySelector('#dsec0 .narr textarea');const v=e?e.value:'';return v?[rptItem(null,v)]:[];}
+  return [];
+}
+/* REGISTER TEMPLATOV — templat sú DÁTA, nie kódová vetva (SOAP-08, REP-09).
+   Pridanie typu reportu = pridanie záznamu sem, NIKDY nová vetva v renderi. */
+const RPT_TPL={
+  slip:{title:'Rx slip',sections:[
+    {label:'Dg',src:'A'},{label:'Rx',src:'rx'},{label:'Follow-up',src:'fu'}]},
+  full:{title:'Lekárska správa',sections:[
+    {label:'S',src:'S'},{label:'O',src:'O'},{label:'A',src:'A'},{label:'P',src:'P'},
+    {label:'eRx',src:'rx'},{label:'Follow-up',src:'fu'},
+    {label:'Naratív',src:'narr',hideIfEmpty:true}]}
+};
+function rptSec(label,items){
+  return `<div class="rsec"><b>${label}:</b> ${items.length
+    ? items.map(it=>`<span class="itm">${escT(it.text)}${it.slot?codeChipsOf(it):''}</span>`).join('')
+    : '—'}</div>`;
+}
 function renderOut(){
   const ro=document.getElementById('rendout');ro.classList.add('show');
-  const A=slotTexts('A'),S=slotTexts('S'),O=slotTexts('O'),P=slotTexts('P');
-  const rx=P.filter(t=>/eRecept|ePrescription/i.test(t));
-  const fu=FUsel?(tt('Kontrola o')+' '+tt(FUsel)):null;const dash='—';
-  /* text = naratív (zachovaný), chipy = coding[] */
-  const sec=(l,arr,slot)=>`<div class="rsec"><b>${l}:</b> ${arr.length
-    ?arr.map(t=>`<span class="itm">${escT(t)}${slot?codeChips(slot,t):''}</span>`).join('')
-    :dash}</div>`;
-  let body;
-  if(MKT[MKTC].tpl==='slip'){
-    body=sec('Dg',A,'A')+sec('Rx',rx,'P')+sec('Follow-up',fu?[fu]:[]);
-  }else{
-    const narrEl=document.querySelector('#dsec0 .narr textarea');const narr=narrEl?narrEl.value:'';
-    body=sec('S',S,'S')+sec('O',O,'O')+sec('A',A,'A')+sec('P',P,'P')
-      +sec('eRx',rx,'P')+sec('Follow-up',fu?[fu]:[])
-      +(narr?sec(tt('Naratív'),[narr]):'');
-  }
-  ro.innerHTML=reportShell(MKT[MKTC].tpl==='slip'?'Rx slip':tt('Lekárska správa'),body);
+  const tpl=RPT_TPL[MKT[MKTC].tpl]||RPT_TPL.full;
+  const body=tpl.sections.map(s=>{
+    const items=rptSource(s.src);
+    if(s.hideIfEmpty&&!items.length)return '';
+    return rptSec(tt(s.label),items);
+  }).join('');
+  ro.innerHTML=reportShell(tt(tpl.title),body);
 }
 /* K-20: billing derivation (BILL-01..04) — suggestion engine, lekár potvrdzuje */
 let BILLN=0,EMsel='';
