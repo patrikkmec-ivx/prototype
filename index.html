@@ -1328,6 +1328,15 @@ body[data-tab="comm"] .timeline{display:none}
 .imppriv{margin-top:9px;font-size:11px;color:var(--text-muted);line-height:16px;font-style:italic}
 .imppanel{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 .orgnote{font-size:11.5px;color:var(--text-muted);line-height:17px;margin-bottom:12px;padding:8px 10px;background:var(--surface-1);border-radius:8px}
+.cnsbox{margin-top:14px;padding:11px 12px;border:1px solid var(--border-strong);border-radius:10px;background:var(--surface-1)}
+.cnsh{font-size:12px;font-weight:700;color:var(--text-heading);margin-bottom:5px}
+.cnsh .cnsv{font-weight:400;color:var(--text-muted);font-size:11px}
+.cnst{font-size:11.5px;line-height:17px;color:var(--text-body)}
+.sgrow{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px}
+.sgl{flex:1 1 150px;min-width:140px}
+.sgl .sgn{display:block;border-bottom:1px solid var(--text-muted);height:20px}
+.sgl .sgc{display:block;font-size:10.5px;color:var(--text-muted);margin-top:3px;text-align:center}
+.cnsnote{font-size:10.5px;color:var(--text-muted);line-height:15px;margin-top:5px;font-style:italic}
 .orghd{border-bottom:2px solid var(--text-heading);padding-bottom:6px;margin-bottom:10px;line-height:17px}
 .orghd b{font-size:13.5px;color:var(--text-heading)}
 .orghd span{display:block;font-size:11px;color:var(--text-muted)}
@@ -3322,6 +3331,40 @@ function rptSource(k){
   if(k==='narr'){const e=document.querySelector('#dsec0 .narr textarea');const v=e?e.value:'';return v?[rptItem(null,v)]:[];}
   return [];
 }
+/* REGISTER SÚHLASOV — text súhlasu je PRÁVNY artefakt a patrí registru,
+   NIE šablóne (TPL-01). Šablóna rozhoduje iba o tom, KDE sa súhlas objaví:
+   samostatný dokument (slotKey 'consent') alebo sekcia na konci správy —
+   druhá podoba je bežná v starších systémoch a v slovenskej praxi. */
+const CNS_REG=[
+ {id:'cns.general.v2',name:'Všeobecný informovaný súhlas',ver:2,date:'15.01.2026',sign:['patient','clinician'],
+  body:'Svojím podpisom potvrdzujem, že som bol(a) poučený(á) o podstate môjho ochorenia, o navrhovaných postupoch liečby, ich rizikách a o možnosti odmietnuť navrhovaný postup. Poučeniu som porozumel(a), mal(a) som možnosť klásť doplňujúce otázky a rozhodol(la) som sa bez nátlaku.'},
+ {id:'cns.handover.v1',name:'Prevzatie lekárskej správy',ver:1,date:'03.11.2025',sign:['patient'],
+  body:'Potvrdzujem, že som prevzal(a) lekársku správu, ktorú som povinný(á) odovzdať svojmu všeobecnému lekárovi.'},
+ {id:'cns.gdpr.v1',name:'Spracúvanie osobných údajov',ver:1,date:'20.05.2025',sign:[],
+  body:'Informácie o spracúvaní osobných údajov podľa Nariadenia Európskeho parlamentu a Rady (EÚ) 2016/679 sú zverejnené na webovom sídle poskytovateľa.'}
+];
+function cnsOf(id){return CNS_REG.find(c=>c.id===id)||CNS_REG[0];}
+function cnsBlockHTML(tpl){
+  const c=cnsOf(tpl.consentId);
+  const lines=(c.sign||[]).map(r=>`<div class="sgl"><span class="sgn"></span>
+    <span class="sgc">${r==='patient'?tt('podpis pacienta alebo zákonného zástupcu'):tt('podpis a pečiatka lekára')}</span></div>`).join('');
+  return `<div class="cnsbox">
+    <div class="cnsh">${escT(tt(c.name))} <span class="cnsv">v${c.ver} · ${escT(c.date)}</span></div>
+    <div class="cnst">${escT(c.body)}</div>
+    ${(c.sign&&c.sign.length)?`<div class="sgrow"><div class="sgl"><span class="sgn"></span><span class="sgc">${tt('dátum')}</span></div>${lines}</div>`:''}
+  </div>`;
+}
+function cnsBlockText(tpl){
+  const c=cnsOf(tpl.consentId),L=[];
+  L.push('');L.push(tt(c.name).toUpperCase()+'  (v'+c.ver+' · '+c.date+')');
+  L.push(c.body);
+  if(c.sign&&c.sign.length){
+    L.push('');L.push(tt('dátum')+': ..........................');
+    if(c.sign.indexOf('patient')>=0)L.push(tt('podpis pacienta alebo zákonného zástupcu')+': ..........................');
+    if(c.sign.indexOf('clinician')>=0)L.push(tt('podpis a pečiatka lekára')+': ..........................');
+  }
+  return L.join('\n');
+}
 /* HLAVIČKA A PÄTKA POSKYTOVATEĽA (TPL-07) — patria ORGANIZÁCII, nie šablóne.
    Šablóna ich nikdy nenesie natvrdo; zmena adresy sa prejaví vo všetkých dokumentoch. */
 const ORG={
@@ -3368,16 +3411,24 @@ const TPL_REG=[
             {label:'eRx',src:'rx'},{label:'Follow-up',src:'fu'},{label:'Naratív',src:'narr',hideIfEmpty:true}]},
  {id:'core.dekurz.rxslip.v1',domain:'core',kind:'system',slotKey:'dekurz',name:'Rx slip',codes:true,ver:1,
   sections:[{label:'Dg',src:'A'},{label:'Rx',src:'rx'},{label:'Follow-up',src:'fu'}]},
+ {id:'core.consent.v1',domain:'core',kind:'system',slotKey:'consent',name:'Informovaný súhlas — samostatný',codes:false,ver:1,
+  consentId:'cns.general.v2',sections:[{label:'Informovaný súhlas',src:'consent'}]},
  {id:'core.dekurz.struct.v1',domain:'core',kind:'user',slotKey:'dekurz',name:'Dekurz — členený (ukážka poskytovateľa)',codes:false,ver:1,
+  consentId:'cns.handover.v1',
   sections:[{label:'Subjektívne',src:'S'},{label:'Objektívne',src:'O'},
             {label:'Záver',src:'A'},{label:'Terapia a plán',src:'P'},
-            {label:'Naratív',src:'narr',hideIfEmpty:true}]}
+            {label:'Naratív',src:'narr',hideIfEmpty:true},
+            {label:'Informovaný súhlas',src:'consent'}]}
 ];
-let TPL_SEL=null;
-function tplList(slot){return TPL_REG.filter(t=>t.slotKey===(slot||'dekurz'));}
+let TPL_SEL=null,SLOT_SEL='dekurz';
+const SLOTS=[{k:'dekurz',n:'Dekurz / správa'},{k:'consent',n:'Informovaný súhlas'}];
+function tplList(slot){return TPL_REG.filter(t=>t.slotKey===(slot||SLOT_SEL));}
+function slotPick(k){SLOT_SEL=k;TPL_SEL=null;renderOut();}
 function tplCur(){
   if(TPL_SEL){const f=TPL_REG.find(t=>t.id===TPL_SEL);if(f)return f;}
-  return TPL_REG.find(t=>t.id===(MKT[MKTC].tpl==='slip'?'core.dekurz.rxslip.v1':'core.dekurz.soap.v1'))||TPL_REG[0];
+  const inSlot=tplList(SLOT_SEL);
+  if(SLOT_SEL!=='dekurz')return inSlot[0]||TPL_REG[0];
+  return TPL_REG.find(t=>t.id===(MKT[MKTC].tpl==='slip'?'core.dekurz.rxslip.v1':'core.dekurz.soap.v1'))||inSlot[0]||TPL_REG[0];
 }
 function tplPick(id){TPL_SEL=id;renderOut();}
 /* ── Rozhranie správy šablón (TPL-02, TPL-05) ──────────────────────────────────
@@ -3389,7 +3440,8 @@ const TPL_SRC=[
  {k:'RA',n:'RA — rodinná anamnéza',g:'pt'},{k:'OA',n:'OA — osobná anamnéza',g:'pt'},
  {k:'AA',n:'AA — alergická anamnéza',g:'pt'},{k:'FA',n:'FA — farmakologická anamnéza',g:'pt'},
  {k:'SA',n:'SA — sociálna anamnéza',g:'pt'},{k:'PA',n:'PA — pracovná anamnéza',g:'pt'},
- {k:'GA',n:'GA — gynekologická anamnéza',g:'pt'}
+ {k:'GA',n:'GA — gynekologická anamnéza',g:'pt'},
+ {k:'consent',n:'Informovaný súhlas',g:'doc'}
 ];
 let TPL_EDIT=null;
 function tplMgr(){TPL_EDIT=JSON.parse(JSON.stringify(tplCur()));mOpen('tplwrap');tplMgrRender();}
@@ -3405,6 +3457,8 @@ function tplMgrNew(){
 const SRC_COVERS={S:['S'],O:['O'],A:['A'],P:['P'],rx:['P'],fu:['P'],narr:[]};
 /* TPL-02: validácia proti povinnému minimu trhu */
 function tplValidate(tpl){
+  /* minimum trhu sa vzťahuje na klinický dokument; súhlas má vlastné pravidlá */
+  if(tpl.slotKey&&tpl.slotKey!=='dekurz')return {ok:tpl.sections.length>0,miss:[],empty:tpl.sections.length===0};
   const need=MKT[MKTC].min||[];
   const have=[];tpl.sections.forEach(s=>{(SRC_COVERS[s.src]||[]).forEach(k=>{if(!have.includes(k))have.push(k)})});
   const miss=need.filter(k=>!have.includes(k));
@@ -3447,6 +3501,11 @@ function tplMgrRender(){
         <button class="mv" ${ro?'disabled':''} onclick="tplSecDel(${i})" title="${tt('Odobrať')}">&times;</button>
       </div>`).join('')}
       ${ro?'':`<button class="btn" onclick="tplSecAdd()">+ ${tt('Pridať sekciu')}</button>`}</div>
+    ${TPL_EDIT.sections.some(s=>s.src==='consent')?`<div class="fr"><label class="fl">${tt('Znenie súhlasu')}</label>
+      <select ${ro?'disabled':''} onchange="TPL_EDIT.consentId=this.value;tplMgrRender()">
+        ${CNS_REG.map(c=>`<option value="${c.id}"${c.id===(TPL_EDIT.consentId||CNS_REG[0].id)?' selected':''}>${escT(tt(c.name))} · v${c.ver}</option>`).join('')}
+      </select>
+      <div class="cnsnote">${tt('Znenie je právny artefakt a spravuje sa v registri súhlasov. Šablóna určuje iba to, kde sa zobrazí.')}</div></div>`:''}
     <div class="fr"><label class="fl">
       <input type="checkbox" ${TPL_EDIT.codes?'checked':''} ${ro?'disabled':''}
         onchange="TPL_EDIT.codes=this.checked"> ${tt('Vkladať kódy do textového výstupu')}</label></div>
@@ -3470,7 +3529,7 @@ function tplSave(){
 /* Coverage (INT-03) — koľko sekcií je naplnených a ktoré chýbajú */
 function tplCoverage(tpl){
   let total=0,filled=0;const missing=[];
-  tpl.sections.forEach(s=>{if(s.hideIfEmpty)return;total++;
+  tpl.sections.forEach(s=>{if(s.hideIfEmpty||s.src==='consent')return;total++;
     if(rptSource(s.src).length)filled++;else missing.push(tt(s.label));});
   return {total:total,filled:filled,missing:missing};
 }
@@ -3485,6 +3544,7 @@ function rptPlain(tpl){
   L.push(tt('Lekár')+': '+RPT_ID.clinician+' · '+RPT_ID.org);
   L.push('');
   tpl.sections.forEach(s=>{
+    if(s.src==='consent'){L.push(cnsBlockText(tpl));return;}
     const items=rptSource(s.src);
     if(s.hideIfEmpty&&!items.length)return;
     const txt=items.length?items.map(it=>{
@@ -3515,7 +3575,10 @@ function tplBarHTML(tpl,cov){
     `<option value="${t.id}"${t.id===tpl.id?' selected':''}>${escT(tt(t.name))}${t.kind==='user'?' ★':''}</option>`).join('');
   const pct=cov.total?Math.round(cov.filled/cov.total*100):0;
   const cls=cov.missing.length?'warn':'ok';
+  const sopts=SLOTS.map(s=>`<option value="${s.k}"${s.k===SLOT_SEL?' selected':''}>${escT(tt(s.n))}</option>`).join('');
   return `<div class="tplbar">
+    <label class="tl">${tt('Dokument')}</label>
+    <select id="slotsel" onchange="slotPick(this.value)">${sopts}</select>
     <label class="tl">${tt('Šablóna')}</label>
     <select id="tplsel" onchange="tplPick(this.value)">${opts}</select>
     <span class="cov ${cls}" title="${cov.missing.length?tt('Chýba')+': '+cov.missing.join(', '):tt('Všetky sekcie naplnené')}">
@@ -3534,6 +3597,7 @@ function renderOut(){
     body=`<pre class="rtext" id="rtext">${escT(rptPlain(tpl))}</pre>`;
   }else{
     body=tpl.sections.map(s=>{
+      if(s.src==='consent')return cnsBlockHTML(tpl);
       const items=rptSource(s.src);
       if(s.hideIfEmpty&&!items.length)return '';
       return rptSec(tt(s.label),items);
@@ -3663,6 +3727,10 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
+["Dokument","Document"],["Dekurz / správa","Encounter note / report"],["Informovaný súhlas — samostatný","Informed consent — standalone"],["Znenie súhlasu","Consent wording"],
+["Všeobecný informovaný súhlas","General informed consent"],["Prevzatie lekárskej správy","Receipt of the medical report"],["Spracúvanie osobných údajov","Personal data processing"],
+["podpis pacienta alebo zákonného zástupcu","patient or legal representative signature"],["podpis a pečiatka lekára","clinician signature and stamp"],["dátum","date"],
+["Znenie je právny artefakt a spravuje sa v registri súhlasov. Šablóna určuje iba to, kde sa zobrazí.","The wording is a legal artefact managed in the consent register. The template only decides where it appears."],
 ["Hlavička dokumentov","Document header"],["Názov zariadenia","Facility name"],["Pracovisko / ambulancia","Unit / clinic"],["Adresa","Address"],["IČO","Reg. No."],["Kód PZS","Provider code"],["Kontakt","Contact"],["Text pätky","Footer text"],["kód PZS","provider code"],["Hlavička uložená","Header saved"],
 ["Nahrať šablónu","Upload template"],["Toto sme rozpoznali","This is what we recognised"],["skontrolujte a potvrďte","review and confirm"],["— nemapovať —","— do not map —"],
 ["Hlavička poskytovateľa","Provider header"],["rozpoznaná, odložená do nastavení zariadenia","recognised, moved to facility settings"],["Informovaný súhlas","Informed consent"],["oddelený, vlastný typ dokumentu","separated, its own document type"],
