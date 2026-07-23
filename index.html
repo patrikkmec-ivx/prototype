@@ -4,8 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v156 (Akcie v hornej lište · doplnené preklady)</title>
+<title>Hilbi Cockpit — v157 (Audit: tokeny, i18n, prístupnosť)</title>
 <!-- CHANGELOG
+v157 (2026-07-23): Audit pred tvorbou dokumentov. 1) DIZAJN TOKENY — 45 natvrdo
+  zapísaných farieb nahradených existujúcimi tokenmi (#1c93ac x10, #0e7d92 x8,
+  #2e5fb5 x7 a ďalších 14); drift je na nule, zmena značkovej farby je teraz
+  jednomiestna. 2) i18n — doplnených 43 párov vrátane hlavných tabov kokpitu
+  (Patient pathway, Care plans, Communication), ktoré by v slovenčine ostali
+  anglické; tri hybridné SK/EN reťazce zjednotené. 3) PRÍSTUPNOSŤ — 6 polí
+  dostalo aria-label. Rozostupy mimo škály (13px x28 v existujúcich komponentoch)
+  ponechané zámerne — je to optické doladenie, nie drift; škála platí na novú prácu.
 v156 (2026-07-23): 1) UX pravidlo — akcie panela (Uložiť / Zahodiť zmeny) presunuté
   z pätky do HORNEJ lišty, vpravo v riadku s okruhmi šablón. Pri scrollovateľnom
   obsahu boli tlačidlá pod obsahom mimo dohľadu. Aktivujú sa podľa stavu editora.
@@ -749,8 +757,8 @@ button{font-family:inherit}
 .org .orgtxt span{font-size:11.5px;color:#8891AE}
 .orgdrop button{display:flex!important;flex-direction:row!important;gap:11px;align-items:center}
 .odlogo{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:10.5px;flex:none}
-.odlogo.mg{background:linear-gradient(135deg,#1C93AC,#2E5FB5)}
-.odlogo.em{background:linear-gradient(135deg,#2E5FB5,#22346E)}
+.odlogo.mg{background:linear-gradient(135deg,var(--accent-1-strong),var(--iq-blue))}
+.odlogo.em{background:linear-gradient(135deg,var(--iq-blue),#22346E)}
 .odlogo.ah{background:linear-gradient(135deg,#C6603C,#8A3A2A)}
 .odlogo.fn{background:var(--org-fn)}
 .odlogo.df{background:var(--org-df)}
@@ -778,7 +786,7 @@ button{font-family:inherit}
 .navhead{display:flex;gap:11px;align-items:center;width:100%;padding:9px 12px;border-radius:8px;font-size:13.5px;color:#B9C0D6;background:none;border:none;cursor:pointer;text-align:left;font-family:inherit}
 .navhead .nlb{flex:1;min-width:0}
 .navhead:hover{color:#fff}
-.navchev{display:inline-flex;color:#8A93A6;transition:transform .18s;flex:none}
+.navchev{display:inline-flex;color:var(--text-subtle);transition:transform .18s;flex:none}
 .navgrp.open>.navhead{color:#fff}
 .navgrp.open>.navhead .navchev{transform:rotate(180deg)}
 .navsub{display:none;flex-direction:column;gap:1px;padding:2px 0 4px}
@@ -1010,12 +1018,12 @@ body[data-state="offline"] .offbar{display:flex}
 .card{border:1px solid var(--border-default);border-radius:12px;background:var(--surface-white);overflow:hidden}
 .card .body{display:flex;gap:10px;padding:11px 13px;align-items:flex-start}
 .pav{width:26px;height:26px;border-radius:50%;background:#E4E9F2;position:relative;flex:none;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff}
-.pav.pa1{background:linear-gradient(135deg,#1C93AC,#3A6FC4)}
-.pav.pa2{background:linear-gradient(135deg,#3A6FC4,#5A5BD0)}
-.pav.pa4{background:linear-gradient(135deg,#8B57BE,#C64A94)}
-.pav.pa5{background:linear-gradient(135deg,#C64A94,#E0568E)}
-.pav.pa7{background:linear-gradient(135deg,#C0862F,#E0883A)}
-.pav.pa8{background:linear-gradient(135deg,#3E9A6E,#2BB673)}
+.pav.pa1{background:linear-gradient(135deg,var(--accent-1-strong),var(--accent-2-strong))}
+.pav.pa2{background:linear-gradient(135deg,var(--accent-2-strong),var(--accent-3-strong))}
+.pav.pa4{background:linear-gradient(135deg,var(--accent-4-strong),var(--accent-5-strong))}
+.pav.pa5{background:linear-gradient(135deg,var(--accent-5-strong),var(--accent-6-strong))}
+.pav.pa7{background:linear-gradient(135deg,var(--accent-7-strong),var(--warning))}
+.pav.pa8{background:linear-gradient(135deg,var(--accent-8-strong),var(--success))}
 .pav.pat{background:var(--surface-2);color:var(--text-muted)}
 .pav.ph{color:transparent;background-size:cover;background-position:center}
 .pav.doc1{background-image:url(data:image/jpeg;base64,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)}
@@ -1051,9 +1059,9 @@ body[data-state="offline"] .offbar{display:flex}
 .card.sev-2{box-shadow:0 4px 14px rgba(224,136,58,.15)}
 .attn{display:flex;gap:11px;align-items:center;background:#FBF3E1;border:none;border-radius:0;padding:10px 24px;margin:-14px -24px 14px;font-size:12.5px;font-weight:700;color:#8a5a1e}
 .attn b{color:#8a5a1e}
-.attn::before{content:'';width:9px;height:9px;border-radius:50%;background:#C0862F;flex:none}
+.attn::before{content:'';width:9px;height:9px;border-radius:50%;background:var(--accent-7-strong);flex:none}
 .attn .ico{display:none}
-.attn .go{margin-left:auto;color:#C0862F;font-weight:800;cursor:pointer;background:none;border:none;font-size:12.5px}
+.attn .go{margin-left:auto;color:var(--accent-7-strong);font-weight:800;cursor:pointer;background:none;border:none;font-size:12.5px}
 /* variants */
 .card.foreign{border-color:var(--border-strong);background:var(--surface-white)}
 .card.foreign .pav{background:transparent;border:1.5px solid var(--border-strong)}
@@ -1062,7 +1070,7 @@ body[data-state="offline"] .offbar{display:flex}
 .verify-btn{margin-left:auto;font-size:12px;font-weight:700;color:var(--brand-teal);background:none;border:none;padding:2px 4px;cursor:pointer;position:relative}
 .verify-btn:hover{text-decoration:underline}
 .verify-btn::before{content:'';position:absolute;inset:-6px}
-/* ═══ LIBRARY: akčný pill button (Figma: cyan pill #6AD5E5 / text #06343E) ═══
+/* ═══ LIBRARY: akčný pill button (Figma: cyan pill var(--brand-cyan) / text var(--brand-cyan-ink)) ═══
    Použitie: akcia vyžadovaná na zázname (Verify, Book, Activate…). */
 .pillbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--brand-cyan);color:var(--brand-cyan-ink);font-size:13px;font-weight:700;line-height:1;height:34px;padding:0 18px;border:none;border-radius:17px;cursor:pointer;white-space:nowrap;transition:filter .12s,transform .06s}
 .pillbtn:hover{filter:brightness(.96)}
@@ -1148,10 +1156,10 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
 .btn[disabled]{opacity:.45;cursor:default}
 .btn:hover{background:var(--surface-1)}
 .btn.primary{border:none;background:var(--brand-cyan);color:var(--brand-cyan-ink)}
-.btn.primary:active{background:#3A6FC4;color:#fff}
+.btn.primary:active{background:var(--accent-2-strong);color:#fff}
 .btn.primary .kb2{border-color:rgba(6,52,62,.4);color:var(--brand-cyan-ink)}
 .btn.primary:active .kb2{border-color:rgba(255,255,255,.5);color:#fff}
-.btn.grad{border:none;background:linear-gradient(90deg,#1C93AC,#2E5FB5 55%,#22346E);color:#fff}
+.btn.grad{border:none;background:linear-gradient(90deg,var(--accent-1-strong),var(--iq-blue) 55%,#22346E);color:#fff}
 .btn .kb2{font-size:10px;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:0 4px;margin-left:8px}
 .repbadge{display:inline-flex;gap:7px;align-items:center;background:var(--surface-1);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--text-muted);margin-bottom:16px}
 .medrow{display:flex;gap:12px;align-items:center;border:1px solid var(--border-default);border-radius:12px;padding:13px 15px;margin-bottom:14px}
@@ -1198,8 +1206,8 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
 .chipset .cs button:hover{border-color:var(--brand-teal)}
 /* lekárova frekvencia = intenzita teal škály */
 .chipset .cs button.t1{background:#C9EAF2;border-color:transparent;color:#0B6B84}
-.chipset .cs button.t2{background:#E1F5F9;border-color:transparent;color:#0E7D92}
-.chipset .cs button.t3{background:#F0F9FB;border-color:transparent;color:#1C93AC}
+.chipset .cs button.t2{background:var(--accent-1-soft);border-color:transparent;color:var(--brand-teal-text)}
+.chipset .cs button.t3{background:#F0F9FB;border-color:transparent;color:var(--accent-1-strong)}
 /* pacientove lieky = fialová rodina (odlíšená od lekárovej teal škály) */
 .chipset .cs button.pmed{background:var(--a4s);border-color:transparent;color:var(--a4)}
 .chipset .cs button.pmed:hover{border-color:var(--a4)}
@@ -1207,7 +1215,7 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
 .chipset .cs button.pmed .live{width:7px;height:7px;border-radius:50%;background:var(--success);flex:none;box-shadow:0 0 0 2px #fff}
 .chipset label em{font-style:normal;font-weight:500;letter-spacing:0;text-transform:none;color:var(--text-subtle);margin-left:8px}
 .card.flash{animation:cardflash 1.8s ease}
-@keyframes cardflash{0%{box-shadow:0 0 0 3px var(--brand-cyan,#1C93AC);background:#EAF7FA}60%{box-shadow:0 0 0 3px rgba(28,147,172,.35)}100%{box-shadow:none}}
+@keyframes cardflash{0%{box-shadow:0 0 0 3px var(--brand-cyan,var(--accent-1-strong));background:#EAF7FA}60%{box-shadow:0 0 0 3px rgba(28,147,172,.35)}100%{box-shadow:none}}
 .rxdock{position:sticky;bottom:-18px;z-index:6;background:#fff;margin:8px -24px -18px;padding:10px 24px 16px}
 .rxdock::before{content:"";position:absolute;left:0;right:0;top:-30px;height:30px;background:linear-gradient(to top,#fff 15%,rgba(255,255,255,0));pointer-events:none}
 .rxsearch{display:flex;gap:10px;align-items:center;border:1.5px solid var(--border-default);border-radius:10px;padding:11px 14px;margin:0;background:#fff;transition:border-color .12s,box-shadow .12s}
@@ -1220,17 +1228,17 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
 .rxres button:hover,.rxres button.sel{background:var(--surface-1)}
 .rxres b{color:var(--text-heading)}
 .rxres i{font-style:normal;color:var(--text-muted)}
-.rxres .fq{margin-left:auto;font-size:11px;font-weight:600;color:#0E7D92;background:var(--brand-cyan-soft);border-radius:999px;padding:2px 8px;flex:none}
-#rxcnt{background:var(--brand-cyan-soft);color:#0E7D92;font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;border:none}
+.rxres .fq{margin-left:auto;font-size:11px;font-weight:600;color:var(--brand-teal-text);background:var(--brand-cyan-soft);border-radius:999px;padding:2px 8px;flex:none}
+#rxcnt{background:var(--brand-cyan-soft);color:var(--brand-teal-text);font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;border:none}
 .sigrow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0 12px}
 .sigrow button{border:1.5px solid var(--border-default);background:#fff;border-radius:999px;padding:4px 10px;min-height:28px;font-size:12.5px;font-weight:600;color:var(--text-heading);cursor:pointer}
 .sigrow button:hover{background:var(--surface-1)}
-.sigrow button.on{background:var(--brand-cyan-soft);border:2px solid var(--brand-cyan);padding:3.5px 9.5px;color:#0E7D92}
+.sigrow button.on{background:var(--brand-cyan-soft);border:2px solid var(--brand-cyan);padding:3.5px 9.5px;color:var(--brand-teal-text)}
 /* NEW — Chip / Editable (doplniť do Figmy): input v tvare chipu S 28px */
 .sigrow input.chipedit{border:1.5px dashed var(--border-strong);background:#fff;border-radius:999px;padding:4px 10px;min-height:28px;width:74px;box-sizing:border-box;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--text-heading);outline:none;text-align:center}
 .sigrow input.chipedit::placeholder{color:var(--text-subtle);font-weight:500}
 .sigrow input.chipedit:focus{border:2px solid var(--brand-cyan);border-style:solid;padding:3.5px 9.5px}
-.sigrow input.chipedit.onc{background:var(--brand-cyan-soft);border:2px solid var(--brand-cyan);padding:3.5px 9.5px;color:#0E7D92}
+.sigrow input.chipedit.onc{background:var(--brand-cyan-soft);border:2px solid var(--brand-cyan);padding:3.5px 9.5px;color:var(--brand-teal-text)}
 .qline{font-size:12.5px;color:var(--text-muted);margin-bottom:6px}
 .cartit{border:1px solid var(--border-default);border-radius:12px;padding:11px 14px;margin-bottom:9px}
 .cartit .t{display:flex;gap:10px;align-items:center}
@@ -1705,7 +1713,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
 .aggrow{display:flex;gap:10px;padding:8px 2px;font-size:12.5px;color:var(--text-body);border-bottom:1px dashed var(--border-default)}
 .aggrow b{margin-left:auto;color:var(--text-heading)}
 .aggrow.tot{border-bottom:none;font-weight:800;color:var(--text-heading)}
-.typechips button.on{background:var(--brand-cyan-soft);border:2px solid var(--brand-cyan);padding:7.5px 13.5px;color:#0E7D92}
+.typechips button.on{background:var(--brand-cyan-soft);border:2px solid var(--brand-cyan);padding:7.5px 13.5px;color:var(--brand-teal-text)}
 .vbox input{border:none;outline:none;font-family:inherit;font-size:14px;font-weight:700;color:var(--text-heading);width:100%;background:none}
 .nsrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 .nsdd{position:relative}
@@ -1753,9 +1761,9 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
 .dockmenu .kb{margin-left:auto;font-size:10px;font-weight:700;border:1px solid var(--border-strong);border-radius:4px;padding:1px 5px;color:var(--text-muted);background:#fff}
 .dockmenu .ctx{background:var(--brand-cyan-soft)}
 .dockmenu .ctx:hover{background:#d3eff5}
-.dockmenu .ctx,.dockmenu .ctx .kb{color:#0E7D92}
+.dockmenu .ctx,.dockmenu .ctx .kb{color:var(--brand-teal-text)}
 .dockmenu .sep{height:1px;background:var(--border-default);margin:6px 4px}
-.dock{background:linear-gradient(90deg,#1C93AC 0%,#1B2340 55%);border-radius:999px;display:flex;align-items:center;padding:6px 10px;gap:2px;box-shadow:0 10px 28px rgba(27,35,64,.28)}
+.dock{background:linear-gradient(90deg,var(--accent-1-strong) 0%,var(--surface-navy) 55%);border-radius:999px;display:flex;align-items:center;padding:6px 10px;gap:2px;box-shadow:0 10px 28px rgba(27,35,64,.28)}
 .dock .mnav{display:none}
 .dock button{width:40px;height:40px;border:none;background:transparent;color:#fff;display:flex;align-items:center;justify-content:center;position:relative}.dock button::before{content:'';position:absolute;inset:-4px};cursor:pointer;border-radius:999px;position:relative}
 .dock .plus{background:rgba(255,255,255,.16)}
@@ -1764,7 +1772,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
 /* IQ chat modal */
 .iqmodal{display:none;position:fixed;right:calc(max(0px,(100vw - var(--appmax))/2) + 34px);bottom:86px;width:380px;height:520px;background:#fff;border-radius:16px;box-shadow:0 16px 40px rgba(27,35,64,.22);z-index:70;flex-direction:column;overflow:hidden}
 .iqmodal.open{display:flex}
-.iqh{height:46px;flex:none;background:linear-gradient(115deg,#1C93AC 0%,#2E5FB5 55%,#22346E 100%);display:flex;align-items:center;gap:10px;padding:0 14px;color:#fff}
+.iqh{height:46px;flex:none;background:linear-gradient(115deg,var(--accent-1-strong) 0%,var(--iq-blue) 55%,#22346E 100%);display:flex;align-items:center;gap:10px;padding:0 14px;color:#fff}
 .iqh .drag{display:grid;grid-template-columns:3px 3px;gap:3px}
 .iqh .drag i{width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.55)}
 .iqh .hav{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center}
@@ -1773,7 +1781,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
 .iqh .sp{flex:1}
 .iqh button{background:none;border:none;color:rgba(255,255,255,.85);cursor:pointer;font-size:13px;padding:4px 6px}
 .iqb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;text-align:center}
-.iqb .bav{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1C93AC,#2E5FB5 55%,#22346E);display:flex;align-items:center;justify-content:center;margin-bottom:2px}
+.iqb .bav{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent-1-strong),var(--iq-blue) 55%,#22346E);display:flex;align-items:center;justify-content:center;margin-bottom:2px}
 .iqb .bav svg{width:24px;height:24px}
 .iqb h3{font-size:15.5px;font-weight:800;color:var(--text-heading)}
 .iqb p{font-size:12px;color:var(--text-muted);max-width:300px;line-height:1.5}
@@ -1781,21 +1789,21 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
 .iqacts{display:flex;flex-direction:column;gap:11px;width:100%;max-width:300px;margin:14px 0 4px}
 .iqact{display:flex;gap:12px;align-items:center;justify-content:center;border:none;border-radius:14px;padding:15px 18px;font-size:15px;font-weight:700;color:#fff;cursor:pointer;box-shadow:0 6px 18px rgba(28,147,172,.28)}
 .iqact svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
-.iqact.rec{background:linear-gradient(135deg,#1C93AC,#2E5FB5)}
+.iqact.rec{background:linear-gradient(135deg,var(--accent-1-strong),var(--iq-blue))}
 .iqact.dig{background:var(--surface-white);color:var(--brand-teal-text);border:1.5px solid var(--brand-teal);box-shadow:0 4px 12px rgba(28,147,172,.14)}
 .iqact.dig svg{stroke:var(--brand-teal)}
 .iqact:active{transform:translateY(1px)}
 .iqb .sug{display:flex;flex-direction:column;gap:10px;margin-top:4px;width:100%;align-items:center}
-.iqb .sug button{display:flex;gap:9px;align-items:center;background:#fff;border:1px solid var(--border-default);border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:600;color:#0E7D92;cursor:pointer;max-width:300px}
+.iqb .sug button{display:flex;gap:9px;align-items:center;background:#fff;border:1px solid var(--border-default);border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:600;color:var(--brand-teal-text);cursor:pointer;max-width:300px}
 .iqb .sug button::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--brand-teal);flex:none}
 .iqf{flex:none;background:#F7F9FC;padding:10px 12px}
 .iqf .row{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--border-default);border-radius:10px;padding:7px 8px 7px 14px}
 .iqf input{flex:1;border:none;outline:none;font-family:inherit;font-size:13px;color:var(--text-body);background:none}
 .iqf input::placeholder{color:var(--text-muted)}
-.iqf .send{width:30px;height:30px;border-radius:50%;border:none;background:linear-gradient(90deg,#1C93AC,#2E5FB5 55%,#22346E);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none}
+.iqf .send{width:30px;height:30px;border-radius:50%;border:none;background:linear-gradient(90deg,var(--accent-1-strong),var(--iq-blue) 55%,#22346E);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none}
 .iqf .send svg{width:16px;height:16px}
 
-.dock .hasbdg::before{content:'';position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--warning);box-shadow:0 0 0 2px #1B2340;inset:auto;z-index:2}
+.dock .hasbdg::before{content:'';position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--warning);box-shadow:0 0 0 2px var(--surface-navy);inset:auto;z-index:2}
 .dock button:hover::after{content:attr(data-tip);position:absolute;bottom:52px;left:50%;transform:translateX(-50%);background:var(--surface-navy);color:#fff;font-size:12px;font-weight:600;padding:5px 10px;border-radius:6px;white-space:nowrap}
 .pav[data-tip]{cursor:default}
 #avtip{position:fixed;z-index:9999;background:var(--surface-navy);color:#fff;font-size:11.5px;font-weight:600;padding:5px 9px;border-radius:6px;white-space:nowrap;box-shadow:0 6px 16px rgba(27,35,64,.28);pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .12s,transform .12s;display:none}
@@ -2367,8 +2375,8 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
     <div class="pbody">
       <div class="phrtab" id="pt-phr"><div class="phrempty">PHR — pripravujeme (Health data + Records)</div></div>
       <div class="phrtab" id="pt-vitals" hidden></div>
-      <div class="phrtab" id="pt-behavioral" hidden><div class="phrempty">Behavioral — ďalší inkrement</div></div>
-      <div class="phrtab" id="pt-personal" hidden><div class="phrempty">Personal — ďalší inkrement</div></div>
+      <div class="phrtab" id="pt-behavioral" hidden><div class="phrempty">Behavioral — next increment</div></div>
+      <div class="phrtab" id="pt-personal" hidden><div class="phrempty">Personal — next increment</div></div>
     </div>
     <div class="phrmin" id="phrExpand" role="toolbar" aria-label="Life ID — zbalené menu">
       <button class="xp" title="Rozbaliť panel"><svg width="14" height="8" viewBox="0 0 14 8" fill="none" style="transform:rotate(90deg)"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -2404,7 +2412,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
     <h3>Opýtajte sa Hilbi IQ</h3>
     <p>Syntéza z osi, care planu a Life ID. Každá odpoveď je označená a odkazuje na zdroje. IQ pripravuje — podpisuje lekár.</p>
     <div class="iqacts">
-      <button class="iqact rec" onclick="document.getElementById('iqmodal').classList.remove('open');irOpen()"><svg><use href="#i-mic"/></svg>Record Session</button>
+      <button class="iqact rec" onclick="document.getElementById('iqmodal').classList.remove('open');irOpen()"><svg><use href="#i-mic"/></svg>Record session</button>
       <button class="iqact dig" onclick="document.getElementById('iqmodal').classList.remove('open');mOpen('fotwrap')"><svg><use href="#i-scan"/></svg>Digitize document</button>
     </div>
     <div class="sug">
@@ -2528,9 +2536,9 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
       </div>
       <input id="recnote" class="recline" placeholder="Jedna veta stačí — dg., zhodnotenie…">
       <div class="vgrid" id="recvit" style="display:none;margin-top:10px">
-        <div class="vbox"><label>TK</label><input value="138/88"></div>
-        <div class="vbox"><label>Pulz</label><input value="72"></div>
-        <div class="vbox"><label>Hmotnosť</label><input value="82 kg"></div>
+        <div class="vbox"><label>TK</label><input value="138/88" aria-label="Krvný tlak"></div>
+        <div class="vbox"><label>Pulz</label><input value="72" aria-label="Pulz"></div>
+        <div class="vbox"><label>Hmotnosť</label><input value="82 kg" aria-label="Hmotnosť"></div>
       </div>
       <div class="gaterow" style="background:var(--surface-1);color:var(--text-muted);margin-top:10px"><svg class="ico s14" style="flex:none"><use href="#i-pen"/></svg><span>Zapíše sa do dekurzu do zvoleného SOAP slotu.</span></div>
     </div>
@@ -2629,9 +2637,9 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
 
       <div id="nsWhen">
         <div class="vgrid">
-          <div class="vbox"><label>Date</label><input value="24.09.2026"></div>
-          <div class="vbox"><label>Time</label><input value="09:30"></div>
-          <div class="vbox"><label>Place</label><input value="Clinic"></div>
+          <div class="vbox"><label>Date</label><input value="24.09.2026" aria-label="Dátum"></div>
+          <div class="vbox"><label>Time</label><input value="09:30" aria-label="Čas"></div>
+          <div class="vbox"><label>Place</label><input value="Clinic" aria-label="Pracovisko"></div>
         </div>
       </div>
 
@@ -4244,6 +4252,8 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- i18n ---------- */
 const I18N=[
+["hypertenzia","hypertension"],["India","India"],["PHR","PHR"],["QR — Z4K-882","QR — Z4K-882"],
+["Skryť menu","Hide menu"],["Cesta pacienta","Patient pathway"],["Plány starostlivosti","Care plans"],["Komunikácia","Communication"],["Plán starostlivosti — demencia","Dementia Care plan"],["Plán starostlivosti — Fabryho choroba","Fabry Care plan"],["Plán starostlivosti — kolorektálny","Colorectal Care plan"],["Správanie","Behavioral"],["Osobné","Personal"],["Nahrať reláciu","Record session"],["Digitalizovať dokument","Digitize document"],["Platba a QR synchronizácia","Pay & Synch QR"],["Formát výstupu","Output format"],["Vytvoriť šablónu","Create a template"],["Zastaviť a skontrolovať","Stop & review"],["Ďalší krok","Next step"],["Ďalší krok — termín / žiadanka / odoslanie","Next step — appointment / order / referral"],["Špecialista","Specialist"],["Laboratórne vyšetrenie","Lab test"],["Hospitalizácia","Hospitalization"],["Telemedicína","Tele"],["Oddelenie","Department"],["Neurológia","Neurology"],["Vytvoriť","Create"],["PHR — pripravujeme (Health data + Records)","PHR — coming soon (Health data + Records)"],["Správanie — ďalší inkrement","Behavioral — next increment"],["Osobné — ďalší inkrement","Personal — next increment"],["Prepnúť zariadenie","Switch facility"],["Potiahnutím zmeníte šírku","Drag to resize"],["Dôvod / indikácia (nepovinné)…","Reason / indication (optional)…"],["Profil","Profile"],["Menu","Menu"],["Drobčeková navigácia","Breadcrumb"],["Krvný tlak","Blood pressure"],["Pulz","Pulse"],["Hmotnosť","Weight"],["Dátum","Date"],["Čas","Time"],["Pracovisko","Clinic"],
 ["Zahodiť zmeny","Discard changes"],["Zmrazený obsah","Frozen content"],["odtlačok","fingerprint"],["šablóna","template"],["zmrazené","frozen"],["Koncept — živé údaje","Draft — live data"],["jazyk dokumentu","document language"],["kompilácia (overlay)","compilation (overlay)"],["nová — zatiaľ neuložená","new — not saved yet"],["Preklad","Translation"],["Originál","Original"],["Strojový preklad — needitovaný. Originál ostáva autoritatívny, preklad sa neukladá a nededí podpis.","Machine translation — unedited. The original remains authoritative; the translation is not stored and does not inherit the signature."],["Preklad nie je k dispozícii — zobrazený originál","Translation unavailable — original shown"],["Jazyk dokumentácie","Documentation language"],["Vyplýva z jurisdikcie poskytovateľa a otlačí sa na dokument pri jeho vzniku. Neskoršia zmena neprepíše staršie dokumenty.","Derived from the provider jurisdiction and stamped on the document when it is created. A later change does not rewrite older documents."],["Pre jazyk dokumentu","For the document language"],["neexistuje schválené znenie tohto súhlasu. Súhlas sa nesmie použiť — doplňte znenie v registri.","there is no approved wording for this consent. It must not be used — add the wording to the register."],["chýba schválené znenie súhlasu pre jazyk dokumentu","approved consent wording for the document language is missing"],["chýba v jazyku dokumentu","missing in document language"],["claim 837P","claim 837P"],
 ["Upraviť","Edit"],["Hlavička, pätka a podpisy — spravuje zariadenie, platia pre všetky šablóny","Header, footer and signatures — managed by the facility, applied to all templates"],
 ["Podpisy na dokumente","Signatures on the document"],["Podpisovatelia","Signatories"],["Meno a titul","Name and title"],["Funkcia","Role"],["Kód","Code"],
