@@ -72,6 +72,13 @@ Nový zdroj sa musí doplniť do **šiestich** registrov naraz, inak vzniknú ti
 `SRC_STYLE` (hierarchia), `SRC_DISP` (zobrazenie per jazyk) a resolver v `rptSource()`.
 Kontrolný skript konzistencie kľúčov to overí.
 
+### Známy dlh (nemeniť bez vizuálnej kontroly)
+
+Existujúce komponenty kokpitu (`.vch`, `.vcb`, `.vcf`, `.vrange`, `.medrow`,
+`.billbox`, `.pinbox`, `.navsub`) používajú rozostupy mimo škály — najmä `13px`
+(28×), `15px`, `17px`, `30px`, `39px`. Je to **optické doladenie, nie drift**;
+hromadná zmena by posunula rozloženie. Škála 8/16/24/32 platí na **novú prácu**.
+
 ## 4. Commit workflow
 
 1. **Stiahni aktuálny `index.html` z `main`** (autoritatívny je obsah repa, nie GitHub Pages)
@@ -91,7 +98,11 @@ Kontrolný skript konzistencie kľúčov to overí.
      z HTML aj zo šablónových reťazcov v JS a over, že každý má definíciu.
      Syntaktická kontrola toto NEODHALÍ — tlačidlo volajúce neexistujúcu funkciu
      je platný JavaScript. Rovnako neodhalí prvok, ktorý je v DOM nedosiahnuteľný.
-   - **kontrola prekladov**: každý reťazec v `tt('…')` musí mať pár v `I18N`.
+   - **kontrola tokenov**: v CSS mimo `:root` nesmie byť hex farba, ktorá už má
+     definovaný token — inak vzniká drift a zmena značkovej farby prestane byť
+     jednomiestna.
+   - **kontrola prekladov**: každý reťazec v `tt('…')` **aj statický popisok v HTML**
+     musí mať pár v `I18N`.
      `tt()` bez páru vráti **slovenský originál**, takže v anglickom rozhraní
      ticho presakuje slovenčina. Syntaktická kontrola to neodhalí.
    - **kontrola poradia CSS**: pre každé pravidlo v `@media` over, že rovnaký
