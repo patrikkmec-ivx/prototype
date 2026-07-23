@@ -1,7 +1,7 @@
 ---
 doc_id: TBD (priradiť podľa gsr-13)
 title: "Report conformance — shell, terminológia, podpis, provenance, AI transparentnosť"
-version: 2.0-draft
+version: 2.1-draft
 date: 2026-07-23
 authority: "navrhol: Patrik (CEO) · schvaľuje: Roman (CBO) · aplikuje: Dominika/Viktor · kontroluje: Marek"
 type: normative
@@ -243,7 +243,21 @@ Rozsah: klinický report a jeho životný cyklus. Mimo rozsah: Records knižnica
 - **SYS-04** Akcia vykonaná v integrovanom povrchu MUSÍ vytvoriť `Provenance` v Dash.
   API preto nesie agenta, rolu a purpose-of-use — audit sa NESMIE končiť na hranici modulu.
 
-## 12. Identita dokumentu
+## 12. Úložisko
+
+- **STO-01** Úložisko je **za rozhraním**. Volajúci kód NESMIE zapisovať priamo do
+  dátovej štruktúry; zápis prebieha výhradne cez rozhranie úložiska.
+- **STO-02** Adaptér je vymeniteľný bez zmeny volajúceho kódu (pamäť → REST → Core).
+- **STO-03** Kolekcie s prirodzeným kľúčom (dokumenty podľa `masterIdentifier`,
+  šablóny podľa `id`) sa zapisujú **upsertom**; audit sa **iba pripája** a NIKDY
+  neprepisuje existujúci záznam.
+- **STO-04** **Prehliadačové úložisko sa nepoužíva** pre klinické dáta ani audit.
+  Dash je system of record (`SYS-01`) a audit musí byť perzistentný, nemenný
+  a tamper-evident (`AUD-02`); klientske úložisko nespĺňa ani jedno.
+- **STO-05** Použitý adaptér a stav kolekcií MUSIA byť v prototype **viditeľné**,
+  aby bolo zrejmé, čo musí produkcia nahradiť.
+
+## 13. Identita dokumentu
 
 - **DOC-01** Klinický dokument MUSÍ mať **`masterIdentifier`** (URN UUID), ktorý je
   **stabilný naprieč všetkými verziami a dodatkami**. Je to identita *dokumentu*,
@@ -263,7 +277,7 @@ Rozsah: klinický report a jeho životný cyklus. Mimo rozsah: Records knižnica
   znalostnej bázy podľa `gsr-13` (identifikátor dokumentácie). NESMÚ zdieľať schému
   ani číselný rad.
 
-## 13. Jazyk a lokalizácia
+## 14. Jazyk a lokalizácia
 
 - **I18N-01** Jazykovo neutrálnou vrstvou je **kód**, nie preklad. Žiadny prirodzený
   jazyk nie je SSOT; angličtina nemá osobitné postavenie.
@@ -299,7 +313,7 @@ Rozsah: klinický report a jeho životný cyklus. Mimo rozsah: Records knižnica
   Je klinicky citlivé (desatinný oddeľovač v dávkovaní, poradie zložiek dátumu).
 - **I18N-15** Vyžiadanie prekladu sa zaznamenáva v `AuditEvent` vrátane nástroja a času.
 
-## 14. Trhová matica
+## 15. Trhová matica
 
 | Vrstva | EÚ | US | IN |
 |---|---|---|---|
@@ -313,7 +327,7 @@ Rozsah: klinický report a jeho životný cyklus. Mimo rozsah: Records knižnica
 | Súhlas | EHDS purpose-of-use | info-blocking | ABDM Consent Manager |
 | Certifikácia (mód `core`) | EHDS CE režim | certifikované Health IT | ABDM + CERT-In audit |
 
-## 15. Stav prototypu voči tejto norme
+## 16. Stav prototypu voči tejto norme
 
 Prototype (`index.html`, v129) implementuje **štruktúru**; nasledujúce body sú
 vedome placeholdery a NIE sú zhodné s normou:
@@ -350,10 +364,11 @@ vedome placeholdery a NIE sú zhodné s normou:
 | I18N-12, I18N-15 | ✓ chýbajúci preklad ukáže originál · vyžiadanie sa loguje |
 | I18N-04, I18N-05 | ~ systémové šablóny lokalizované len čiastočne; taxonómia zatiaľ nečerpá zobrazovací termín kódu |
 | I18N-10, I18N-13, I18N-14 | ✗ cudzie dokumenty, jazyk tlače a locale formátovanie zatiaľ neriešené |
+| STO-01..05 | ✓ Store s piatimi kolekciami, pamäťový adaptér, zápisy výhradne cez seam |
 | DOC-01..07 | ✓ masterIdentifier, verzie, ľudské číslo pri podpise, `DOC_REG`, zobrazenie na časovej osi aj v Records z jedného registra |
 | AMD-05..09 | ✓ snímka pri podpise, render výhradne zo snímky, odtlačok obsahu · verziované odkazy sú v prototype hodnotami |
 
-## 16. Otvorené body
+## 17. Otvorené body
 
 - **Marek** — MDR hranica pre Hilbi IQ (`DSI-04`); rozsah EHDS CE režimu a Cyber
   Resilience Act pri prechode do módu `core`; podpisová úroveň per trh (`SIG-01`);
