@@ -4,7 +4,7 @@
 > ako sa v repozitári správať určuje `CLAUDE.md`; čo je čo určuje `README.md`.
 > **Aktualizuje sa na konci každej relácie.**
 
-Aktualizované: 2026-07-23 · Verzia prototypu: **v158** (`55e15c0b`)
+Aktualizované: 2026-07-23 · Verzia prototypu: **v159**
 
 ---
 
@@ -96,9 +96,8 @@ Tri veci treba uzavrieť **pred** tvorbou dokumentov — nie sú to doplnky:
 
 1. ~~Identita dokumentu~~ — **hotové vo v158** (`DOC-01..07`): `masterIdentifier`,
    verzie, ľudské číslo pri podpise, `DOC_REG` ako jeden register.
-2. **Zobrazenie v obidvoch pohľadoch** — rozhodnuté: **oboje**, jeden dokument cez
-   `masterIdentifier` (`DOC-06`). Register existuje; **vykreslenie na časovej osi
-   a v Records ešte nie je postavené.**
+2. ~~Zobrazenie v obidvoch pohľadoch~~ — **hotové vo v159**: časová os aj Records
+   čítajú z `DOC_REG`, kópia nevzniká, addendum aktualizuje existujúci záznam.
 3. **Perzistenčný seam** — šablóny, verzie, snímky aj audit žijú v pamäti. Netreba
    databázu, ale rozhranie úložiska (vzor `TemplateAdapter` z Care Planu), aby sa
    produkcia zapojila bez prepisu.
