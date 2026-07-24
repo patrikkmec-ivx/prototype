@@ -172,6 +172,33 @@ against `TERM-04`, not a cosmetic one.
 Not fixed here — fixing it inside a structural change would have mixed two unrelated
 things in one revertable commit. Needs a decision on whether the absences are intended.
 
+## 5e. v165 and v166 — what a browser check found
+
+**v165 — a fatal regression that every gate passed.** v163 removed `vGauge`, `vRange`,
+`phrGauge` and `irSignDo` as dead code. They were not dead: `renderVitals()` runs at load
+and calls them, so the page threw a `ReferenceError` during start-up and every statement
+after it was skipped — including the `setLang('en')` that was already there. The vitals
+panel never rendered at all. The handler gate only inspects `onclick`/`onchange`/
+`oninput`; a reference passed as a callback (`G.map(vGauge)`) is invisible to it, and a
+static reimplementation of that check also reported OK. It is now a **load-time smoke
+test** (`tools/smoke.js`, gate 3b) that executes the script.
+
+**v166 — English is the source language.** UI strings, `tt()` arguments and the registers
+that feed `tt()` (`ORG_F`, `SLOTS`, `TPL_REG`, `TPL_SRC`) are English; `I18N` maps an
+English key to each translation. A round trip is lossless: EN → SK → EN over two cycles
+changes zero nodes, verified in jsdom with panels open.
+
+**A whole-file substitution was attempted first and discarded.** It corrupted Slovak
+clinical content — `podpisom` became `signatureom`, `lekársku` became `physiciansku`, and
+the Slovak branch of a ternary was overwritten with English. Among the damage was the
+**informed-consent wording, a legal artefact under `TPL-12`**. The replacement now runs
+only where a string is genuinely a translation key.
+
+**Still open on the language layer:** keys are English display strings, not neutral
+identifiers (`action.save`). Neutral keys remain the target — `EN-MIGRATION-PLAN.md`.
+Gate 10 still reports Slovak in code comments and in unfenced demo content; the demo
+content stays Slovak by decision and needs `DEMO-CONTENT` markers so the gate can see it.
+
 ## 6. Open points outside the code
 
 - **Marek (compliance):** the boundary between suggestion and decision in Hilbi IQ
