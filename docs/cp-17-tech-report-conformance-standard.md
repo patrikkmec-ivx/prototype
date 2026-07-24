@@ -1,379 +1,418 @@
 ---
-doc_id: TBD (priradiť podľa gsr-13)
-title: "Report conformance — shell, terminológia, podpis, provenance, AI transparentnosť"
+doc_id: TBD (assign per gsr-13)
+title: "Report conformance — shell, terminology, signature, provenance, AI transparency"
 version: 2.1-draft
 date: 2026-07-23
-authority: "navrhol: Patrik (CEO) · schvaľuje: Roman (CBO) · aplikuje: Dominika/Viktor · kontroluje: Marek"
+authority: "proposed by: Patrik (CEO) · approved by: Roman (CBO) · applied by: Dominika/Viktor · checked by: Marek"
 type: normative
-ssot_for: "rola systému (overlay/core), report shell, terminologická väzba, podpis a amendment, provenance a audit, súhlas pri zdieľaní, transparentnosť AI návrhov"
+ssot_for: "system role (overlay/core), report shell, terminology binding, signature and amendment, provenance and audit, consent on sharing, transparency of AI suggestions"
 domain: dev
 visibility: internal
 market: [SK, CZ, DE, IN, AE, US]
-status: draft — čaká na schválenie (Roman) a compliance kontrolu (Marek)
+status: draft — awaiting approval (Roman) and compliance review (Marek)
 related: [cp-15-tech-soap-case-billing-standard, cp-16-tech-records-simple-note-analysis, cp-18-tech-report-lifecycle, cp-19-tech-templates-intake-analysis, core-01-tech-clinical-core-standard]
+language_note: "English is authoritative (D17). Translated from the Slovak original on 2026-07-24 with no semantic change; verified by check_translation.py — rule set, order, modality, cross-references and code identifiers unchanged. Section 16 was additionally reviewed by hand, as it describes implementation status rather than a rule."
 ---
 
 # Report conformance
 
-Účel: zamknúť pravidlá, ktoré robia výstup kokpitu akceptovateľným u zdravotníckych
-poskytovateľov v US, EÚ a Indii. `cp-15` definuje **záznamový model** (SOAP, case,
-billing derivácia). Tento dokument definuje **čo sa s tým záznamom smie stať** — ako
-sa kóduje, podpisuje, verzionuje, audituje, zdieľa a ako sa deklaruje podiel AI.
+Purpose: to lock down the rules that make the cockpit's output acceptable to healthcare
+providers in the US, the EU and India. `cp-15` defines the **record model** (SOAP, case,
+billing derivation). This document defines **what may happen to that record** — how it
+is coded, signed, versioned, audited and shared, and how the contribution of AI is
+declared.
 
-Rozsah: klinický report a jeho životný cyklus. Mimo rozsah: Records knižnica
-(odložená per `cp-16`), MDR klasifikácia (rozhoduje Marek).
+Scope: the clinical report and its lifecycle. Out of scope: the Records library
+(deferred per `cp-16`), MDR classification (decided by Marek).
 
 ---
 
-## 1. Rola systému — overlay vs core
+## 1. System role — overlay versus core
 
-> **Kontinuita.** Táto pozícia nie je nová. Care Plans Standard ju zamkol v **A1
-> "Position: orchestrator, not an EHR"** — Hilbi nie je system of record, EHR/NIS je master
-> klinického záznamu. Pravidlá nižšie sú jej rozpracovaním pre report vrstvu.
+> **Continuity.** This position is not new. The Care Plans Standard locked it in **A1
+> "Position: orchestrator, not an EHR"** — Hilbi is not a system of record; the EHR/NIS
+> is the master of the clinical record. The rules below elaborate it for the report layer.
 
-- **REP-01** Hilbi je **default v role overlay** (orchestrátor nad existujúcim
-  systémom poskytovateľa). Rola `core` je **opt-in konfigurácia**, NIE default.
-- **REP-02** V móde `overlay` je autoritatívny podpísaný záznam v hostiteľskom
-  systéme (system of record). Hilbi kompiluje, predkladá na potvrdenie a zapisuje
-  späť. Hilbi si v tomto móde NESMIE nárokovať rolu system of record.
-- **REP-03** V móde `core` je autoritatívna `Composition` Hilbi. Prepnutie do `core`
-  MUSÍ byť sprevádzané napojením certifikačnej vrstvy podľa regulácie trhu
-  (EÚ: EHDS CE režim pre EHR systémy · US: certifikované Health IT · IN: ABDM).
-- **REP-04** Prechod `overlay → core` MUSÍ byť zmenou konfigurácie a napojením
-  služieb, NIKDY prepisom dátového modelu. Všetky pravidlá tohto dokumentu platia
-  v oboch módoch rovnako; líši sa len to, kde žije autoritatívny podpis.
-- **REP-05** Aktuálny mód MUSÍ byť deklarovaný na renderi (viditeľne, nie skryto
-  v konfigurácii).
+- **REP-01** Hilbi is **by default in the overlay role** (an orchestrator over the
+  provider's existing system). The `core` role is an **opt-in configuration**, NOT the
+  default.
+- **REP-02** In `overlay` mode the authoritative signed record lives in the host system
+  (the system of record). Hilbi compiles, presents for confirmation and writes back.
+  In this mode Hilbi MUST NOT claim the role of system of record.
+- **REP-03** In `core` mode the authoritative artefact is the Hilbi `Composition`.
+  Switching to `core` MUST be accompanied by connecting the certification layer required
+  by the market's regulation (EU: the EHDS CE regime for EHR systems · US: certified
+  Health IT · IN: ABDM).
+- **REP-04** The transition `overlay → core` MUST be a change of configuration and a
+  connection of services, NEVER a rewrite of the data model. Every rule in this document
+  applies identically in both modes; only the location of the authoritative signature
+  differs.
+- **REP-05** The current mode MUST be declared on the render (visibly, not hidden in
+  configuration).
 
 ## 2. Report shell
 
-- **REP-06** Report MÁ jednotný shell: hlavička (identita) · telo (sloty) · pätka
-  (podpis, profil, mód, status). Chrome sa definuje **raz**; typy reportov sa líšia
-  výberom a formátom slotov, NIKDY duplikáciou hlavičky alebo pätky.
-- **REP-07** Identita sa číta **z kontextu**, NIKDY nie je zapísaná natvrdo. Nesie
-  identifikátory podľa trhu: IN `ABHA` (pacient), `HPR` (lekár), `HFR` (zariadenie) ·
-  US `MRN`, `NPI` · EÚ národný identifikátor.
-- **REP-08** Render MUSÍ deklarovať cieľový **dokumentový profil** trhu
-  (IN: ABDM Prescription / OPConsultation · EÚ: EEHRxF · US: US Core / C-CDA).
-- **REP-09** Platí `SOAP-08`: jeden dátový objekt, viac templatov, žiadne obsahové
-  vetvenie. Templat je formát, nie iný obsah.
+- **REP-06** A report HAS a single shell: header (identity) · body (slots) · footer
+  (signature, profile, mode, status). The chrome is defined **once**; report types
+  differ by the selection and format of slots, NEVER by duplicating the header or footer.
+- **REP-07** Identity is read **from context**, NEVER hard-coded. It carries the
+  identifiers of the market: IN `ABHA` (patient), `HPR` (physician), `HFR` (facility) ·
+  US `MRN`, `NPI` · EU the national identifier.
+- **REP-08** The render MUST declare the target **document profile** of the market
+  (IN: ABDM Prescription / OPConsultation · EU: EEHRxF · US: US Core / C-CDA).
+- **REP-09** `SOAP-08` applies: one data object, several templates, no branching on
+  content. A template is a format, not different content.
 
-## 3. Terminológia
+## 3. Terminology
 
-- **TERM-01** Klinický obsah určený na strojové spracovanie MUSÍ byť kódovaný.
-  Kódové pole NIKDY nesmie obsahovať voľný text.
-- **TERM-02** **Dual coding.** Záznam sa kóduje referenčnou terminológiou
-  (**SNOMED CT**), výkaz štatistickou klasifikáciou (**MKCH-10 / ICD-10 / ICD-10-CM**
-  podľa trhu). Sú to dve vrstvy, NIE alternatívy.
-- **TERM-03** Naratív sa NIKDY nestráca. Väzba je FHIR `CodeableConcept` =
-  `coding[]` **+** `text`; formulácia lekára ostáva v `text`. Podpísaný dokument MUSÍ
-  niesť ľudsky čitateľný naratív (`Composition.text`).
-- **TERM-04** Väzba podľa SOAP slotu:
-  - **A** — `SNOMED CT` (záznam) **+** klasifikácia trhu (výkaz), povinné
+- **TERM-01** Clinical content intended for machine processing MUST be coded. A code
+  field MUST NEVER contain free text.
+- **TERM-02** **Dual coding.** The record is coded with a reference terminology
+  (**SNOMED CT**), the claim with a statistical classification (**MKCH-10 / ICD-10 /
+  ICD-10-CM** depending on the market). These are two layers, NOT alternatives.
+- **TERM-03** The narrative is NEVER lost. The binding is the FHIR `CodeableConcept` =
+  `coding[]` **+** `text`; the physician's wording remains in `text`. A signed document
+  MUST carry a human-readable narrative (`Composition.text`).
+- **TERM-04** Binding by SOAP slot:
+  - **A** — `SNOMED CT` (record) **+** the market classification (claim), mandatory
   - **O** — `LOINC`
-  - **P** — `SNOMED CT` + liekový systém trhu (`ATC` pre EÚ/IN, `RxNorm` pre US)
-  - **S** — prevažne naratív; NESMIE byť kódovaný nasilu
-- **TERM-05** Kód vzniká **pri zázname** (capture). Odvodzovanie kódu z voľného textu
-  pri renderi NIE JE prípustné ako produkčný mechanizmus.
-- **TERM-06** Výber kódu je **vyhľadávanie nad ValueSetom** viazaným na pole,
-  špecializáciu a trh (`$expand` / `$validate-code`). Výber z celého číselníka
-  formou `select` NIE JE prípustný.
-- **TERM-07** ValueSety, mapy a liekový systém sa rozlišujú per trh cez
-  `market_rules` — konfigurácia, nie kódová vetva (rozšírenie `SOAP-09`).
-- **TERM-08** Nekódovaná položka MUSÍ byť vizuálne priznaná. Tichý preskok
-  nekódovanej položky NIE JE prípustný.
-- **TERM-09** Použitie SNOMED CT MUSÍ byť registrované u národného release centra
-  (SK: NCZI). V členských krajinách je použitie bez licenčného poplatku; pre
-  nečlenské územia platí affiliate režim.
+  - **P** — `SNOMED CT` + the market's medication system (`ATC` for EU/IN, `RxNorm` for US)
+  - **S** — predominantly narrative; it MUST NOT be forced into a code
+- **TERM-05** The code is created **at capture**. Deriving a code from free text at
+  render time is NOT acceptable as a production mechanism.
+- **TERM-06** Code selection is a **search over a ValueSet** bound to the field, the
+  speciality and the market (`$expand` / `$validate-code`). Selecting from an entire
+  code list through a `select` is NOT acceptable.
+- **TERM-07** ValueSets, maps and the medication system differ per market through
+  `market_rules` — configuration, not a code branch (an extension of `SOAP-09`).
+- **TERM-08** An uncoded item MUST be visually acknowledged. Silently skipping an
+  uncoded item is NOT acceptable.
+- **TERM-09** The use of SNOMED CT MUST be registered with the national release centre
+  (SK: NCZI). In member countries use carries no licence fee; for non-member territories
+  the affiliate regime applies.
 
-## 4. Podpis
+## 4. Signature
 
-- **SIG-01** Podpisová úroveň je vlastnosť trhu v `market_rules`
-  (EÚ: eIDAS pokročilý/kvalifikovaný · US: e-signature podľa HIPAA a štátu ·
+- **SIG-01** The signature level is a property of the market in `market_rules`
+  (EU: eIDAS advanced/qualified · US: e-signature per HIPAA and state law ·
   IN: IT Act / ABDM).
-- **SIG-02** Podpis validuje minimálny set slotov podľa `SOAP-06`.
-- **SIG-04** Autentifikácia podpisu volá **regionálnu overovaciu funkciu podľa trhu**.
-  Implementácia je na backende; frontend drží iba seam a výsledok.
-- **SIG-05** Ak trh nemá osobitnú požiadavku, použije sa interný mechanizmus:
-  overená registrácia pacienta, 2FA pri prihlásení a **PIN s časovou pečiatkou**.
-- **SIG-06** PIN s časovou pečiatkou je dôkaz **autentifikácie a auditu**, NIE
-  kvalifikovaný elektronický podpis. Trhy vyžadujúce AdES/QES MUSIA mať pripojenú
-  regionálnu funkciu (`SIG-01`); bez nej sa dokument NESMIE označiť za právne podpísaný.
-- **SIG-07** Použitý mechanizmus, jeho výsledok a čas sa zaznamenávajú v `Provenance`
-  a `AuditEvent` — je to doklad pre ISO a ďalšie certifikácie.
-- **SIG-03** V móde `overlay` Hilbi podpis **predkladá a zaznamenáva**, právne
-  platný podpis vykonáva hostiteľský systém. Hilbi NESMIE prezentovať vlastný
-  UI-stav ako právne platný podpis.
+- **SIG-02** The signature validates the minimum set of slots per `SOAP-06`.
+- **SIG-04** Signature authentication calls a **regional verification function chosen by
+  market**. The implementation is on the backend; the frontend holds only the seam and
+  the result.
+- **SIG-05** If a market has no specific requirement, the internal mechanism is used:
+  verified patient registration, 2FA at login and a **time-stamped PIN**.
+- **SIG-06** A time-stamped PIN is evidence of **authentication and audit**, NOT a
+  qualified electronic signature. Markets requiring AdES/QES MUST have the regional
+  function connected (`SIG-01`); without it a document MUST NOT be presented as legally
+  signed.
+- **SIG-07** The mechanism used, its result and the time are recorded in `Provenance`
+  and `AuditEvent` — this is the evidence for ISO and other certifications.
+- **SIG-03** In `overlay` mode Hilbi **presents and records** the signature; the legally
+  valid signature is performed by the host system. Hilbi MUST NOT present its own UI
+  state as a legally valid signature.
 
 ## 5. Amendment
 
-- **AMD-01** `Composition.status` prechádza `preliminary` → `final` (prvý podpis) →
-  `amended` (každá ďalšia verzia).
-- **AMD-02** Podpísaný záznam je **nemenný**. Oprava sa vykonáva **addendom**,
-  NIKDY tichou editáciou.
-- **AMD-03** Originál MUSÍ byť zachovaný a dohľadateľný pri každej revízii.
-- **AMD-04** Každá revízia MUSÍ niesť dôvod opravy a vlastný `Provenance` záznam.
-- **AMD-05** Podpis **zmrazuje obsah**. Podpísaný dokument sa od tej chvíle číta
-  výhradne zo snímky a NIKDY sa neskladá zo živých dát.
-- **AMD-06** Snímka zmrazuje tri vrstvy: **odkazy na klinické dáta s verziou**
-  (`Observation/123/_history/2`), **vyrenderovaný naratív** (`Composition.text` — to,
-  čo lekár čítal a atestoval) a **kontext** (šablóna a jej verzia, hlavička organizácie,
-  identita, jazyk dokumentu, trh, kódové systémy, mód `overlay`/`core`).
-- **AMD-07** Naratív a štruktúra sa zmrazujú **oboje**. Samotná štruktúra nestačí —
-  prekreslenie novším rendererom môže dať iný výstup než ten, ktorý bol podpísaný.
-  Autoritatívny pre to, čo bolo atestované, je **naratív**.
-- **AMD-08** Snímka nesie **odtlačok obsahu** (produkčne SHA-256), ktorý sa zaznamenáva
-  v `Provenance` a v `DocumentReference.content.attachment.hash`. Je to doklad
-  o neporušenosti dokumentu.
-- **AMD-09** V móde `overlay` sa snímka vytvára tiež — je dôkazom, **čo systém predložil
-  a čo lekár potvrdil** pred zápisom do hostiteľského systému; označí sa módom.
-  Autoritatívny podpis však ostáva v hostiteľskom systéme (`REP-02`).
+- **AMD-01** `Composition.status` moves through `preliminary` → `final` (first
+  signature) → `amended` (every subsequent version).
+- **AMD-02** A signed record is **immutable**. Correction is performed by **addendum**,
+  NEVER by silent editing.
+- **AMD-03** The original MUST be preserved and traceable at every revision.
+- **AMD-04** Every revision MUST carry a reason for correction and its own `Provenance`
+  record.
+- **AMD-05** A signature **freezes the content**. From that moment a signed document is
+  read exclusively from the snapshot and is NEVER assembled from live data.
+- **AMD-06** The snapshot freezes three layers: **versioned references to clinical data**
+  (`Observation/123/_history/2`), the **rendered narrative** (`Composition.text` — what
+  the physician read and attested) and the **context** (the template and its version, the
+  organisation header, identity, document language, market, code systems, `overlay`/`core`
+  mode).
+- **AMD-07** Narrative and structure are **both** frozen. Structure alone is not enough —
+  re-rendering with a newer renderer may produce output different from what was signed.
+  The **narrative** is authoritative for what was attested.
+- **AMD-08** The snapshot carries a **content fingerprint** (SHA-256 in production),
+  recorded in `Provenance` and in `DocumentReference.content.attachment.hash`. It is
+  evidence of the integrity of the document.
+- **AMD-09** In `overlay` mode a snapshot is created as well — it is evidence of **what
+  the system presented and what the physician confirmed** before writing to the host
+  system; it is labelled with the mode. The authoritative signature nevertheless remains
+  in the host system (`REP-02`).
 
-## 6. Provenance a audit
+## 6. Provenance and audit
 
-- **PROV-01** Každá tvorba alebo zmena klinického obsahu MUSÍ generovať
-  `Provenance`: agent, rola, čas, aktivita, cieľ.
-- **PROV-02** Role: `author` (zápis) · `attester` (podpis, addendum) ·
-  `verifier` (potvrdenie výkazu).
-- **PROV-03** Obsah navrhnutý AI MUSÍ byť atribuovaný agentovi **Hilbi IQ**, nikdy
-  implicitne lekárovi. Potvrdenie lekárom sa zaznamenáva ako samostatný akt.
-- **AUD-01** Každý prístup, export alebo zdieľanie MUSÍ generovať `AuditEvent`
-  s **purpose-of-use**.
-- **AUD-02** Audit log MUSÍ byť perzistentný, nemenný a tamper-evident. Log držaný
-  len v pamäti relácie NIE JE zhodný s touto normou.
-- **AUD-03** Retenčná doba auditu sa riadi trhom a určuje ju compliance
-  (US: HIPAA · EÚ: EHDS + GDPR · IN: DPDP; India navyše vyžaduje bezpečnostný audit
-  cez CERT-In empanelled auditora pre ABDM certifikáciu).
+- **PROV-01** Every creation or change of clinical content MUST generate a
+  `Provenance`: agent, role, time, activity, target.
+- **PROV-02** Roles: `author` (write) · `attester` (signature, addendum) ·
+  `verifier` (confirmation of the claim).
+- **PROV-03** Content proposed by AI MUST be attributed to the agent **Hilbi IQ**, never
+  implicitly to the physician. Confirmation by the physician is recorded as a separate
+  act.
+- **AUD-01** Every access, export or share MUST generate an `AuditEvent` with a
+  **purpose-of-use**.
+- **AUD-02** The audit log MUST be persistent, immutable and tamper-evident. A log held
+  only in session memory does NOT conform to this standard.
+- **AUD-03** Audit retention is governed by the market and determined by compliance
+  (US: HIPAA · EU: EHDS + GDPR · IN: DPDP; India additionally requires a security audit
+  by a CERT-In empanelled auditor for ABDM certification).
 
-## 7. Súhlas a zdieľanie
+## 7. Consent and sharing
 
-- **CNS-01** Zdieľanie mimo kontext liečby MUSÍ niesť súhlasový kontext. Tlačidlo
-  bez súhlasového kontextu NIE JE prípustné.
-- **CNS-02** **IN** — zdieľanie je viazané na ABDM Consent Manager: explicitný,
-  časovo obmedzený a odvolateľný súhlas pacienta. Federovaný model: záznam ostáva
-  u pôvodcu.
-- **CNS-03** **EÚ** — purpose-of-use podľa EHDS vrátane práva pacienta obmedziť
-  prístup.
-- **CNS-04** **US** — info-blocking pravidlá a funkcia obmedzenia prístupu.
-- **CNS-05** Zdieľať sa smie iba **podpísaná verzia**, nikdy draft.
+- **CNS-01** Sharing outside the treatment context MUST carry a consent context. A
+  button without a consent context is NOT acceptable.
+- **CNS-02** **IN** — sharing is bound to the ABDM Consent Manager: explicit,
+  time-limited and revocable patient consent. A federated model: the record stays with
+  its originator.
+- **CNS-03** **EU** — purpose-of-use per EHDS, including the patient's right to restrict
+  access.
+- **CNS-04** **US** — info-blocking rules and an access-restriction function.
+- **CNS-05** Only a **signed version** may be shared, never a draft.
 
-## 8. Transparentnosť AI (DSI)
+## 8. AI transparency (DSI)
 
-- **DSI-01** Každý AI výstup MUSÍ byť označený ako **návrh**.
-- **DSI-02** Návrh MUSÍ deklarovať: typ mechanizmu (pravidlo vs. model), verziu,
-  vstupy a logiku.
-- **DSI-03** AI NIKDY nezapisuje ticho. Zápis vzniká výhradne potvrdením lekára
-  (v súlade s `SOAP-10`, `BILL-02`).
-- **DSI-04** AI výstup NESMIE byť prezentovaný ako diagnostické rozhodnutie.
-  Hranica návrh/rozhodnutie je zároveň hranicou voči MDR — posudzuje compliance.
-- **DSI-05** Zmena verzie logiky návrhu MUSÍ byť zaznamenaná a viditeľná.
+- **DSI-01** Every AI output MUST be labelled as a **suggestion**.
+- **DSI-02** A suggestion MUST declare: the type of mechanism (rule versus model), the
+  version, the inputs and the logic.
+- **DSI-03** AI NEVER writes silently. A write is created exclusively by the physician's
+  confirmation (consistent with `SOAP-10`, `BILL-02`).
+- **DSI-04** An AI output MUST NOT be presented as a diagnostic decision. The boundary
+  between suggestion and decision is also the boundary against MDR — compliance assesses it.
+- **DSI-05** A change to the version of the suggestion logic MUST be recorded and visible.
 
-## 9. Šablóny
+## 9. Templates
 
-- **TPL-01** Šablóna určuje **formu** výstupu a NIKDY nie je miestom uloženia údaja.
-  Sekcia šablóny vyberá a zoraďuje položky; položky si nesú svoju FHIR identitu.
-- **TPL-02** Šablóna sa pri uložení MUSÍ validovať proti povinnému minimu trhu.
-  Nevalidná šablóna sa NESMIE stať aktívnou.
-- **TPL-03** Typ dokumentu (`slotKey`), šablóna poskytovateľa a pravidlá trhu sú **tri
-  nezávislé osi**. Trh NIKDY nevyberá šablónu — trh určuje minimum a kódové systémy.
-- **TPL-04** Anamnestické okruhy (OA, AA, FA, RA, SA, PA) patria na **pacientsku
-  úroveň**; šablóna ich do dokumentu premieta. NESMÚ sa ukladať ako súčasť encounteru.
-- **TPL-05** Šablónový povrch je **doménovo neutrálny**. NESMIE obsahovať doménovo
-  špecifické sekcie natvrdo; vykresľuje to, čo mu dodá register a doménový plug-in.
-- **TPL-07** Dokument má tri vrstvy s odlišným životným cyklom: **hlavička a pätka**
-  (organizácia), **telo** (šablóna), **súhlas** (register). Šablóna NIKDY nenesie
-  hlavičku natvrdo — zmena údajov zariadenia sa musí prejaviť vo všetkých dokumentoch naraz.
-- **TPL-08** Extrakcia šablóny z nahratej vzorky získava **iba štruktúru**. Hodnoty
-  (údaje pacienta) ani zdrojový obrázok sa NESMÚ uložiť. Vzorka sa spracuje a zahodí.
-- **TPL-09** Rozpoznané popisky sa mapujú na kanonické zdroje cez **alias mapu**.
-  Mapovanie je NÁVRH a potvrdzuje ho lekár (`DSI-01`); NIKDY sa neuplatní ticho.
-- **TPL-10** Šablóna získaná extrakciou prechádza rovnakou bránou ako ručne vytvorená (`TPL-02`).
-- **TPL-11** Anamnestické okruhy sa označujú ustálenými skratkami klinickej praxe
-  (RA, OA, AA, FA, SA, PA, GA). Každý okruh zodpovedá samostatnému FHIR zdroju
-  a patrí na pacientsku úroveň (`TPL-04`); popisok v šablóne je iba forma.
-- **TPL-16** Šablóny majú **tri okruhy vlastníctva**: `system` (dodané, read-only),
-  `provider` (zdravotnícke zariadenie) a `my` (lekár). Okruh určuje, kto smie šablónu
-  meniť. Systémovú šablónu NIE JE možné prepísať — vytvára sa z nej kópia.
-- **TPL-12** Znenie informovaného súhlasu je **právny artefakt** a patrí registru
-  súhlasov, NIE šablóne. Register vedie **verziu a dátum účinnosti** každého znenia.
-- **TPL-13** Súhlas sa MUSÍ dať vydať v oboch podobách z jedného zdroja: ako
-  **samostatný dokument** aj ako **sekcia na konci správy** (bežná prax a požiadavka
-  starších systémov). Šablóna určuje iba umiestnenie.
-- **TPL-14** Dokument MUSÍ niesť, **ktorá verzia znenia** bola pacientovi predložená.
-  Podpísaný súhlas bez identifikácie verzie znenia NIE JE preukázateľný.
-- **TPL-15** Povinné minimum trhu (`TPL-02`) sa vzťahuje na **klinický dokument**.
-  Súhlas má vlastné pravidlá a do klinickej úplnosti (`INT-03`) sa nezapočítava.
-- **TPL-17** Zdroj sekcie môže byť **podmnožinou SOAP slotu**, rozlíšenou kategóriou
-  alebo kódom (napr. `exam-neuro`, `labs` a `dx-coded` sú všetko obsah slotov `O`/`A`).
-  Reálne správy tieto vrstvy rozlišujú a lekár ich vníma ako samostatné sekcie.
-  Dve sekcie viazané na **ten istý** zdroj NESMÚ zobrazovať ten istý obsah dvakrát —
-  ak dokument rozlišuje, musí existovať samostatný zdroj.
-- **TPL-18** Zhodnotenie v próze (`A`) a **kódovaný zoznam diagnóz** (`dx-coded`) sú
-  odlišné zdroje. Kódovaný zoznam nesie klasifikáciu trhu (`TERM-02`); próza ju nenesie.
-- **TPL-19** Podpisový blok má tri vrstvy: **identita podpisovateľov** (meno, funkcia,
-  kód) patrí **organizácii**, **výber podpisovateľov pre daný dokument** patrí **šablóne**,
-  a **samotný podpis** je runtime akt (`SIG-*`). Šablóna NIKDY nenesie meno podpisovateľa
-  natvrdo — zmena personálu by inak vyžadovala prepis všetkých šablón.
-- **TPL-06** Šablóna definuje sekcie a väzby; **renderery sú vymeniteľné**
-  (štruktúrovaný a textový). Textový výstup slúži na prenos do cudzieho systému
-  a MÔŽE niesť kódy podľa nastavenia šablóny.
+- **TPL-01** A template determines the **form** of the output and is NEVER the place
+  where data is stored. A template section selects and orders items; the items carry
+  their own FHIR identity.
+- **TPL-02** On saving, a template MUST be validated against the mandatory minimum of
+  the market. An invalid template MUST NOT become active.
+- **TPL-03** The document type (`slotKey`), the provider template and the market rules
+  are **three independent axes**. The market NEVER selects the template — the market
+  determines the minimum and the code systems.
+- **TPL-04** History scopes (personal, allergy, family, social, pharmacological and
+  occupational history) belong at the **patient level**; the template projects them into
+  the document. They MUST NOT be stored as part of the encounter.
+- **TPL-05** The template surface is **domain-neutral**. It MUST NOT contain
+  domain-specific sections hard-coded; it renders what the registry and the domain
+  plug-in supply.
+- **TPL-07** A document has three layers with different lifecycles: **header and footer**
+  (the organisation), **body** (the template), **consent** (the registry). A template
+  NEVER carries the header hard-coded — a change to facility data must appear in every
+  document at once.
+- **TPL-08** Extracting a template from an uploaded sample obtains **structure only**.
+  Values (patient data) and the source image MUST NOT be stored. The sample is
+  processed and discarded.
+- **TPL-09** Recognised labels are mapped to canonical sources through an **alias map**.
+  The mapping is a SUGGESTION confirmed by the physician (`DSI-01`); it is NEVER applied
+  silently.
+- **TPL-10** A template obtained by extraction passes through the same gate as one
+  created by hand (`TPL-02`).
+- **TPL-11** History scopes are labelled with the established abbreviations of clinical
+  practice (RA, OA, AA, FA, SA, PA, GA). Each scope corresponds to a separate FHIR
+  resource and belongs at the patient level (`TPL-04`); the label in the template is only
+  a form.
+- **TPL-16** Templates have **three ownership scopes**: `system` (supplied, read-only),
+  `provider` (the healthcare facility) and `my` (the physician). The scope determines who
+  may change the template. A system template cannot be overwritten — a copy is made
+  from it.
+- **TPL-12** The wording of informed consent is a **legal artefact** and belongs to the
+  consent registry, NOT to the template. The registry keeps the **version and effective
+  date** of every wording.
+- **TPL-13** Consent MUST be issuable in both forms from a single source: as a
+  **standalone document** and as a **section at the end of the report** (common practice
+  and a requirement of older systems). The template determines only the placement.
+- **TPL-14** The document MUST carry **which version of the wording** was presented to
+  the patient. A signed consent without identification of the wording version is NOT
+  evidential.
+- **TPL-15** The mandatory market minimum (`TPL-02`) applies to the **clinical document**.
+  Consent has its own rules and does not count towards clinical completeness (`INT-03`).
+- **TPL-17** A section source may be a **subset of a SOAP slot**, distinguished by
+  category or code (for example `exam-neuro`, `labs` and `dx-coded` are all content of
+  the `O`/`A` slots). Real reports separate these layers and the physician perceives them
+  as distinct sections. Two sections bound to the **same** source MUST NOT display the
+  same content twice — if the document separates them, a separate source must exist.
+- **TPL-18** The prose assessment (`A`) and the **coded list of diagnoses** (`dx-coded`)
+  are distinct sources. The coded list carries the market classification (`TERM-02`); the
+  prose does not.
+- **TPL-19** The signature block has three layers: the **identity of the signatories**
+  (name, role, code) belongs to the **organisation**, the **selection of signatories for a
+  given document** belongs to the **template**, and the **signature itself** is a runtime
+  act (`SIG-*`). A template NEVER carries a signatory's name hard-coded — a change of
+  staff would otherwise require rewriting every template.
+- **TPL-06** A template defines sections and bindings; **renderers are interchangeable**
+  (structured and textual). The textual output serves transfer into a foreign system and
+  MAY carry codes depending on the template's configuration.
 
-## 10. Vstup cez Hilbi IQ
+## 10. Intake through Hilbi IQ
 
-- **INT-01** Výstup OCR a AI extrakcie vzniká ako **kandidát** (`validated=false`),
-  atribuovaný agentovi Hilbi IQ, označený ako návrh.
-- **INT-02** Nevalidovaný kandidát sa NESMIE dostať do podpísaného dokumentu.
-  Validácia je vedomý akt lekára a zaznamenáva sa (`Provenance`, `AuditEvent`).
-- **INT-03** Coverage — vyplnené a chýbajúce sekcie — MUSÍ byť viditeľná pred podpisom.
-- **INT-04** Položka prenesená z predchádzajúceho encounteru MUSÍ byť viditeľne
-  označená ako prenesená, MUSÍ sa potvrdzovať **po položkách** (nikdy hromadne)
-  a jej `Provenance` MUSÍ niesť zdrojový encounter — nie dnešné pozorovanie.
-- **INT-05** Prenesená a nepotvrdená položka sa NESMIE započítať do derivácie výkazu.
-- **INT-06** Nahrávanie konzultácie vyžaduje súhlas pacienta; rozsah a forma sa riadia trhom.
-- **INT-07** MUSÍ byť rozhodnuté, či sa audio po prepise uchováva alebo zahadzuje,
-  a či je súčasťou zdravotnej dokumentácie. Do rozhodnutia sa audio NEUCHOVÁVA.
+- **INT-01** The output of OCR and AI extraction is created as a **candidate**
+  (`validated=false`), attributed to the agent Hilbi IQ and labelled as a suggestion.
+- **INT-02** An unvalidated candidate MUST NOT reach a signed document. Validation is a
+  deliberate act of the physician and is recorded (`Provenance`, `AuditEvent`).
+- **INT-03** Coverage — which sections are filled and which are missing — MUST be visible
+  before signature.
+- **INT-04** An item carried over from a previous encounter MUST be visibly marked as
+  carried over, MUST be confirmed **item by item** (never in bulk), and its `Provenance`
+  MUST carry the source encounter — not today's observation.
+- **INT-05** A carried-over and unconfirmed item MUST NOT count towards the derivation of
+  the claim.
+- **INT-06** Recording a consultation requires the patient's consent; the scope and form
+  are governed by the market.
+- **INT-07** It MUST be decided whether audio is retained or discarded after
+  transcription, and whether it forms part of the medical record. Until that decision,
+  audio is NOT retained.
 
-## 11. Integrácia modulov
+## 11. Module integration
 
-- **SYS-01** Dash je **system of record**. Úložisko integrovaného modulu (napr. Care Plan)
-  je **odvodené** — projekcia, nie rovnocenný zdroj.
-- **SYS-02** Žiadny klinický fakt NESMIE existovať iba v integrovanom module.
-- **SYS-03** Komunikácia medzi Dash a integrovaným modulom prebieha **výhradne cez API**.
-  Priamy prístup do cudzej databázy NIE JE prípustný.
-- **SYS-04** Akcia vykonaná v integrovanom povrchu MUSÍ vytvoriť `Provenance` v Dash.
-  API preto nesie agenta, rolu a purpose-of-use — audit sa NESMIE končiť na hranici modulu.
+- **SYS-01** Dash is the **system of record**. The store of an integrated module (for
+  example Care Plan) is **derived** — a projection, not an equal source.
+- **SYS-02** A clinical fact MUST NOT exist only in an integrated module.
+- **SYS-03** Communication between Dash and an integrated module happens **exclusively
+  through an API**. Direct access into a foreign database is NOT acceptable.
+- **SYS-04** An action performed in an integrated surface MUST create a `Provenance` in
+  Dash. The API therefore carries the agent, the role and the purpose-of-use — the audit
+  MUST NOT end at the module boundary.
 
-## 12. Úložisko
+## 12. Store
 
-- **STO-01** Úložisko je **za rozhraním**. Volajúci kód NESMIE zapisovať priamo do
-  dátovej štruktúry; zápis prebieha výhradne cez rozhranie úložiska.
-- **STO-02** Adaptér je vymeniteľný bez zmeny volajúceho kódu (pamäť → REST → Core).
-- **STO-03** Kolekcie s prirodzeným kľúčom (dokumenty podľa `masterIdentifier`,
-  šablóny podľa `id`) sa zapisujú **upsertom**; audit sa **iba pripája** a NIKDY
-  neprepisuje existujúci záznam.
-- **STO-04** **Prehliadačové úložisko sa nepoužíva** pre klinické dáta ani audit.
-  Dash je system of record (`SYS-01`) a audit musí byť perzistentný, nemenný
-  a tamper-evident (`AUD-02`); klientske úložisko nespĺňa ani jedno.
-- **STO-05** Použitý adaptér a stav kolekcií MUSIA byť v prototype **viditeľné**,
-  aby bolo zrejmé, čo musí produkcia nahradiť.
+- **STO-01** The store sits **behind an interface**. Calling code MUST NOT write directly
+  into the data structure; writes happen exclusively through the store interface.
+- **STO-02** The adapter is interchangeable without changing the calling code
+  (memory → REST → Core).
+- **STO-03** Collections with a natural key (documents by `masterIdentifier`, templates
+  by `id`) are written by **upsert**; the audit is **append-only** and NEVER overwrites an
+  existing record.
+- **STO-04** **Browser storage is not used** for clinical data or for the audit. Dash is
+  the system of record (`SYS-01`) and the audit must be persistent, immutable and
+  tamper-evident (`AUD-02`); client storage satisfies neither.
+- **STO-05** The adapter in use and the state of the collections MUST be **visible** in
+  the prototype, so that what production has to replace is evident.
 
-## 13. Identita dokumentu
+## 13. Document identity
 
-- **DOC-01** Klinický dokument MUSÍ mať **`masterIdentifier`** (URN UUID), ktorý je
-  **stabilný naprieč všetkými verziami a dodatkami**. Je to identita *dokumentu*,
-  nie verzie.
-- **DOC-02** Identita vzniká **pri založení dokumentu**, teda už pre koncept —
-  aby sa naň dalo odkázať pred podpisom.
-- **DOC-03** Každá verzia má vlastnú `Composition.id` a zdieľa `masterIdentifier`
-  s ostatnými verziami toho istého dokumentu.
-- **DOC-04** **Ľudsky čitateľné číslo** (napr. `FNT-2026-000123`) slúži pre vytlačený
-  dokument a referenciu mimo systému. Prideľuje sa až pri **prvom podpise** a ďalej
-  sa NEMENÍ — dodatok nesie to isté číslo. Zahodený koncept číslo nedostane.
-- **DOC-05** Identita sa **zmrazuje do snímky** (`AMD-06`) a zapisuje do `Provenance`
-  a `AuditEvent`. Audit bez identity dokumentu nie je dohľadateľný.
-- **DOC-06** Časová os a Records zobrazujú **ten istý dokument** cez jeho
-  `masterIdentifier`. Kópia dokumentu pre druhý pohľad NIE JE prípustná.
-- **DOC-07** Identita klinického dokumentu je **odlišná vrstva** od `doc_id`
-  znalostnej bázy podľa `gsr-13` (identifikátor dokumentácie). NESMÚ zdieľať schému
-  ani číselný rad.
+- **DOC-01** A clinical document MUST have a **`masterIdentifier`** (URN UUID) that is
+  **stable across every version and addendum**. This is the identity of the *document*,
+  not of a version.
+- **DOC-02** Identity is created **when the document is started**, that is already for a
+  draft — so that it can be referenced before signature.
+- **DOC-03** Every version has its own `Composition.id` and shares the
+  `masterIdentifier` with the other versions of the same document.
+- **DOC-04** The **human-readable number** (for example `FNT-2026-000123`) serves the
+  printed document and reference outside the system. It is assigned only at the **first
+  signature** and does NOT change thereafter — an addendum carries the same number. A
+  discarded draft never receives a number.
+- **DOC-05** Identity is **frozen into the snapshot** (`AMD-06`) and written into
+  `Provenance` and `AuditEvent`. An audit without the document identity is not traceable.
+- **DOC-06** The timeline and Records display **the same document** through its
+  `masterIdentifier`. A copy of the document for the second view is NOT acceptable.
+- **DOC-07** The identity of a clinical document is a **different layer** from the
+  `doc_id` of the knowledge base per `gsr-13` (the documentation identifier).
+  They MUST NOT share a scheme or a number series.
 
-## 14. Jazyk a lokalizácia
+## 14. Language and localisation
 
-- **I18N-01** Jazykovo neutrálnou vrstvou je **kód**, nie preklad. Žiadny prirodzený
-  jazyk nie je SSOT; angličtina nemá osobitné postavenie.
-- **I18N-02** **Jazyk rozhrania**, **jazyk dokumentu** a **jazyk pacienta** sú tri
-  nezávislé osi. Jazyk rozhrania NIKDY neurčuje jazyk dokumentu.
-- **I18N-03** Jazyk dokumentu vyplýva z **jurisdikcie poskytovateľa**, potvrdzuje sa
-  v nastaveniach zariadenia a **otlačí sa na dokument pri jeho vzniku**. Nedohľadáva
-  sa pri zobrazení — neskoršia zmena nastavenia NESMIE prepísať jazyk starých dokumentov.
-- **I18N-04** Systémové šablóny sú lokalizované. Šablóny poskytovateľa a osobné
-  sa **neprekladajú** — ich popisky idú na vytlačený dokument.
-- **I18N-05** **Metadáta a taxonómia** (typ dokumentu, kategória, popisky v navigácii,
-  stavy, štítky) sa lokalizujú **cez zobrazovací termín kódu** v cieľovom jazyku,
-  NIE strojovým prekladom reťazca.
-- **I18N-06** Ten istý popisok sekcie má dve použitia: v **dokumente** sa vykresľuje
-  v jazyku dokumentu, v **navigácii** v jazyku rozhrania. Preto sú interné kľúče
-  jazykovo neutrálne a skratky (`OA`, `AA`, `RA`) sú iba ich zobrazenie.
-- **I18N-07** **Telo správy** ostáva v jazyku, v ktorom vzniklo. Preklad je dostupný
-  **na vyžiadanie** v detaile dokumentu (výber jazyka) a zobrazuje sa s upozornením.
-- **I18N-08** Preklad na vyžiadanie je **čítacia pomôcka**: neukladá sa ako dokument,
-  nenahrádza originál, **nededí podpis** a neexportuje sa bez označenia. Originál
-  ostáva autoritatívny.
-- **I18N-09** Klinický obsah sa NIKDY neprekladá automaticky bez vyžiadania.
-- **I18N-10** Cudzí dokument prevzatý na časovú os sa NESMIE zmeniť. Preklad k nemu
-  môže pribudnúť, nikdy ho nenahrádza.
-- **I18N-11** Register súhlasov je kľúčovaný **`(id, verzia, jazyk)`**. Každá jazyková
-  verzia je samostatne schválené znenie, NIE preklad. Súhlas sa NIKDY neprekladá
-  strojovo; ak schválené znenie v jazyku pacienta neexistuje, nesmie sa použiť.
-- **I18N-12** Pri chýbajúcom preklade sa zobrazí **originál s poznámkou**. Nikdy
-  prázdna hodnota a nikdy tichý strojový preklad.
-- **I18N-13** Tlač a export prebiehajú **vždy v jazyku dokumentu**, bez ohľadu na
-  jazyk rozhrania.
-- **I18N-14** Formátovanie čísel, dátumov a jednotiek sa riadi **locale**, nie jazykom.
-  Je klinicky citlivé (desatinný oddeľovač v dávkovaní, poradie zložiek dátumu).
-- **I18N-15** Vyžiadanie prekladu sa zaznamenáva v `AuditEvent` vrátane nástroja a času.
+- **I18N-01** The language-neutral layer is the **code**, not a translation. No natural
+  language is the SSOT; English has no special standing.
+- **I18N-02** The **interface language**, the **document language** and the **patient
+  language** are three independent axes. The interface language NEVER determines the
+  document language.
+- **I18N-03** The document language follows from the **provider's jurisdiction**, is
+  confirmed in the facility settings and is **stamped onto the document when it is
+  created**. It is not looked up at display time — a later change of settings MUST NOT
+  rewrite the language of older documents.
+- **I18N-04** System templates are localised. Provider and personal templates are **not
+  translated** — their labels go onto the printed document.
+- **I18N-05** **Metadata and taxonomy** (document type, category, navigation labels,
+  states, tags) are localised **through the display term of the code** in the target
+  language, NOT by machine-translating a string.
+- **I18N-06** The same section label has two uses: in the **document** it is rendered in
+  the document language, in **navigation** in the interface language. Internal keys are
+  therefore language-neutral and the abbreviations (`OA`, `AA`, `RA`) are only their
+  display form.
+- **I18N-07** The **body of the report** stays in the language in which it was created. A
+  translation is available **on request** in the document detail (language selection) and
+  is shown with a notice.
+- **I18N-08** A translation on request is a **reading aid**: it is not stored as a
+  document, does not replace the original, **does not inherit the signature** and is not
+  exported without a label. The original remains authoritative.
+- **I18N-09** Clinical content is NEVER machine-translated without a request.
+- **I18N-10** A foreign document taken onto the timeline MUST NOT be altered. A
+  translation may be added alongside it, never in its place.
+- **I18N-11** The consent registry is keyed by **`(id, ver, lang)`**. Every
+  language version is a separately approved wording, NOT a translation. Consent is NEVER
+  machine-translated; if an approved wording does not exist in the patient's language, it
+  must not be used.
+- **I18N-12** Where a translation is missing, the **original is shown with a note**.
+  Never an empty value and never a silent machine translation.
+- **I18N-13** Printing and export always happen **in the document language**, regardless
+  of the interface language.
+- **I18N-14** Formatting of numbers, dates and units follows the **locale**, not the
+  language. It is clinically sensitive (the decimal separator in dosing, the order of
+  date components).
+- **I18N-15** A request for translation is recorded in an `AuditEvent`, including the
+  tool and the time.
 
-## 15. Trhová matica
+## 15. Market matrix
 
-| Vrstva | EÚ | US | IN |
+| Layer | EU | US | IN |
 |---|---|---|---|
-| Dokumentový profil | EEHRxF | US Core / C-CDA | ABDM Prescription / OPConsultation |
-| Záznam (referenčná) | SNOMED CT | SNOMED CT | SNOMED CT |
-| Výkaz (klasifikácia) | MKCH-10 (SK) / ICD-10 | ICD-10-CM | ICD-10 |
-| Laboratórne | LOINC | LOINC | LOINC |
-| Lieky | ATC | RxNorm | ATC |
-| Podpis | eIDAS AdES/QES | HIPAA e-signature | IT Act / ABDM |
-| Identita | národný identifikátor | MRN, NPI | ABHA, HPR, HFR |
-| Súhlas | EHDS purpose-of-use | info-blocking | ABDM Consent Manager |
-| Certifikácia (mód `core`) | EHDS CE režim | certifikované Health IT | ABDM + CERT-In audit |
+| Document profile | EEHRxF | US Core / C-CDA | ABDM Prescription / OPConsultation |
+| Record (reference) | SNOMED CT | SNOMED CT | SNOMED CT |
+| Claim (classification) | MKCH-10 (SK) / ICD-10 | ICD-10-CM | ICD-10 |
+| Laboratory | LOINC | LOINC | LOINC |
+| Medication | ATC | RxNorm | ATC |
+| Signature | eIDAS AdES/QES | HIPAA e-signature | IT Act / ABDM |
+| Identity | national identifier | MRN, NPI | ABHA, HPR, HFR |
+| Consent | EHDS purpose-of-use | info-blocking | ABDM Consent Manager |
+| Certification (`core` mode) | EHDS CE regime | certified Health IT | ABDM + CERT-In audit |
 
-## 16. Stav prototypu voči tejto norme
+## 16. State of the prototype against this standard
 
-Prototype (`index.html`, v129) implementuje **štruktúru**; nasledujúce body sú
-vedome placeholdery a NIE sú zhodné s normou:
+The prototype (`index.html`, v129) implements **structure**; the following points are
+deliberate placeholders and do NOT conform to the standard:
 
-| Pravidlo | Stav |
+| Rule | State |
 |---|---|
-| TERM-05, TERM-06 | ✗ kód sa odvodzuje regexom pri renderi; capture-side picker chýba |
-| TERM-01..04, TERM-08 | ✓ štruktúra dual coding, naratív zachovaný |
-| AUD-02 | ✗ audit log len v pamäti relácie |
-| SIG-01, SIG-03 | ~ úroveň deklarovaná, integrácia podpisu chýba |
-| AMD-01..03 | ✓ · AMD-04 ✗ (dôvod opravy sa nezbiera) |
-| PROV-01..02 | ✓ · PROV-03 ~ (atribúcia AI nie je dôsledná) |
-| CNS-01..05 | ~ súhlasový kontext deklarovaný, dialóg chýba |
+| TERM-05, TERM-06 | ✗ the code is derived by regex at render time; the capture-side picker is missing |
+| TERM-01..04, TERM-08 | ✓ dual coding structure, narrative preserved |
+| AUD-02 | ✗ the audit log lives only in session memory |
+| SIG-01, SIG-03 | ~ the level is declared, signature integration is missing |
+| AMD-01..03 | ✓ · AMD-04 ✗ (the reason for correction is not collected) |
+| PROV-01..02 | ✓ · PROV-03 ~ (AI attribution is not consistent) |
+| CNS-01..05 | ~ the consent context is declared, the dialogue is missing |
 | DSI-01..04 | ✓ · DSI-05 ✗ |
 | REP-01..09 | ✓ |
-| TPL-01, TPL-03, TPL-05, TPL-06 | ✓ register doménovo neutrálny, tri osi, dva renderery |
-| TPL-02 | ✗ validácia šablóny proti minimu trhu chýba |
-| TPL-04, TPL-11 | ✓ RA/OA/AA/FA/SA/PA/GA na pacientskej úrovni, mapované na FHIR zdroje |
-| TPL-07 | ✓ hlavička a pätka v nastaveniach organizácie |
-| TPL-08..10 | ✓ extrakcia zo vzorky: iba štruktúra, mapovanie ako návrh, brána TPL-02 |
-| TPL-16 | ✓ tri okruhy vlastníctva, systémové read-only |
-| TPL-17, TPL-18 | ✓ `exam-neuro`, `labs`, `dx-coded` ako podmnožiny slotov |
-| TPL-19 | ✓ `ORG.signatories` + `tpl.signers`; podpisový blok v štruktúrovanom aj textovom výstupe |
-| TPL-12, TPL-13, TPL-15 | ✓ register súhlasov, obe podoby z jedného zdroja, typovo citlivá validácia |
-| TPL-14 | ~ verzia znenia sa zobrazuje; väzba na podpísaný `Consent` chýba |
+| TPL-01, TPL-03, TPL-05, TPL-06 | ✓ domain-neutral registry, three axes, two renderers |
+| TPL-02 | ✗ validation of a template against the market minimum is missing |
+| TPL-04, TPL-11 | ✓ RA/OA/AA/FA/SA/PA/GA at the patient level, mapped to FHIR resources |
+| TPL-07 | ✓ header and footer in the organisation settings |
+| TPL-08..10 | ✓ extraction from a sample: structure only, mapping as a suggestion, the TPL-02 gate |
+| TPL-16 | ✓ three ownership scopes, system templates read-only |
+| TPL-17, TPL-18 | ✓ `exam-neuro`, `labs`, `dx-coded` as subsets of slots |
+| TPL-19 | ✓ `ORG.signatories` + `tpl.signers`; the signature block in both the structured and the textual output |
+| TPL-12, TPL-13, TPL-15 | ✓ consent registry, both forms from one source, type-sensitive validation |
+| TPL-14 | ~ the wording version is displayed; the binding to a signed `Consent` is missing |
 | INT-03 | ✓ coverage |
-| INT-01, INT-02, INT-04..07 | ✗ intake vrstva zatiaľ nepostavená |
-| SYS-01..04 | ✗ integrácia zatiaľ nepostavená |
-| SIG-04..07 | ✗ seam pre regionálne overenie zatiaľ nie je |
-| I18N-01, I18N-02, I18N-06 | ✓ neutrálne kľúče, skratka v jazyku dokumentu vs. názov v jazyku rozhrania |
-| I18N-03 | ✓ jazyk dokumentu z nastavení organizácie, otlačený v snímke |
-| I18N-07, I18N-08, I18N-09 | ✓ preklad na vyžiadanie ako čítacia pomôcka s upozornením |
-| I18N-11 | ✓ register súhlasov kľúčovaný `(id, verzia, jazyk)`; chýbajúce znenie sa prizná |
-| I18N-12, I18N-15 | ✓ chýbajúci preklad ukáže originál · vyžiadanie sa loguje |
-| I18N-04, I18N-05 | ~ systémové šablóny lokalizované len čiastočne; taxonómia zatiaľ nečerpá zobrazovací termín kódu |
-| I18N-10, I18N-13, I18N-14 | ✗ cudzie dokumenty, jazyk tlače a locale formátovanie zatiaľ neriešené |
-| STO-01..05 | ✓ Store s piatimi kolekciami, pamäťový adaptér, zápisy výhradne cez seam |
-| DOC-01..07 | ✓ masterIdentifier, verzie, ľudské číslo pri podpise, `DOC_REG`, zobrazenie na časovej osi aj v Records z jedného registra |
-| AMD-05..09 | ✓ snímka pri podpise, render výhradne zo snímky, odtlačok obsahu · verziované odkazy sú v prototype hodnotami |
+| INT-01, INT-02, INT-04..07 | ✗ the intake layer is not built yet |
+| SYS-01..04 | ✗ the integration is not built yet |
+| SIG-04..07 | ✗ the seam for regional verification does not exist yet |
+| I18N-01, I18N-02, I18N-06 | ✓ neutral keys, the abbreviation in the document language versus the name in the interface language |
+| I18N-03 | ✓ document language from the organisation settings, stamped into the snapshot |
+| I18N-07, I18N-08, I18N-09 | ✓ translation on request as a reading aid with a notice |
+| I18N-11 | ✓ consent registry keyed by `(id, ver, lang)`; a missing wording is acknowledged |
+| I18N-12, I18N-15 | ✓ a missing translation shows the original · the request is logged |
+| I18N-04, I18N-05 | ~ system templates only partly localised; the taxonomy does not yet draw on the code display term |
+| I18N-10, I18N-13, I18N-14 | ✗ foreign documents, print language and locale formatting are not addressed yet |
+| STO-01..05 | ✓ Store with five collections, in-memory adapter, writes exclusively through the seam |
+| DOC-01..07 | ✓ masterIdentifier, versions, human-readable number at signature, `DOC_REG`, display on the timeline and in Records from one registry |
+| AMD-05..09 | ✓ snapshot at signature, render exclusively from the snapshot, content fingerprint · versioned references are values in the prototype |
 
-## 17. Otvorené body
+## 17. Open points
 
-- **Marek** — MDR hranica pre Hilbi IQ (`DSI-04`); rozsah EHDS CE režimu a Cyber
-  Resilience Act pri prechode do módu `core`; podpisová úroveň per trh (`SIG-01`);
-  retencia auditu (`AUD-03`); India CERT-In.
-- **Registrácia použitia SNOMED CT** u NCZI (`TERM-09`).
-- **Výber terminologického servera** pre `$expand` / `$validate-code` (`TERM-06`).
-- **Perzistencia auditu** — návrh nemenného, tamper-evident úložiska (`AUD-02`).
-- **doc_id** priradenie podľa `gsr-13`.
+- **Marek** — the MDR boundary for Hilbi IQ (`DSI-04`); the scope of the EHDS CE regime
+  and the Cyber Resilience Act when moving to `core` mode; the signature level per market
+  (`SIG-01`); audit retention (`AUD-03`); India CERT-In.
+- **Registering the use of SNOMED CT** with NCZI (`TERM-09`).
+- **Selecting a terminology server** for `$expand` / `$validate-code` (`TERM-06`).
+- **Audit persistence** — designing an immutable, tamper-evident store (`AUD-02`).
+- **`doc_id`** assignment per `gsr-13`.
