@@ -263,6 +263,12 @@ a shorter string would otherwise overwrite part of a longer one.
 Slovak survives in exactly two places: the translation table and the `DEMO-CONTENT`
 block (`docs/GLOSSARY.md` §3). Gate 10 enforces this.
 
+> **State note.** This section describes the target shape. `index.html` still carries
+> the older Slovak-source pair table; the migration to neutral keys is stage 4 of
+> `docs/EN-MIGRATION-PLAN.md` and gate 10 will not pass on `index.html` until it lands.
+> Documentation and implementation are knowingly out of step here, and this note is the
+> record of it.
+
 ## 8. Communication
 
 Direct, plain language. Written artefacts are English without exception; spoken and
