@@ -135,6 +135,43 @@ Three things had to close **before** document creation — they were not add-ons
 
 Print output (`I18N-13`) belongs to document creation and is done alongside it.
 
+## 5c. Provider and Practice (v164)
+
+A Provider may have several Practices. Until v164 the model was flat — one `ORG.fac`
+string — which could not satisfy `REP-07` (identity resolved from context) and placed
+signatory identity at the wrong level: the head of the Neurology Clinic sat on the
+Provider and would have appeared on a general-practice document.
+
+`PRACTICES` is now a registry, `practiceOf()` resolves the active practice, and
+`sigList()` assembles Practice-level signatories first, adding only the Provider-level
+roles that apply everywhere (treating clinician, patient signature).
+
+FHIR: Provider → `Organization`; Practice → `Organization.partOf`; signatory →
+`PractitionerRole.organization` → Practice.
+
+**Still open:** the practice is currently resolved from a module-level `CUR_PRACTICE`.
+It has to come from the encounter once the case layer lands (`cp-15` CASE-01/CASE-04,
+where every event already carries a department).
+
+## 5d. Finding — four sources missing from their registers
+
+A stricter reading of gate 9 (source-key consistency across the six registers) shows
+four encounter-scoped sources absent where `CLAUDE.md` §3 requires them:
+
+| Register | Missing |
+|---|---|
+| `TERM_BIND` | `rx`, `fu`, `narr` |
+| `SRC_STYLE` | `consent` |
+
+`fu` and `narr` plausibly carry no coding by design, but the convention elsewhere is to
+record that explicitly (`S` is present as `{rec:null,rep:null}`). **`rx` is the one that
+matters:** `TERM-04` binds the P slot to SNOMED CT plus the market's medication system,
+so a prescription source with no entry in `TERM_BIND` is a possible conformance gap
+against `TERM-04`, not a cosmetic one.
+
+Not fixed here — fixing it inside a structural change would have mixed two unrelated
+things in one revertable commit. Needs a decision on whether the absences are intended.
+
 ## 6. Open points outside the code
 
 - **Marek (compliance):** the boundary between suggestion and decision in Hilbi IQ
