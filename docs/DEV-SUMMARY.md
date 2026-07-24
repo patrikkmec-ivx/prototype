@@ -53,6 +53,7 @@ configuration.
 | System role | `REP-01`, `REP-02`, `REP-05` | `RPT_MODE`, `rptModeNote()` |
 | Report shell | `REP-06` | `reportShell()` |
 | Identity | `REP-07` | `RPT_ID`, `rptIdLine()` |
+| Provider and Practice | `REP-07`, `TPL-19` | `ORG` (Provider) · `PRACTICES` · `practiceOf()`, `practiceName()`, `sigList()` |
 | Document profile | `REP-08` | `MKT[…].doc` |
 | Template registry | `REP-09`, `TPL-05` | `TPL_REG` (domain-neutral), `rptSource()`, `rptSec()` |
 | Template selection | `TPL-03` | `tplCur()`, `tplPick()` — the market supplies a default and a minimum, it does not choose |
