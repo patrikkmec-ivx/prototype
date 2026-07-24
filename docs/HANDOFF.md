@@ -4,7 +4,7 @@
 > ako sa v repozitári správať určuje `CLAUDE.md`; čo je čo určuje `README.md`.
 > **Aktualizuje sa na konci každej relácie.**
 
-Aktualizované: 2026-07-23 (uzávierka relácie) · Verzia prototypu: **v161** (`f00e0845`)
+Aktualizované: 2026-07-23 (uzávierka relácie) · Verzia prototypu: **v162** (`ea97b192`)
 
 ---
 
@@ -147,16 +147,19 @@ každom náznaku reštartu (napr. keď zmizne obsah `/tmp`). Pravidlo je v `CLAU
 
 ## 4c. Stav pri uzávierke relácie 2026-07-23
 
-**Všetko je na GitHube**, lokálny súbor sedí s `main`. Sedem sanity brán prechádza:
-brace balance −1 · `node --check` · 89 handlerov · poradie CSS · tokeny bez driftu ·
-preklady (650 párov, 144 volaní `tt()`) · konzistencia kľúčov zdrojov.
+**Všetko je na GitHube**, lokálny súbor sedí s `main`. **Deväť** sanity brán prechádza:
+brace balance −1 · `node --check` · 89 handlerov · poradie CSS · **nedefinované tokeny**
+· drift tokenov · úplnosť prekladov · **konfliktné preklady** · konzistencia kľúčov zdrojov.
 
-**Zdravie kódu:** 4 983 riadkov (CSS 1 312 / JS 2 187 / HTML 1 484), 584 kB,
-225 funkcií, najdlhšia `tplMgrRender` (64 riadkov). **Refaktor netreba** — jeden súbor
+**Čísla merané pri v162** (skript je v `CLAUDE.md` §4 — vždy premerať, necitovať staré):
+5 000 riadkov · 106 definovaných tokenov · 699 položiek `I18N` (699 unikátnych
+kľúčov, 0 duplicít) · 154 unikátnych reťazcov v `tt()`.
+
+**Zdravie kódu:** 225 funkcií, najdlhšia `tplMgrRender` (64 riadkov). **Refaktor netreba** — jeden súbor
 je pri tejto veľkosti stále v poriadku a rozdelenie by rozbilo commit workflow
 aj GitHub Pages. Sledovať pri prekročení ~700 kB.
 
-**Dizajn tokeny:** 95 tokenov v `:root`, **drift nula** — žiadna hex farba mimo `:root`,
+**Dizajn tokeny:** 98 tokenov v `:root`, **drift nula, žiadny nedefinovaný** — žiadna hex farba mimo `:root`,
 ktorá by už mala token. Vygenerovaný `tokens.json` (DTCG, 18 skupín, 16 aliasov)
 ako code-first SSOT.
 
