@@ -13,7 +13,7 @@ review_due: 2026-10-21
 tags: [sync, api, care-plans, fhir, events, milestone, timeline]
 related: [CORE-TECH-CLINICAL-CORE, CORE-MAP-CAREPLAN-PATHWAY, CP-TECH-STANDARD]
 iso_controls: [A.8.1]
-classification: Dôverné — interné
+classification: Confidential — internal
 ---
 
 # Domain ↔ Core Sync API Standard v0.1 (Care Plans first)
