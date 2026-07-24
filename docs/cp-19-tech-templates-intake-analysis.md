@@ -270,3 +270,9 @@ template through two renderers (§3.5).
 - The import format of a provider template (pasting text versus a wizard).
 - Ownership and versioning of templates at organisation versus physician level.
 - Whether codes are inserted into the textual output by default, or per template.
+- Persistence of candidates before validation and their retention if the physician does
+  not validate.
+- Synchronisation rules between Dash and the Care Plan, and conflict resolution.
+- The authentication mechanism across the iFrame boundary.
+- Consent to recording and audio retention (`INT-06`, `INT-07`) — decided by compliance.
+- Packaging of the template surface and tokens for consumption in the Care Plan.
