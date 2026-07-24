@@ -9,56 +9,61 @@ status: for-circulation
 version: 1.0
 created: 2026-07-21
 related: [CORE-TECH-CLINICAL-CORE, CORE-PACK-US, CORE-PACK-EU, CORE-PACK-IN, CORE-AUDIT-CONSOLIDATION]
-classification: Dôverné — interné
+classification: Confidential — internal
 ---
 
-# Clinical Core — exekutívne zhrnutie na schválenie
+# Clinical Core — executive summary for sign-off
 
-**Pre:** Roman (biznis) · Marek (compliance) · **Od:** Patrik · **Dátum:** 2026-07-21
-**Kanonické dokumenty (GitHub `docs/`):** core-01 v0.10 (normatívny štandard) · core-02 v2
-(diagram) · core-03/04/05 (nezávislé audity US/EU/IN) · core-06 (konsolidácia) ·
-core-07/08/09 (region packy).
+**To:** Roman (business) · Marek (compliance) · **From:** Patrik · **Date:** 2026-07-21
+**Canonical documents (GitHub `docs/`):** core-01 v0.10 (normative standard) · core-02 v2
+(diagram) · core-03/04/05 (independent US/EU/IN audits) · core-06 (consolidation) ·
+core-07/08/09 (region packs).
 
-## Čo sa rozhodlo
+## What has been decided
 
-Dekurz engine z SM+ sa povyšuje na **platformový Clinical Core**: FHIR R4 store ako jediná
-klinická pravda, dokumenty (dekurz, správy) sú len rendery, domény (SM+, ďalšie) sú dátové
-packy, regióny sa adaptujú na hranici cez packy — kanonický model sa nikdy neforkuje.
+The progress-note engine from SM+ is promoted to a **platform Clinical Core**: a FHIR R4
+store as the single clinical truth, documents (progress notes, reports) are only
+renders, domains (SM+ and others) are data packs, regions adapt at the boundary through
+packs — the canonical model is never forked.
 
-**Pozícia (A6):** Hilbi je orchestrátor, nie konkurent Epicu. Dva režimy per trh:
-**companion** (bežíme nad certifikovaným EHR, klinická pravda u nás len care plans +
-engagement, zvyšok write-back do master EHR) a **primary** (sme záznamový systém lekára —
-tam nesieme plnú regionálnu záťaž). Certifikačné kapability = samostatné BE mikroslužby
-v packoch, nikdy v jadre.
+**Position (A6):** Hilbi is an orchestrator, not a competitor to Epic. Two modes per
+market: **companion** (we run on top of a certified EHR; the clinical truth held by us
+is only care plans plus engagement, the rest is written back to the master EHR) and
+**primary** (we are the physician's system of record — there we carry the full regional
+burden). Certification capabilities are separate BE microservices inside the packs,
+never in the core.
 
-## Výsledok auditov
+## Audit outcome
 
-Tri nezávislé audity (US / EU / India): 7 kritických nálezov, **žiadny nespochybnil jadro** —
-všetky sú hraničné/governance doplnky. Sedem konvergentných klauzúl je zapracovaných vo
-v0.10 (aditívne, K35). Jediný v1.0 dizajnový gate (GDPR výmaz vs. nemenný store) je
-uzavretý klauzulou H6.
+Three independent audits (US / EU / India): 7 critical findings, **none of which
+challenged the core** — all are boundary or governance additions. Seven convergent
+clauses are incorporated in v0.10 (additive, K35). The single v1.0 design gate (GDPR
+erasure versus an immutable store) is closed by clause H6.
 
-## Čo žiadam schváliť
+## What I am asking to approve
 
-| # | Rozhodnutie | Kto |
+| # | Decision | Who |
 |---|---|---|
-| 1 | core-01 v0.10 → `active` v1.0 (podmienené bodmi 2–4) | Roman + Marek |
-| 2 | Deployment módy per trh (O9): US = companion · India = primary · EÚ = per členský štát (SK ambulancie primary) | Roman |
-| 3 | Vlastníctvo otvorených položiek: O2+O6 retenčná/výmazová matica, O7 podpisová matica, O8 MDR/AI Act kvalifikácia IQ predikcií — Marek; O1 store voľba — Juraj; O5 sm_* migrácia — Viktor | Marek potvrdí kapacitu |
-| 4 | Region packy core-07/08/09 ako záväzný scope BE mikroslužieb (základ dev plánu) | Roman |
+| 1 | core-01 v0.10 → `active` v1.0 (conditional on items 2–4) | Roman + Marek |
+| 2 | Deployment modes per market (O9): US = companion · India = primary · EU = per member state (SK outpatient clinics primary) | Roman |
+| 3 | Ownership of open items: O2+O6 retention and erasure matrix, O7 signature matrix, O8 MDR/AI Act qualification of IQ predictions — Marek; O1 store selection — Juraj; O5 `sm_*` migration — Viktor | Marek confirms capacity |
+| 4 | Region packs core-07/08/09 as the binding scope of the BE microservices (the basis of the dev plan) | Roman |
 
-## Riziká a termíny, ktoré treba vidieť
+## Risks and deadlines that need to be seen
 
-- **EHDS (EÚ):** sme výrobca EHR systému; povinnosti prvej vlny od 26. 3. 2029, vykonávacie
-  akty EEHRxF do 26. 3. 2027 — architektúra pripravená, sleduje sa cez K35.
-- **India:** DPDP Rules 2025 už platia (fázovanie do 2027); HHI takmer isto Significant Data
-  Fiduciary → DPO v Indii, ročný audit, algoritmická due diligence pre IQ.
-- **US:** žiadna ONC certifikácia (companion) — kritická podmienka: disciplína A6, žiadna
-  klinická pravda mimo care-plan scope bez write-backu.
-- **IQ predikcie:** kým O8 neuzavrie Marek, ostávajú `preliminary`, označené, nepreskriptívne.
+- **EHDS (EU):** we are an EHR system manufacturer; first-wave obligations from
+  26 March 2029, EEHRxF implementing acts by 26 March 2027 — the architecture is ready
+  and tracked through K35.
+- **India:** the DPDP Rules 2025 are already in force (phased to 2027); HHI is almost
+  certainly a Significant Data Fiduciary → a DPO in India, an annual audit, and
+  algorithmic due diligence for IQ.
+- **US:** no ONC certification (companion) — the critical condition is A6 discipline:
+  no clinical truth outside the care-plan scope without write-back.
+- **IQ predictions:** until Marek closes O8 they remain `preliminary`, labelled and
+  non-prescriptive.
 
-## Ďalší krok po schválení
+## Next step after approval
 
-v1.0 tag → dev plán mikroslužieb z core-07/08/09 (Dominika rozdelí, Viktor vedie) →
-prepojenie Care Plans domény a patient pathway z kokpitu na Core (mapovací dokument, nie
-nová architektúra).
+Tag v1.0 → a microservice dev plan derived from core-07/08/09 (Dominika splits it,
+Viktor leads) → connecting the Care Plans domain and the patient pathway from the
+cockpit to the Core (a mapping document, not a new architecture).
