@@ -84,6 +84,12 @@ cp-17 (report conformance)  >  cp-15 (record model)  >  index.html (implementati
 | `docs/DEV-SUMMARY.md` | **INFORMATIVE** | Orientation for the dev team plus the "rule → where in the code" map. |
 | `docs/HANDOFF-START.md` | **INFORMATIVE** | Compact session start — paste into the first message of a new chat. |
 | `docs/HANDOFF.md` | **INFORMATIVE** | Detailed state of work, phases, open points. |
+| `docs/gsr-16-tech-terminology-systems.md` | **INFORMATIVE** | Terminology systems: sources, licences, slot bindings per market. |
+| `docs/gsr-17-tech-medicinal-products.md` | **INFORMATIVE** | Medicinal product registers, leaflets and ingest per market. |
+| `docs/gsr-18-tech-drug-safety.md` | **INFORMATIVE** | Interactions, allergies and dosing: vendors, MDR boundary, decision pending. |
+| `docs/gsr-19-tech-clinical-evidence.md` | **INFORMATIVE** | Guidelines and literature, with the licensing traps. |
+| `docs/gsr-20-tech-internal-registries.md` | **INFORMATIVE** | The 23 internal registries: owner, schema, versioning. |
+| `docs/gsr-21-tech-kb-rules.md` | **INFORMATIVE** | Knowledge base: chunk schema, licence enforcement, retrieval, residency. |
 | `docs/CHANGELOG-archive-v41-v154.md` | **INFORMATIVE** | Historical changelog, preserved in Slovak. |
 | `docs/EN-MIGRATION-PLAN.md` | **INFORMATIVE** | The English-only migration, stages and status. |
 | `tools/gates.py`, `tools/smoke.js` | — | The ten sanity gates and the load-time smoke test. |
