@@ -1,112 +1,134 @@
-# Hilbi Cockpit — štart relácie
+# Hilbi Cockpit — session start
 
-> Vlož tento text do prvej správy nového chatu. **Je zámerne krátky** — všetka hĺbka
-> je v repozitári. Duplikovať sem obsah by vytvorilo druhý zdroj pravdy.
+> Paste this text into the first message of a new chat. **It is deliberately short** —
+> all the depth lives in the repository. Duplicating content here would create a second
+> source of truth.
 
 **Repo:** `patrikkmec-ivx/prototype` · **Live:** https://patrikkmec-ivx.github.io/prototype/
-**Verzia:** v163 · **Stav:** overený audit, pripravené na odovzdanie · 2026-07-23
+**Version:** v163 · **State:** audited, prepared for handover · 2026-07-23
 
 ---
 
-## 1. Prvé tri kroky
+## 1. First three steps
 
-1. **Prečítaj v tomto poradí:**
-   `README.md` → `CLAUDE.md` → `docs/HANDOFF.md` → `docs/cp-17-…` → `docs/DEV-SUMMARY.md`
-2. **Stiahni `index.html` z `main`** a over, že sa zhoduje s tým, čo máš lokálne.
-   **Bez tokenu je GitHub API rate-limited (403)** — na čítanie použi
-   `https://raw.githubusercontent.com/patrikkmec-ivx/prototype/main/<súbor>`,
-   ten funguje bez autentifikácie.
-3. **Na zápis potrebuješ čerstvý fine-grained token** (Patrik ho dodá):
-   repozitár `prototype`, oprávnenie **Contents: Read and write**. Po relácii revoknúť.
+1. **Read in this order:**
+   `README.md` → `CLAUDE.md` → `docs/GLOSSARY.md` → `docs/HANDOFF.md` →
+   `docs/cp-17-…` → `docs/DEV-SUMMARY.md`
+2. **Fetch `index.html` from `main` pinned to a commit SHA** and verify it matches your
+   local copy. Resolve `main` to a SHA first (`GET /repos/{owner}/{repo}/commits/main`),
+   then read files at that SHA. **`raw.githubusercontent.com/…/main/…` is CDN-cached
+   and has served a file two versions old** — never read from a mutable ref.
+   Without a token the GitHub API is rate-limited (403), so a token is needed even for
+   reading reliably.
+3. **Writing requires a fresh fine-grained token** (Patrik supplies it): repository
+   `prototype`, permission **Contents: Read and write**. Revoke it after the session.
 
-## 2. Čo je záväzné
+## 2. Language
 
-| Súbor | Autorita | Obsah |
+**Everything written down is English** — documents, specifications, schemas, code, code
+comments, changelogs, commit messages. Use the term from `docs/GLOSSARY.md`; one
+concept, one word. Working discussion may be held in any language.
+
+The only Slovak that survives is the demo content fenced by `DEMO-CONTENT`
+(`GLOSSARY.md` §3) and the translation table. Gate 10 enforces this.
+
+Migration status: `docs/EN-MIGRATION-PLAN.md`.
+
+## 3. What is binding
+
+| File | Authority | Content |
 |---|---|---|
-| `docs/cp-17-…` | **NORMATIVE** | 93 pravidiel: report, terminológia, podpis, provenance, šablóny, súhlas, jazyk, úložisko, identita dokumentu |
-| `docs/cp-15-…`, `core-01`, `core-11`, `core-12` | **NORMATIVE** | záznamový model, klinické jadro, mapovanie, synchronizácia |
-| `CLAUDE.md` | **BEHAVIORAL** | ako pracovať v repe — brány, vzory rozhrania, commit workflow |
-| `index.html` | — | implementácia, **nikdy nie norma** |
+| `docs/cp-17-…` | **NORMATIVE** | 93 rules: report, terminology, signature, provenance, templates, consent, language, store, document identity |
+| `docs/cp-15-…`, `core-01`, `core-11`, `core-12` | **NORMATIVE** | record model, clinical core, mapping, synchronisation |
+| `docs/GLOSSARY.md` | **NORMATIVE for wording** | one English term per concept |
+| `CLAUDE.md` | **BEHAVIORAL** | how to work in this repo — gates, interface patterns, commit workflow |
+| `index.html` | — | the implementation, **never the standard** |
 
-Pri konflikte vyhráva `cp-17`. **Čo je hotové a čo placeholder: `cp-17` §16.**
+In a conflict `cp-17` wins. **What is done and what is a placeholder: `cp-17` §16.**
 
-## 3. Sanity brány — všetkých deväť pred každým commitom
+## 4. Sanity gates — all ten before every commit
 
-1. brace balance — **baseline `-1`**, nie `0`
-2. `node --check` na extrahovanom `<script>`
-3. **handlery** — každý `onclick`/`onchange`/`oninput` má definíciu
-4. **poradie CSS** — media query nesmie byť prebitý neskorším základným pravidlom
-5. **nedefinované tokeny** — každý `var(--x)` má definíciu, aj ten s fallbackom
-6. **drift tokenov** — žiadna hex farba mimo `:root`, ktorá už má token
-7. **úplnosť prekladov** — každý reťazec v `tt()` aj statický popisok má pár
-8. **konfliktné preklady** — žiadny SK kľúč nemá dva rôzne EN preklady
-9. **kľúče zdrojov** — konzistentné naprieč šiestimi registrami
+1. brace balance — the **baseline is `-1`**, not `0`
+2. `node --check` on the extracted `<script>`
+3. **handlers** — every `onclick`/`onchange`/`oninput` has a definition
+4. **CSS order** — a media query must not be overridden by a later base rule
+5. **undefined tokens** — every `var(--x)` has a definition, including those with a fallback
+6. **token drift** — no hex colour outside `:root` that already has a token
+7. **translation completeness** — every string in `tt()` and every static label has an entry
+8. **conflicting translations** — no key has two different values in one language
+9. **source keys** — consistent across the six registers
+10. **Slovak leak** — Slovak only in the translation table and in `DEMO-CONTENT`
 
-Skripty sa v prostredí nezachovajú — napíš ich znova podľa `CLAUDE.md` §4.
+The scripts do not survive in the environment — rewrite them from `CLAUDE.md` §4.
 
-## 4. Päť vecí, ktoré nie sú zrejmé a už raz zabolelo
+## 5. Five things that are not obvious and have already hurt
 
-- **Over zhodu s `main` po každom náznaku reštartu prostredia.** Ak zmizne obsah
-  `/tmp`, mohol sa vrátiť aj `index.html`. Editovanie zastaraného súboru **ticho
-  vráti späť predchádzajúce commity** — stalo sa vo v148, opravené až vo v151.
-- **Každá textová náhrada musí mať assert a skript zapisuje až na konci.** Náhrada,
-  ktorá nenájde kotvu, prebehne naprázdno a bez chyby. Kotvu ber z práve prečítaného
-  súboru — rozdiel jednej medzery stačí (`--phrw:280px}` vs `--phrw:280px }`).
-- **Pred novou CSS triedou over, či názov neexistuje.** Jeden menný priestor;
-  kolízia ticho prepíše nesúvisiacu časť rozhrania (stalo sa s `.card`).
-- **`new Map(I18N)` berie posledný záznam**, a nové páry sa pridávajú na začiatok.
-  Duplicitný SK kľúč teda ticho prehrá a prechod EN→SK→EN poškodí text. Bráni tomu brána 8.
-- **Brány nezachytia vizuálne chyby.** Nedostupné tlačidlo (v133) aj zalomený náhľad
-  (v147) prešli všetkými. **Väčšina UI od v126 nebola videná v prehliadači.**
+- **Read pinned to a commit SHA, and verify the local file matches after any hint of a
+  restart.** If `/tmp` has been emptied, `index.html` may have rolled back too. Editing
+  a stale file **silently reverts earlier commits** — this happened at v148 and was
+  only repaired at v151. It nearly happened again on 2026-07-24 through a stale CDN read.
+- **Every text substitution needs an assert, and the script writes only at the end.** A
+  substitution that misses its anchor runs silently and without error. Take the anchor
+  from the file you just read — one space is enough (`--phrw:280px}` vs `--phrw:280px }`).
+- **Before adding a CSS class, check the name does not exist.** One namespace; a
+  collision silently overwrites an unrelated part of the interface (this happened with
+  `.card`).
+- **`new Map(I18N)` keeps the last entry**, and new pairs are added at the front. A
+  duplicate key therefore loses silently and a round trip between languages corrupts the
+  text. Gate 8 guards this.
+- **Gates do not catch visual defects.** An unreachable button (v133) and a broken
+  preview (v147) passed all of them. **Most of the UI since v126 has never been opened
+  in a browser.**
 
-## 5. Overený stav pri odovzdaní (v163)
+## 6. Verified state at handover (v163)
 
-Deväť brán prechádza · **mŕtvy kód nula** · 4 730 riadkov · 220 funkcií ·
-98 tokenov v `:root` (drift nula, žiadny nedefinovaný `var()`) · 699 položiek `I18N`
-(0 duplicít, 0 konfliktov) · 89 handlerov · polia bez popisu nula.
+Gates pass · **dead code zero** · 4 730 lines · 220 functions · 98 tokens in `:root`
+(zero drift, no undefined `var()`) · 699 `I18N` entries (0 duplicates, 0 conflicts) ·
+89 handlers · no field without a label.
 
-**Integrita dokumentácie overená:** 173 normatívnych ID bez visiaceho odkazu ·
-všetkých 52 symbolov z mapy `DEV-SUMMARY` §4 existuje v kóde · žiadny neplatný
-odkaz na súbor · `README` index pokrýva všetkých 25 súborov v repe.
+**Documentation integrity verified:** 173 normative IDs with no dangling reference ·
+all 52 symbols from the `DEV-SUMMARY` §4 map exist in the code · no invalid file
+reference · the `README` index covers every file in the repository.
 
-**Známy a zdôvodnený dlh:** `docs/HANDOFF.md` §4d — osirelé CSS triedy, rozostupy
-mimo škály v pôvodných komponentoch, pamäťové úložisko, nejednoznačnosť EN→SK.
-**Nič z toho nie je chyba na opravu naslepo.**
+**Known and reasoned debt:** `docs/HANDOFF.md` §4d — orphaned CSS classes, off-scale
+spacing in the original components, in-memory store. **None of it is a defect to fix
+blind.**
 
-## 6. Kde sme
+## 7. Where we are
 
-Hotové: report shell · dual coding (SNOMED záznam / klasifikácia trhu výkaz) ·
-provenance a audit · transparentnosť AI · šablóny ako podstránka (tri okruhy
-vlastníctva, editor so živým náhľadom, extrakcia zo vzorky, hlavička a podpisy
-zariadenia, súhlasy per jazyk) · zmrazenie obsahu pri podpise · jazyková vrstva ·
-identita dokumentu · jeden dokument v dvoch pohľadoch · perzistenčný seam.
+Done: report shell · dual coding (SNOMED for the record, market classification for the
+claim) · provenance and audit · AI transparency · templates as a subpage (three
+ownership scopes, editor with live preview, extraction from a sample, facility header
+and signatories, consent per language) · content freeze at signature · language layer ·
+document identity · one document in two views · persistence seam.
 
-**Ďalší krok: tvorba dokumentov** — šesťbodový rozpis v `docs/HANDOFF.md` §3e.
-Odporúčané rozdelenie na tri commity: *výber typu a šablóny* → *naplnenie a coverage*
-→ *podpis a výstup vrátane tlačovej vrstvy* (`I18N-13`, zatiaľ neexistuje).
+**Next step: document creation** — the six-point breakdown is in `docs/HANDOFF.md` §3e.
+Recommended split into three commits: *type and template selection* → *population and
+coverage* → *signature and output including the print layer* (`I18N-13`, does not exist yet).
 
-Potom **rozhranie dekurzu** (`INT-01..05`): IQ intake, kandidáti z OCR ako
-`validated=false`, validácia po položkách, označenie prenesených položiek
-z predchádzajúcej návštevy (klonovaná dokumentácia).
+Then the **progress note interface** (`INT-01..05`): IQ intake, OCR candidates as
+`validated=false`, per-item validation, marking of items carried over from the previous
+visit (cloned documentation).
 
-## 7. Otvorené rozhodnutia
+## 8. Open decisions
 
-- **Vstupný bod tvorby dokumentu** — dock, hlavička detailu pacienta, alebo oboje?
-  Štrukturálna zmena, treba rozhodnúť pred implementáciou.
-- **Vizuálna kontrola prototypu** — pozri §4, posledná odrážka.
+- **Entry point for document creation** — the dock, the patient detail header, or both?
+  A structural change; decide before implementing.
+- **Visual check of the prototype** — see §5, last bullet.
+- **`cp-17` and `cp-15` in English** — translation pending K35 sign-off (Roman + Marek).
 
-## 8. Mimo kódu
+## 9. Outside the code
 
-- **Marek (compliance):** MDR hranica pre IQ · podpisová úroveň per trh · retencia
-  auditu · EHDS CE režim pri prechode do módu `core` · India CERT-In · kedy stačí
-  strojový preklad a kedy treba ľudské overenie
-- **Registrácia použitia SNOMED CT** u NCZI (Slovensko je člen, použitie sa registruje)
+- **Marek (compliance):** the MDR boundary for IQ · signature level per market · audit
+  retention · the EHDS CE regime when moving to `core` mode · India CERT-In · when
+  machine translation is sufficient and when human verification is required
+- **Registering SNOMED CT usage** with NCZI (Slovakia is a member; usage is registered)
 - **Figma:** `tokens.json` → Style Dictionary → Figma Variables (DS '26
-  `ombR6X345rSPGaJPfnye7e`). Smer je **kód → tokeny → Figma**; komponenty idú opačne
-  — Figma je ich zdroj, kód sa opravuje podľa nej.
+  `ombR6X345rSPGaJPfnye7e`). The direction is **code → tokens → Figma**; components go
+  the other way — Figma is their source and the code is corrected to match.
 
 ---
 
-*Komunikácia: slovensky, priamo, plain language. Blokery na začiatku, nie na konci.
-Stručné potvrdenie lepšie než rozvíjanie. Štrukturálne zmeny sa neschvaľujú sami —
-pýtaj sa pred, nie po.*
+*Communication: direct, plain language. Blockers at the start, not at the end. A short
+confirmation beats elaboration. Structural changes do not approve themselves — ask
+before, not after.*
