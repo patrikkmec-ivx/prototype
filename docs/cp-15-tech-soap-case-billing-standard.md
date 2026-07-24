@@ -1,87 +1,88 @@
 ---
-doc_id: TBD (priradiť podľa gsr-13)
-title: "SOAP jadro, case vrstva a billing derivácia — kokpit"
+doc_id: TBD (assign per gsr-13)
+title: "SOAP core, case layer and billing derivation — cockpit"
 version: 1.3-draft
 date: 2026-07-20
-authority: "navrhol: Patrik (CEO) · schvaľuje: Roman (CBO) · aplikuje: Dominika/Viktor · kontroluje: Marek"
+authority: "proposed by: Patrik (CEO) · approved by: Roman (CBO) · applied by: Dominika/Viktor · checked by: Marek"
 type: normative
-ssot_for: "klinický záznamový model kokpitu (SOAP), case vrstva, derivácia vykazovania"
+ssot_for: "the cockpit clinical record model (SOAP), the case layer, the derivation of claims"
 domain: dev
 visibility: internal
 market: [SK, CZ, DE, IN, AE, US]
-status: draft — čaká na schválenie (Roman) a compliance kontrolu (Marek)
+status: draft — awaiting approval (Roman) and compliance review (Marek)
 related: [cp-01-tech-standard, cp-13-tech-smplus-mapping, cp-14-tech-soap-screen-flow, cp-17-tech-report-conformance-standard, cp-18-tech-report-lifecycle]
+language_note: "English is authoritative (D17). Translated from the Slovak original on 2026-07-24 with no semantic change; verified by check_translation.py — rule set, order, modality, cross-references and code identifiers unchanged."
 ---
 
-# SOAP jadro, case vrstva a billing derivácia
+# SOAP core, case layer and billing derivation
 
-Účel: jeden klinický záznamový model pre všetky trhy (US, EU, India). Lekár vykonáva
-akcie; systém ich mapuje do SOAP štruktúry na pozadí. Flows sa líšia poradím vstupov,
-nie dátovým modelom.
+Purpose: one clinical record model for every market (US, EU, India). The physician
+performs actions; the system maps them into the SOAP structure in the background. Flows
+differ in the order of input, not in the data model.
 
-> **Rozsah.** Tento dokument definuje **záznamový model**. Čo sa so záznamom smie stať —
-> kódovanie, podpis, verziovanie, provenance, zdieľanie a transparentnosť AI — definuje
-> `cp-17-tech-report-conformance-standard` (normatívny). Pri konflikte v týchto oblastiach
-> má prednosť cp-17.
+> **Scope.** This document defines the **record model**. What may happen to a record —
+> coding, signature, versioning, provenance, sharing and AI transparency — is defined by
+> `cp-17-tech-report-conformance-standard` (normative). In a conflict over those areas
+> cp-17 takes precedence.
 
-## 1. Normatívne pravidlá — jadro
+## 1. Normative rules — core
 
-- **SOAP-01** Každý klinický zápis MUSÍ byť priradený práve jednému SOAP slotu (S/O/A/P).
-- **SOAP-02** SOAP NIKDY nie je prezentovaný ako povinný formulár; vzniká akumuláciou akcií.
-- **SOAP-03** Dekurz je kompilácia akcií encounteru do FHIR `Composition` so sekciami S/O/A/P; kompiluje sa priebežne na pozadí.
-- **SOAP-04** Mapovanie akcií: eRx → `MedicationRequest` (P) · order → `ServiceRequest` (P) · follow-up → `Appointment` (P) · diagnóza/poznámka → `Condition`/text (A) · vitály/nálezy/výsledky → `Observation` (O) · ťažkosti/anamnéza/chat výňatok → S.
-- **SOAP-05** Jednoriadková poznámka má default slot **A**; prepínač S/O/A/P je dostupný, nikdy povinný.
-- **SOAP-06** Podpis dekurzu validuje minimálny set podľa `market_rules`; chýbajúce sloty sa indikujú (completeness `S○ O● A● P●`), NIKDY neblokujú nad rámec trhového minima.
-- **SOAP-07** Order NIE JE neúplný dekurz. Order vytvára otvorenú slučku (pending result); výsledok sa zapisuje ako O. Kategórie prvej úrovne v UI sú výhradne **Radiology** a **Labs** (nie modality typu MRI); položky sú katalógové per trh/zariadenie.
-- **SOAP-08** Finálna správa je render `Composition` (→ `DocumentReference`). Existujú dva templaty: **Rx slip** (IN default) a **plná správa** (EU/US default, obsahuje eRx a follow-up). Jeden dátový objekt, žiadne obsahové vetvenie.
-- **SOAP-09** `market_rules` je konfigurácia, nie kódová vetva: minimal-sign set · požiadavka kódovania dg (ICD-10) · default render template · follow-up prezentácia (IN: 1-klik chip pri Rx · EU/US: riadok v správe).
+- **SOAP-01** Every clinical entry MUST be assigned to exactly one SOAP slot (S/O/A/P).
+- **SOAP-02** SOAP is NEVER presented as a mandatory form; it arises from the accumulation of actions.
+- **SOAP-03** The progress note is a compilation of the encounter's actions into a FHIR `Composition` with sections S/O/A/P; it is compiled continuously in the background.
+- **SOAP-04** Action mapping: eRx → `MedicationRequest` (P) · order → `ServiceRequest` (P) · follow-up → `Appointment` (P) · diagnosis/note → `Condition`/text (A) · vitals/findings/results → `Observation` (O) · complaints/history/chat extract → S.
+- **SOAP-05** A one-line note defaults to slot **A**; the S/O/A/P switch is available, never mandatory.
+- **SOAP-06** Signing the progress note validates the minimum set per `market_rules`; missing slots are indicated (completeness `S○ O● A● P●`) and NEVER block beyond the market minimum.
+- **SOAP-07** An order is NOT an incomplete progress note. An order opens a loop (pending result); the result is written as O. The first-level categories in the UI are exclusively **Radiology** and **Labs** (not modalities such as MRI); the items are catalogue-driven per market and facility.
+- **SOAP-08** The final report is a render of the `Composition` (→ `DocumentReference`). Two templates exist: **Rx slip** (the IN default) and the **full report** (the EU/US default, containing eRx and follow-up). One data object, no branching on content.
+- **SOAP-09** `market_rules` is configuration, not a code branch: the minimal-sign set · the requirement to code the diagnosis (ICD-10) · the default render template · follow-up presentation (IN: a one-click chip beside the Rx · EU/US: a line in the report).
 
-- **SOAP-10** Reverzný návrh A z P (napr. návrh diagnózy odvodený z predpísaných liekov) je prípustný VÝHRADNE ako explicitne potvrdzovaný návrh — vyplní pole, lekár potvrdzuje; nikdy autofill, nikdy tichý zápis.
+- **SOAP-10** A reverse suggestion of A from P (for example a proposed diagnosis derived from prescribed medication) is permitted EXCLUSIVELY as an explicitly confirmed suggestion — it fills the field and the physician confirms; never autofill, never a silent write.
 
-## 2. Normatívne pravidlá — case vrstva
+## 2. Normative rules — case layer
 
-- **CASE-01** Každý `Encounter` MUSÍ patriť práve jednej `EpisodeOfCare`. Ambulantný prípad = epizóda s jedným encounterom (bez UI réžie navyše).
-- **CASE-02** Presun pacienta medzi oddeleniami = uzavretie encounteru + nový encounter v tej istej epizóde. Pacient sa NIKDY nekopíruje.
-- **CASE-03** Handoff medzi oddeleniami generuje IQ draft zhrnutia v štruktúre ISBAR zo skompilovaného SOAP prípadu; zhrnutie je udalosť na osi, potvrdzuje odovzdávajúci lekár.
-- **CASE-04** Každá udalosť nesie autora A oddelenie. Časová os prípadu je jedna; oddelenie vidí svoju výseč, ošetrujúci lekár prípadu celok.
+- **CASE-01** Every `Encounter` MUST belong to exactly one `EpisodeOfCare`. An outpatient case is an episode with a single encounter (with no additional UI overhead).
+- **CASE-02** Moving a patient between departments closes the encounter and opens a new one within the same episode. The patient is NEVER copied.
+- **CASE-03** A handoff between departments generates an IQ draft summary in ISBAR structure from the compiled SOAP case; the summary is an event on the timeline and is confirmed by the handing-over physician.
+- **CASE-04** Every event carries an author AND a department. A case has one timeline; a department sees its own slice, the attending physician of the case sees the whole.
 
 
-## 2b. Normatívne pravidlá — encounter vrstvenie na časovej osi
+## 2b. Normative rules — encounter layering on the timeline
 
-- **ENC-01** Časová os zobrazuje defaultne granularitu encounteru; atomické udalosti sa vrstvia pod ním ako SAMOSTATNÉ REDUKOVANÉ KARTY na vnorenej osi (dlaždica → mini-os s kartami → detail). Rovnaký vizuálny jazyk karty na každej úrovni, len menší.
-- **ENC-02** Prvá akcia nad pacientom otvorí encounter; každá ďalšia akcia v seanse sa pripája automaticky. Podpis encounter uzatvára. Zoskupenie je vedľajší produkt práce, nikdy krok navyše.
-- **ENC-03** Encounter s jednou udalosťou sa renderuje ako samotná udalosť (degenerácia — indický Rx-only zápis ostáva jednou kartou).
-- **ENC-04** Asynchrónny výsledok orderu sa pripája k encounteru, z ktorého order vyšiel; slučka sa uzatvára dovnútra skupiny.
-- **ENC-06** Collapse pravidlá dlaždice: počas práce (Prebieha) rozbalená; podpis ju automaticky zbalí na čistý súhrn; historické encountery default zbalené; chevron prepína kedykoľvek.
-- **ENC-05** Typ/názov encounteru sa derivuje z odbornosti lekára (GP vyšetrenie, Ortopedické vyšetrenie…), je editovateľný. Súhrnná dlaždica agreguje kľúčové info čiastkových úkonov (A; P · O) + SOAP chipy + stav + počet.
+- **ENC-01** The timeline shows encounter granularity by default; atomic events are layered beneath it as SEPARATE REDUCED CARDS on a nested axis (tile → mini-axis with cards → detail). The same visual card language at every level, only smaller.
+- **ENC-02** The first action on a patient opens an encounter; every further action in the session attaches automatically. A signature closes the encounter. Grouping is a by-product of the work, never an extra step.
+- **ENC-03** An encounter with a single event renders as that event alone (degeneration — an Indian Rx-only entry remains a single card).
+- **ENC-04** An asynchronous order result attaches to the encounter the order came from; the loop closes inside the group.
+- **ENC-06** Tile collapse rules: expanded while work is in progress (In progress); a signature collapses it automatically into a clean summary; historical encounters are collapsed by default; the chevron toggles at any time.
+- **ENC-05** The encounter type and name are derived from the physician's speciality (GP examination, Orthopaedic examination…) and are editable. The summary tile aggregates the key information of the partial actions (A; P · O) plus SOAP chips, state and count.
 
-## 3. Normatívne pravidlá — billing derivácia
+## 3. Normative rules — billing derivation
 
-- **BILL-01** Fakturačný podklad sa VÝHRADNE derivuje z klinických objektov; nikdy sa nezadáva ako paralelný zápis.
-- **BILL-02** Systém je suggestion engine: navrhuje `ChargeItem` kandidátov, lekár potvrdzuje. Automatické vykazovanie bez potvrdenia je zakázané (US: False Claims Act riziko; EU: revízne kontroly).
-- **BILL-03** ChargeItem kandidáti sa zbierajú per encounter (potvrdenie pri uzavretí pobytu) a agregujú per epizóda pri prepustení → účet / DRG dávka / `Invoice`. Uzatvára gap H31 (cp-13).
-- **BILL-04** E/M návrh úrovne (US) sa odvádza z MDM elementov SOAP dát a MUSÍ niesť zdôvodnenie z vlastných dát lekára. Cieľ je úplné zachytenie legitímne vykonaného, nikdy upcoding.
-- **BILL-05** Interná atribúcia výnosov per oddelenie je vedľajší produkt CASE + BILL vrstvy; nevyžaduje dodatočný zápis.
+- **BILL-01** The billing basis is derived EXCLUSIVELY from clinical objects; it is never entered as a parallel record.
+- **BILL-02** The system is a suggestion engine: it proposes `ChargeItem` candidates and the physician confirms. Automatic claiming without confirmation is prohibited (US: False Claims Act exposure; EU: review audits).
+- **BILL-03** `ChargeItem` candidates are collected per encounter (confirmed when the stay closes) and aggregated per episode at discharge → bill / DRG batch / `Invoice`. This closes gap H31 (cp-13).
+- **BILL-04** The E/M level suggestion (US) is derived from the MDM elements of the SOAP data and MUST carry a justification drawn from the physician's own data. The goal is complete capture of what was legitimately performed, never upcoding.
+- **BILL-05** Internal revenue attribution per department is a by-product of the CASE and BILL layers; it requires no additional record.
 
-## 4. Flows (informatívne)
+## 4. Flows (informative)
 
-**A — India, Rx-first:** Rx (P) → voliteľne 1 veta (A) → podpis (min. A+P) → Rx slip. Follow-up 1-klik chip.
-**B — EU/US, lineárny S-O-A-P:** sekvenčný zápis → podpis → plná správa vrátane eRx a follow-up riadku.
-**C — Ordery:** Radiology/Labs → pending slučka → výsledok ako O (ten istý alebo follow-up encounter).
-**Viacoddelenkový prípad:** flows A–C sa opakujú per encounter vnútri jednej epizódy; prepustenie agreguje správu aj účet.
+**A — India, Rx-first:** Rx (P) → optionally one sentence (A) → signature (minimum A+P) → Rx slip. Follow-up as a one-click chip.
+**B — EU/US, linear S-O-A-P:** sequential entry → signature → full report including eRx and the follow-up line.
+**C — Orders:** Radiology/Labs → pending loop → result as O (in the same or a follow-up encounter).
+**Multi-department case:** flows A–C repeat per encounter inside one episode; discharge aggregates both the report and the bill.
 
-Referenčný diagram: `cp-14-tech-soap-screen-flow.mermaid`.
+Reference diagram: `cp-14-tech-soap-screen-flow.mermaid`.
 
-## 5. Produkčný postup — dve stopy
+## 5. Production approach — two tracks
 
-**Stopa 1 — dátová vrstva (štartuje hneď, Viktor):** EpisodeOfCare, Encounter, Composition, MedicationRequest, ServiceRequest, Observation, Condition, Appointment, ChargeItem/Invoice + `market_rules` konfigurácia. Nezávislé od UI.
-**Stopa 2 — UI (handoff po validácii v prototype):** K-16 SOAP chipy + poznámka default A → K-17 dekurz v2 + completeness + chat→S → K-18 ordery + pending → K-19 podpis & render (validácia Flow A vs B na tých istých dátach) → K-20 ChargeItem potvrdenie pri podpise → K-21 case layer (zoskupenie osi per epizóda, oddelenie ako atribút, handoff, agregovaný účet) → M-17/M-18 mobilné sheety. Mobilný text výhradne cez typo tokeny M-17 (podlaha 12 px).
+**Track 1 — data layer (starts immediately, Viktor):** EpisodeOfCare, Encounter, Composition, MedicationRequest, ServiceRequest, Observation, Condition, Appointment, ChargeItem/Invoice plus `market_rules` configuration. Independent of the UI.
+**Track 2 — UI (handed over after validation in the prototype):** K-16 SOAP chips + note defaulting to A → K-17 progress note v2 + completeness + chat→S → K-18 orders + pending → K-19 signature and render (validating flow A against flow B on the same data) → K-20 `ChargeItem` confirmation at signature → K-21 case layer (grouping the axis per episode, department as an attribute, handoff, aggregated bill) → M-17/M-18 mobile sheets. Mobile text exclusively through the M-17 type tokens (floor of 12 px).
 
-## 6. Otvorené body (blokujú produkčné nasadenie, nie štart stopy 1)
+## 6. Open points (they block production deployment, not the start of track 1)
 
-1. Marek: sign-off unified dashboard (ISO 27001/27701, EHDS, HIPAA).
-2. Cross-region identita — najrizikovejší architektonický bod, uzavrieť pred ostatnými rozhodnutiami.
-3. Marek: potvrdenie minimal-sign A+P pre IN voči Telemedicine Practice Guidelines 2020 / ABDM.
-4. Marek: právna hranica „návrh výkazu" vs. „poradenstvo pri kódovaní" per jurisdikcia.
-5. CPT licencia (AMA) pre US — nákladová položka go-to-market.
-6. doc_id tohto dokumentu podľa gsr-13.
+1. Marek: sign-off of the unified dashboard (ISO 27001/27701, EHDS, HIPAA).
+2. Cross-region identity — the highest-risk architectural point; close it before the other decisions.
+3. Marek: confirmation of the A+P minimal-sign set for IN against the Telemedicine Practice Guidelines 2020 / ABDM.
+4. Marek: the legal boundary between "a proposed claim" and "coding advice" per jurisdiction.
+5. CPT licence (AMA) for the US — a go-to-market cost item.
+6. The `doc_id` of this document per gsr-13.
