@@ -73,7 +73,10 @@ authoritative in English; any other language is a derived translation.
 | krok | step | a care step |
 | fáza | phase | |
 | cesta starostlivosti | care pathway | |
-| poskytovateľ | provider | a healthcare provider |
+| poskytovateľ | provider | the healthcare provider organisation; **a Provider may have several Practices** |
+| ambulancia | practice | an outpatient practice belonging to a Provider — never "clinic" |
+| pracovisko | practice | the same concept as *ambulancia* in this codebase (`ORG.fac`); one term, not two |
+| zariadenie | facility | use only for a physical site; prefer Provider or Practice |
 | lekár | physician | "doctor" only in patient-facing copy |
 | pacient | patient | |
 | súhlas | consent | always the FHIR sense |
@@ -125,6 +128,26 @@ outside the translation table.
 Everything else in the prototype — labels, comments, changelog, keys — is English.
 
 ---
+
+## 3b. Provider and Practice
+
+The two words are a hierarchy, not synonyms, and the distinction is normative for
+wording:
+
+```
+Provider   — the healthcare provider organisation      ORG.name
+   └── Practice(s) — an outpatient practice            ORG.fac
+```
+
+**A Provider may have several Practices.** Slovak uses *poskytovateľ* for the first and
+both *ambulancia* and *pracovisko* for the second; in English there is one word for each.
+
+Never use "clinic" for either. Reserve "facility" for a physical site.
+
+FHIR mapping: Provider is an `Organization`; a Practice is an `Organization` with
+`partOf` pointing at the Provider (or a `Location` where the physical site is what
+matters). A signatory's role belongs to the Practice through
+`PractitionerRole.organization`, not to the Provider.
 
 ## 4. Naming shape
 
