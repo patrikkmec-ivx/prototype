@@ -91,16 +91,23 @@ hromadná zmena by posunula rozloženie. Škála 8/16/24/32 platí na **novú pr
 3. **Pred zavedením novej CSS triedy over, či názov už neexistuje.** Prototyp je jeden
    súbor so spoločným menným priestorom; nová trieda s existujúcim názvom ticho prepíše
    nesúvisiacu časť rozhrania (stalo sa s `.card`).
-4. **Sanity brány — všetky musia prejsť:**
+4. **Sanity brány — všetkých deväť musí prejsť:**
    - brace balance: `t.count('{') - t.count('}')` — **baseline je `-1`**, nie `0`
    - extrahuj `<script>` do `_js.js` a spusti `node --check _js.js`
    - **kontrola handlerov**: vytiahni všetky `onclick` / `onchange` / `oninput`
      z HTML aj zo šablónových reťazcov v JS a over, že každý má definíciu.
      Syntaktická kontrola toto NEODHALÍ — tlačidlo volajúce neexistujúcu funkciu
      je platný JavaScript. Rovnako neodhalí prvok, ktorý je v DOM nedosiahnuteľný.
-   - **kontrola tokenov**: v CSS mimo `:root` nesmie byť hex farba, ktorá už má
-     definovaný token — inak vzniká drift a zmena značkovej farby prestane byť
-     jednomiestna.
+   - **kontrola tokenov** má **dve časti**:
+     *a)* v CSS mimo `:root` nesmie byť hex farba, ktorá už má token (drift);
+     *b)* **každý `var(--x)` musí mať definíciu** — vrátane tých s fallbackom.
+     `var(--x, #hex)` s nedefinovaným `--x` ticho používa natvrdo zapísanú hodnotu
+     a drift-kontrola ho **nezachytí**, lebo tá farba token nemá. `var(--x)` bez
+     fallbacku a bez definície je neplatná deklarácia — vlastnosť sa vôbec neuplatní.
+     Definície hľadaj **kdekoľvek**, nielen v `:root` (napr. `--navw` je na `body`).
+   - **konfliktné preklady**: žiadny SK kľúč nesmie mať v `I18N` dva rôzne EN
+     preklady. `new Map(I18N)` berie **posledný** záznam; nové páry sa pridávajú
+     na začiatok, takže novší preklad ticho prehrá a prechod EN→SK→EN poškodí text.
    - **kontrola prekladov**: každý reťazec v `tt('…')` **aj statický popisok v HTML**
      musí mať pár v `I18N`.
      `tt()` bez páru vráti **slovenský originál**, takže v anglickom rozhraní
