@@ -1,244 +1,280 @@
-# CLAUDE.md — operačný kontrakt pre AI nástroje
+# CLAUDE.md — operating contract for AI tools
 
-> **Autorita: BEHAVIORAL.** Tento súbor riadi, *ako* sa AI nástroj v tomto repozitári správa.
-> Nedefinuje vecnú podstatu — v každej vecnej otázke ustupuje `cp-17`, `cp-15` a `core-01`.
-> Poradie čítania a precedenciu určuje `README.md`.
+> **Authority: BEHAVIORAL.** This file governs *how* an AI tool behaves in this
+> repository. It does not define substance — on every question of substance it yields
+> to `cp-17`, `cp-15` and `core-01`. Reading order and precedence are set by `README.md`.
 
 ---
 
-## 1. Čo tento repozitár je
+## 1. What this repository is
 
-Prototyp lekárskeho kokpitu Hilbi (`index.html`, jeden súbor: HTML + `<style>` + `<script>`,
-bez závislostí, demo dáta) a klinické špecifikácie v `docs/`.
+The prototype of the Hilbi clinical cockpit (`index.html`, a single file: HTML +
+`<style>` + `<script>`, no dependencies, demo data) and the clinical specifications in
+`docs/`.
 
-**Hilbi je orchestrátor, nie system of record.** Predvolená rola je `overlay` nad existujúcim
-systémom poskytovateľa. Toto nie je detail — určuje to, čo smie systém tvrdiť o svojich výstupoch.
+**Hilbi is an orchestrator, not a system of record.** The default role is `overlay` on
+top of the provider's existing system. This is not a detail — it determines what the
+system may claim about its own output.
 
-## 2. Tvrdé pravidlá
+## 2. Hard rules
 
-- **Prototyp nikdy nedefinuje normu.** Ak sa kód rozchádza so specom, oprav kód. Ak je spec
-  zlý, oprav spec **samostatnou zmenou** a povedz to nahlas — nikdy to nerieš tichou úpravou kódu.
-- **Nikdy necommituj token, kľúč ani reálne údaje pacienta.** Demo dáta sú vždy vymyslené.
-- **Nikdy nevydávaj prototypový stav za splnenú normu.** Placeholder pomenuj placeholderom.
-  Zoznam vedomých nezhôd je `cp-17` §10 — pri zmene ho **aktualizuj v tom istom commite**.
-- **Auto-dokumentácia.** Zmena, ktorá mení normatívne správanie, sa nesmie commitnúť bez
-  aktualizácie príslušnej dokumentácie **v tom istom kroku**. Čo nie je zdokumentované,
-  neexistuje.
+- **The prototype never defines the standard.** If the code diverges from the
+  specification, fix the code. If the specification is wrong, fix it **as a separate
+  change** and say so out loud — never resolve it by quietly editing the code.
+- **Never commit a token, a key or real patient data.** Demo data is always invented.
+- **Never present a prototype state as a fulfilled standard.** Call a placeholder a
+  placeholder. The list of known deviations is `cp-17` §10 — **update it in the same
+  commit** when it changes.
+- **English only.** Everything written down is English: documents, specifications,
+  schemas, code, code comments, changelogs and commit messages. The single exception is
+  the demo content fenced by `DEMO-CONTENT` and listed in `docs/GLOSSARY.md` §3.
+  Use the English term from the glossary — one concept, one word.
+- **Auto-documentation.** A change that alters normative behaviour may not be committed
+  without the corresponding documentation being updated **in the same step**. What is
+  not documented does not exist.
 
-  Po každom významnom kroku sa aktualizuje **celá sada**, aby existoval jeden SSOT:
+  After every significant step the **whole set** is updated, so that one SSOT exists:
 
-  | Dokument | Čo sa v ňom mení |
+  | Document | What changes in it |
   |---|---|
-  | `docs/cp-17-…` | nové alebo zmenené normatívne pravidlo **a** §14 stav prototypu |
-  | `docs/DEV-SUMMARY.md` | §4 mapa pravidlo → kód, §5 čo musí nahradiť produkcia |
-  | `docs/HANDOFF.md` | verzia prototypu, stav fáz, otvorené body |
-  | `README.md` | verzia, index súborov, konformita v jednej vete |
-  | `CLAUDE.md` | nový vzor rozhrania, nová sanity brána, nové „nesmie zregresovať" |
-  | `index.html` | changelog `vNN` s odkazom na normatívne ID |
+  | `docs/cp-17-…` | the new or changed normative rule **and** §14, the prototype state |
+  | `docs/DEV-SUMMARY.md` | §4 the rule → code map, §5 what production must replace |
+  | `docs/HANDOFF.md` | prototype version, phase status, open points |
+  | `README.md` | version, file index, conformance in one sentence |
+  | `CLAUDE.md` | a new interface pattern, a new sanity gate, a new "must not regress" |
+  | `index.html` | a `vNN` changelog entry referencing the normative ID |
 
-  Rozpor medzi ktorýmikoľvek dvoma z nich je chyba, nie detail.
-- **Jeden zdroj pravdy v kóde.** Pred pridaním novej mapy alebo konštanty over, či už
-  neexistuje. Zavedené jednotné zdroje: `SPECBY` + `specOf` (špecializácie lekárov),
-  `MKT` (pravidlá trhu), `reportShell` (chrome reportu), `TERM_BIND` + `CODEMAP` (kódovanie),
-  `I18N` (preklady). Duplikácia taxonómie je opakovaný zdroj konfliktov.
+  A contradiction between any two of them is a defect, not a detail.
+- **One source of truth in the code.** Before adding a new map or constant, check
+  whether one already exists. Established single sources: `SPECBY` + `specOf`
+  (physician specialities), `MKT` (market rules), `reportShell` (report chrome),
+  `TERM_BIND` + `CODEMAP` (coding), `I18N` (translations). Duplicated taxonomy is a
+  recurring source of conflict.
 
-## 3. Čo nesmie zregresovať
+## 3. What must not regress
 
-Nasledujúce je implementácia normy, nie kozmetika. Pri refaktoringu sa to musí zachovať:
+The following is an implementation of the standard, not cosmetics. It must survive any
+refactor:
 
-| Pravidlo | Implementácia |
+| Rule | Implementation |
 |---|---|
-| `REP-06` jednotný shell | `reportShell()` — hlavička/telo/pätka **raz**, žiadne duplikované chrome |
-| `REP-07` identita z kontextu | `RPT_ID`, `rptIdLine()` — nikdy natvrdo zapísané meno alebo ID |
-| `REP-01`, `REP-05` rola systému | `RPT_MODE`, `rptModeNote()` — mód musí byť viditeľný |
-| `TERM-02`, `TERM-03` dual coding | `codeChips()` — kód **vedľa** naratívu, nikdy namiesto neho |
-| `TERM-07` konfigurácia per trh | `MKT` — nikdy `if (market === …)` vetvenie v logike |
-| `TERM-08` priznaná medzera | chip `.cd.none` — nekódovaná položka sa nikdy nepreskočí ticho |
-| `AMD-01..03` amendment | `RPT_VERS`, `rptStatus()` — originál sa zachováva |
-| `PROV-*`, `AUD-*` | `logProv()`, `logAudit()` — hooky na každej akcii |
-| `DSI-01..04` | `DSI`, `dsiHTML()` — každý AI návrh deklaruje logiku |
-| `CNS-05` | `rptShare()` — zdieľanie len po podpise |
-| `AMD-05..09` zmrazenie | `rptSnapshot()` — podpísaná verzia sa **nikdy** neskladá zo živých dát |
-| `I18N-01`, `I18N-06` | `TPL_SRC` neutrálne kľúče + `SRC_DISP` — skratka je zobrazenie, nie kľúč |
-| `I18N-02` | `srcAbbr()` vs `srcName()` — jazyk dokumentu a jazyk rozhrania sa **nesmú** zlúčiť |
-| `I18N-08` | `trBarHTML()` — preklad je čítacia pomôcka s upozornením, nikdy tichá náhrada |
-| `I18N-11` | `cnsPick()` — chýbajúce znenie súhlasu sa prizná, nenahrádza sa prekladom |
-| `TPL-17` | `ENC_SRC` — dve sekcie na tom istom zdroji nesmú duplikovať obsah |
+| `REP-06` single shell | `reportShell()` — header/body/footer **once**, no duplicated chrome |
+| `REP-07` identity from context | `RPT_ID`, `rptIdLine()` — never a hard-coded name or ID |
+| `REP-01`, `REP-05` system role | `RPT_MODE`, `rptModeNote()` — the mode must be visible |
+| `TERM-02`, `TERM-03` dual coding | `codeChips()` — the code sits **beside** the narrative, never instead of it |
+| `TERM-07` per-market configuration | `MKT` — never an `if (market === …)` branch in logic |
+| `TERM-08` acknowledged gap | the `.cd.none` chip — an uncoded item is never skipped silently |
+| `AMD-01..03` amendment | `RPT_VERS`, `rptStatus()` — the original is preserved |
+| `PROV-*`, `AUD-*` | `logProv()`, `logAudit()` — hooks on every action |
+| `DSI-01..04` | `DSI`, `dsiHTML()` — every AI suggestion declares its logic |
+| `CNS-05` | `rptShare()` — sharing only after signature |
+| `AMD-05..09` freeze | `rptSnapshot()` — a signed version is **never** assembled from live data |
+| `I18N-01`, `I18N-06` | `TPL_SRC` neutral keys + `SRC_DISP` — an abbreviation is a display form, not a key |
+| `I18N-02` | `srcAbbr()` vs `srcName()` — document language and interface language **must not** be merged |
+| `I18N-08` | `trBarHTML()` — a translation is a reading aid with a notice, never a silent substitution |
+| `I18N-11` | `cnsPick()` — missing consent wording is acknowledged, not replaced by a translation |
+| `TPL-17` | `ENC_SRC` — two sections on the same source must not duplicate content |
 
-### Pridanie zdroja sekcie
+### Adding a section source
 
-Nový zdroj sa musí doplniť do **šiestich** registrov naraz, inak vzniknú tiché medzery:
-`TPL_SRC` (ponuka), `SRC_COVERS` (validácia minima), `TERM_BIND` (kódovanie),
-`SRC_STYLE` (hierarchia), `SRC_DISP` (zobrazenie per jazyk) a resolver v `rptSource()`.
-Kontrolný skript konzistencie kľúčov to overí.
+A new source must be added to **six** registers at once, otherwise silent gaps appear:
+`TPL_SRC` (the offer), `SRC_COVERS` (minimum validation), `TERM_BIND` (coding),
+`SRC_STYLE` (hierarchy), `SRC_DISP` (display per language) and the resolver in
+`rptSource()`. The key-consistency gate verifies this.
 
-### Známy dlh (nemeniť bez vizuálnej kontroly)
+### Known debt (do not change without a visual check)
 
-Existujúce komponenty kokpitu (`.vch`, `.vcb`, `.vcf`, `.vrange`, `.medrow`,
-`.billbox`, `.pinbox`, `.navsub`) používajú rozostupy mimo škály — najmä `13px`
-(28×), `15px`, `17px`, `30px`, `39px`. Je to **optické doladenie, nie drift**;
-hromadná zmena by posunula rozloženie. Škála 8/16/24/32 platí na **novú prácu**.
+Existing cockpit components (`.vch`, `.vcb`, `.vcf`, `.vrange`, `.medrow`, `.billbox`,
+`.pinbox`, `.navsub`) use spacings outside the scale — chiefly `13px` (28×), `15px`,
+`17px`, `30px`, `39px`. This is **optical tuning, not drift**; a bulk change would
+shift the layout. The 8/16/24/32 scale applies to **new work**.
 
 ## 4. Commit workflow
 
-1. **Stiahni aktuálny `index.html` z `main`** (autoritatívny je obsah repa, nie GitHub Pages)
-   a **over, že lokálny súbor sa s ním zhoduje** — veľkosťou aj kontrolou kľúčových značiek
-   poslednej zmeny. Prostredie sa môže reštartovať a vrátiť lokálny súbor do staršieho stavu;
-   editovanie takého súboru **ticho vráti späť predchádzajúce commity**.
-   Signálom reštartu je čokoľvek, čo zmizlo z `/tmp` alebo `/home/claude`.
-   Overenie sa opakuje **po každom náznaku reštartu**, nielen na začiatku relácie.
-2. Uprav lokálne.
-3. **Pred zavedením novej CSS triedy over, či názov už neexistuje.** Prototyp je jeden
-   súbor so spoločným menným priestorom; nová trieda s existujúcim názvom ticho prepíše
-   nesúvisiacu časť rozhrania (stalo sa s `.card`).
-4. **Sanity brány — všetkých deväť musí prejsť:**
-   - brace balance: `t.count('{') - t.count('}')` — **baseline je `-1`**, nie `0`
-   - extrahuj `<script>` do `_js.js` a spusti `node --check _js.js`
-   - **kontrola handlerov**: vytiahni všetky `onclick` / `onchange` / `oninput`
-     z HTML aj zo šablónových reťazcov v JS a over, že každý má definíciu.
-     Syntaktická kontrola toto NEODHALÍ — tlačidlo volajúce neexistujúcu funkciu
-     je platný JavaScript. Rovnako neodhalí prvok, ktorý je v DOM nedosiahnuteľný.
-   - **kontrola tokenov** má **dve časti**:
-     *a)* v CSS mimo `:root` nesmie byť hex farba, ktorá už má token (drift);
-     *b)* **každý `var(--x)` musí mať definíciu** — vrátane tých s fallbackom.
-     `var(--x, #hex)` s nedefinovaným `--x` ticho používa natvrdo zapísanú hodnotu
-     a drift-kontrola ho **nezachytí**, lebo tá farba token nemá. `var(--x)` bez
-     fallbacku a bez definície je neplatná deklarácia — vlastnosť sa vôbec neuplatní.
-     Definície hľadaj **kdekoľvek**, nielen v `:root` (napr. `--navw` je na `body`).
-   - **konfliktné preklady**: žiadny SK kľúč nesmie mať v `I18N` dva rôzne EN
-     preklady. `new Map(I18N)` berie **posledný** záznam; nové páry sa pridávajú
-     na začiatok, takže novší preklad ticho prehrá a prechod EN→SK→EN poškodí text.
-   - **kontrola prekladov**: každý reťazec v `tt('…')` **aj statický popisok v HTML**
-     musí mať pár v `I18N`.
-     `tt()` bez páru vráti **slovenský originál**, takže v anglickom rozhraní
-     ticho presakuje slovenčina. Syntaktická kontrola to neodhalí.
-   - **kontrola poradia CSS**: pre každé pravidlo v `@media` over, že rovnaký
-     selektor nemá základné pravidlo **až za ním** — inak ho prebije a media query
-     nikdy nezaberie. Porovnávaj **celé selektory** (`.a .b` nie je `.b`) a media
-     bloky parsuj párovaním zátvoriek, nie regexom po prvú `}`.
-5. **Každý `str_replace` a textová náhrada musí byť overená assertom.** Náhrada, ktorá
-   nenájde kotvu, prebehne **naprázdno a bez chyby**. Skript, ktorý mení súbor,
-   má **zapisovať až na konci** — potom assert v strede zabráni čiastočnej zmene.
-   Kotvu ber z **práve prečítaného súboru**, nie z pamäte: rozdiel jednej medzery
-   (`--phrw:280px}` vs `--phrw:280px }`) stačí na tiché zlyhanie.
-6. Commitni cez GitHub contents API (GET sha → PUT base64 + sha).
-7. Verzia `vNN` v changelogu; správa commitu vecne popisuje zmenu a odkazuje na normatívne ID.
+1. **Fetch the current file from `main` pinned to a commit SHA.** The authoritative
+   content is the repository, not GitHub Pages — and **not a mutable ref either**.
+   `raw.githubusercontent.com/<owner>/<repo>/main/<file>` is CDN-cached and can serve
+   stale content: on 2026-07-24 it returned a file two prototype versions old, which
+   would have silently reverted two commits. Resolve `main` to a SHA first
+   (`GET /repos/{owner}/{repo}/commits/main`), then read every file at that SHA.
+   **Verify the local file matches** — by size and by checking a marker from the last
+   change. The environment can restart and roll the local file back; editing such a
+   file **silently reverts earlier commits**. Anything that has disappeared from
+   `/tmp` or `/home/claude` is a restart signal. Repeat the check **after every hint
+   of a restart**, not only at the start of a session.
+2. Edit locally.
+3. **Before introducing a new CSS class, check the name does not already exist.** The
+   prototype is a single file with one shared namespace; a new class reusing an
+   existing name silently overwrites an unrelated part of the interface (this happened
+   with `.card`).
+4. **Sanity gates — all ten must pass:**
+   - brace balance: `t.count('{') - t.count('}')` — the **baseline is `-1`**, not `0`
+   - extract `<script>` into `_js.js` and run `node --check _js.js`
+   - **handler check**: collect every `onclick` / `onchange` / `oninput` from the HTML
+     and from template strings in JS, and verify each has a definition. A syntax check
+     will NOT catch this — a button calling a non-existent function is valid
+     JavaScript. It equally will not catch an element unreachable in the DOM.
+   - **token check** has **two parts**:
+     *a)* no hex colour outside `:root` that already has a token (drift);
+     *b)* **every `var(--x)` must have a definition** — including those with a
+     fallback. `var(--x, #hex)` with an undefined `--x` silently uses the hard-coded
+     value and the drift check **will not catch it**, because that colour has no token.
+     `var(--x)` with neither a fallback nor a definition is an invalid declaration —
+     the property does not apply at all. Look for definitions **anywhere**, not only in
+     `:root` (for example `--navw` sits on `body`).
+   - **conflicting translations**: no key may have two different translations in
+     `I18N`. `new Map(I18N)` keeps the **last** entry; new pairs are added at the
+     front, so a newer translation silently loses and a round trip through both
+     languages corrupts the text.
+   - **translation completeness**: every string in `tt('…')` **and every static label
+     in the HTML** must have an entry in `I18N`. `tt()` without an entry returns the
+     key itself, so an untranslated string leaks into the other language. A syntax
+     check will not catch this.
+   - **CSS order check**: for every rule inside `@media`, verify the same selector does
+     not have a base rule **after** it — otherwise the base rule wins and the media
+     query never applies. Compare **whole selectors** (`.a .b` is not `.b`) and parse
+     media blocks by brace matching, not by a regex up to the first `}`.
+   - **source keys**: consistent across the six registers (see §3).
+   - **gate 10 — Slovak leak**: Slovak is permitted in exactly two places — the
+     translation table and the `DEMO-CONTENT` block. Anywhere else it fails the build.
+     See `docs/GLOSSARY.md`.
+5. **Every `str_replace` and text substitution must be guarded by an assert.** A
+   substitution that fails to find its anchor runs **silently and without error**. A
+   script that modifies a file must **write only at the end** — an assert in the middle
+   then prevents a partial change. Take the anchor from the **file you just read**, not
+   from memory: a single space (`--phrw:280px}` vs `--phrw:280px }`) is enough to make
+   it fail silently.
+6. Commit through the GitHub Contents API (GET sha → PUT base64 + sha).
+7. A `vNN` entry in the changelog; the commit message describes the change in substance
+   and references the normative ID.
 
-Mermaid diagramy validuj parserom (`mermaid.parse` s jsdom) — `mmdc` potrebuje Chrome,
-ktorý v prostredí nemusí byť.
+Validate Mermaid diagrams with a parser (`mermaid.parse` with jsdom) — `mmdc` needs
+Chrome, which may not exist in the environment.
 
-## 5. Disciplína dizajnových tokenov
+## 5. Design token discipline
 
-1. Znovupouži existujúci token zhodou hodnoty.
-2. Ak zhoda nie je, odvoď z existujúcej škály (radius {4,8,12,16,20,24}, space
-   {4,8,12,16,24,32,48,64}, typografia 12/13/15/17/22, farby brand/accent/semantic).
-3. Len ak ide o skutočne novú sémantiku → **jeden** token v `:root` (nikdy inline),
-   kanonický názov, a **explicitne to nahlás**.
+1. Reuse an existing token by matching its value.
+2. If there is no match, derive from an existing scale (radius {4,8,12,16,20,24}, space
+   {4,8,12,16,24,32,48,64}, type 12/13/15/17/22, brand/accent/semantic colours).
+3. Only for genuinely new semantics → **one** token in `:root` (never inline), a
+   canonical name, and **report it explicitly**.
 
-Kľúčové tokeny: `--text-heading` `#333D6C` · `--text-body` `#46506B` · `--text-muted` `#687087` ·
-`--brand-accent` `#FF4496` · `--brand-cyan` `#6AD5E5` · `--brand-cyan-soft` `#E1F5F9` ·
-`--brand-teal-text` `#0E7D92`.
+Key tokens: `--text-heading` `#333D6C` · `--text-body` `#46506B` · `--text-muted`
+`#687087` · `--brand-accent` `#FF4496` · `--brand-cyan` `#6AD5E5` · `--brand-cyan-soft`
+`#E1F5F9` · `--brand-teal-text` `#0E7D92`.
 
-## 6. Vzory rozhrania
+## 6. Interface patterns
 
-Ustálené vzory sa **znovupoužívajú**, nevymýšľajú sa varianty. Nový variant je zmena
-dizajn systému a musí sa nahlásiť.
+Established patterns are **reused, not reinvented**. A new variant is a change to the
+design system and must be reported.
 
-**Responzívne pravidlo patrí vždy hneď za základné pravidlo toho istého selektora.**
-Poradie v jednom súbore rozhoduje pri rovnakej špecificite.
+**A responsive rule always sits immediately after the base rule for the same
+selector.** With equal specificity, order within the single file decides.
 
-### Taby — jediný povolený vzor
+### Tabs — the only permitted pattern
 
-Plochý button bez rámu a pozadia, **ikona + popisok**. Neaktívny `--text-muted`;
-aktívny `--text-heading`, hrúbka 700, s **3px podčiarknutím** (`border-radius:2px`)
-v `--text-heading`. Rozostup 22–26 px.
+A flat button with no border and no background, **icon + label**. Inactive
+`--text-muted`; active `--text-heading`, weight 700, with a **3px underline**
+(`border-radius:2px`) in `--text-heading`. Spacing 22–26 px.
 
-**Pilulky, segmenty, orámované prepínače a farebné pozadia sa ako taby NEPOUŽÍVAJÚ.**
+**Pills, segments, outlined switches and coloured backgrounds are NOT used as tabs.**
 
-Implementácie: `.tabs` (hlavná lišta kokpitu) · `.dtabs` (dekurz) · `.tabbar`
-(univerzálna trieda pre nové tab pruhy — použi túto). Voliteľný počet v `.cnt`.
+Implementations: `.tabs` (the main cockpit bar) · `.dtabs` (progress note) · `.tabbar`
+(the general class for new tab bars — use this one). An optional count in `.cnt`.
 
-Výnimka: dvojstavový prepínač zobrazenia vnútri panela (napr. Štruktúra / Text)
-nie je navigácia, a preto ostáva segmentom.
+Exception: a two-state view switch inside a panel (for example Structure / Text) is not
+navigation and therefore remains a segment.
 
-### Tlačidlá
+### Buttons
 
-Škála z dizajn systému, **veľkosť sa vyberá podľa kontextu**:
+The design system scale; **size is chosen by context**:
 
-| Veľkosť | Kedy |
+| Size | When |
 |---|---|
-| **48 · L** (`.btn.lg`) | primárne CTA, mobil na plnú šírku, prázdne stavy, landing |
-| **40 · M** (`.btn`) | **default** — väčšina UI: formuláre, panely, toolbary, karty |
-| **32 · S** (`.btn.sm`) | kompaktné a riadkové — riadky tabuliek, husté filtre |
+| **48 · L** (`.btn.lg`) | primary CTA, full width on mobile, empty states, landing |
+| **40 · M** (`.btn`) | **default** — most of the UI: forms, panels, toolbars, cards |
+| **32 · S** (`.btn.sm`) | compact and inline — table rows, dense filters |
 
-Ikonové `.btn.icob` (32×32), tiché `.btn.ghost`.
-Popisky: L 16/24, M 14/20, S 12/16, Mulish SemiBold.
+Icon buttons `.btn.icob` (32×32), quiet `.btn.ghost`.
+Labels: L 16/24, M 14/20, S 12/16, Mulish SemiBold.
 
-Typy podľa dôrazu: **Primary › Secondary › Ghost**; kontextové sú Destructive, IQ,
-Inverse, Glass. Secondary má vždy **neutrálny** rám — cyan rám na Secondary znamená
-vybraný chip, nie tlačidlo. Vlastné farby mimo typov sa nepoužívajú.
+Types by emphasis: **Primary › Secondary › Ghost**; contextual ones are Destructive,
+IQ, Inverse, Glass. Secondary always has a **neutral** border — a cyan border on a
+Secondary means a selected chip, not a button. Custom colours outside the types are not
+used.
 
-Primary je `--brand-cyan` s textom `--brand-cyan-ink` (`#06343E`), **nikdy biely text**.
-**Na jednej obrazovke smie byť najviac jedno primary tlačidlo** — hlavná akcia.
-Podporné akcie sú sekundárne (biele s rámom), potichu ghost.
+Primary is `--brand-cyan` with `--brand-cyan-ink` text (`#06343E`), **never white
+text**. **At most one primary button may appear on a screen** — the main action.
+Supporting actions are secondary (white with a border), quiet ones are ghost.
 
-Vlastné rozmery tlačidiel sa **nedefinujú**. Ak niektorý rozmer chýba, je to zmena
-dizajn systému a musí sa nahlásiť — nie prepísať lokálne.
+Custom button dimensions are **not defined**. If a size is missing, that is a change to
+the design system and must be reported — not overridden locally.
 
-### Umiestnenie akcií panela
+### Placement of panel actions
 
-Akcie, ktoré platia pre celý panel (uložiť, zahodiť, potvrdiť), patria do **hornej
-lišty**, zarovnané vpravo v riadku s tabmi — **nikdy pod obsah**. Ak je obsah
-scrollovateľný, tlačidlá pod ním používateľ nevidí a nevie, že existujú.
+Actions that apply to the whole panel (save, discard, confirm) belong in the **top
+bar**, right-aligned in the row with the tabs — **never below the content**. If the
+content scrolls, the user never sees buttons underneath it and does not know they exist.
 
-Aktivujú sa podľa stavu panela (`disabled`, keď akcia nedáva zmysel), nie skrývajú —
-skrývanie mení rozloženie a používateľ stratí orientáciu.
+They are enabled and disabled by panel state (`disabled` when the action makes no
+sense), not hidden — hiding changes the layout and the user loses orientation.
 
-### Formulárové polia
+### Form fields
 
-Podľa handoffu dizajn systému: **bez rámu v pokojovom stave**, výplň `surface/1`,
-hodnota v `--text-heading`, popisok `--text-muted`, placeholder `--text-subtle`.
-Focus = biele pozadie + **2px prstenec** `--brand-cyan`. Hover `surface/2`.
+Per the design system handoff: **no border at rest**, `surface/1` fill, value in
+`--text-heading`, label in `--text-muted`, placeholder in `--text-subtle`. Focus = white
+background + a **2px ring** in `--brand-cyan`. Hover `surface/2`.
 
-Veľkosti: **S 40 px** (radius 8) · **M 48 px** (radius 12, default) · **L 56 px** (radius 16).
-**Nikdy pod 40 px** a nikdy rám ako pokojový stav. Placeholder sa nepoužíva namiesto
-popisku; popisok je vždy viditeľný.
+Sizes: **S 40 px** (radius 8) · **M 48 px** (radius 12, default) · **L 56 px**
+(radius 16). **Never below 40 px** and never a border as the resting state. A
+placeholder is not used instead of a label; the label is always visible.
 
-### Podstránky
+### Subpages
 
-Skladba: **drobčeky** (12/16, `--text-muted`) → **hlavička** (nadpis 24/32 bold +
-akcia vpravo) → **karta** `.pgcard` (biela, 1px rám, radius 14, padding 24).
-Podstránka nahrádza kokpit; **PHR panel sa nerezervuje** — patrí len do detailu pacienta.
+Composition: **breadcrumbs** (12/16, `--text-muted`) → **header** (24/32 bold title +
+action on the right) → a `.pgcard` card (white, 1px border, radius 14, padding 24). A
+subpage replaces the cockpit; **no PHR panel is reserved** — that belongs only in the
+patient detail.
 
-Rozostupy držia škálu **8 / 16 / 24 / 32**. Medzihodnoty (14, 18, 20, 22) sa nepoužívajú.
+Spacing keeps to the **8 / 16 / 24 / 32** scale. Intermediate values (14, 18, 20, 22)
+are not used.
 
-### Modálne okná
+### Modals
 
-`sheetwrap` → `sheet` (`sheet wide` pre široký obsah) → `sh-h` hlavička, `sh-b` telo,
-`sh-f` pätka s tlačidlami vpravo. Zatváranie cez `mClose(id)` aj kliknutím na `scrim`.
+`sheetwrap` → `sheet` (`sheet wide` for wide content) → `sh-h` header, `sh-b` body,
+`sh-f` footer with buttons on the right. Closed through `mClose(id)` and by clicking
+the scrim.
 
-**Výšku určuje obsah.** Modal nemá vynútenú výšku ani `min-height` na vnútorných
-paneloch; jediné obmedzenie je responzívny strop (`max-height:86vh`) so scrollom
-v `sh-b`. Prázdne miesto pod krátkym obsahom je chyba.
+**Height is determined by content.** A modal has no forced height and no `min-height`
+on inner panels; the only constraint is a responsive ceiling (`max-height:86vh`) with
+scrolling in `sh-b`. Empty space below short content is a defect.
 
-## 7. i18n
+## 7. Translations
 
-Zdroj je slovenčina, default zobrazenie angličtina. Pole `I18N` obsahuje páry `[SK, EN]`;
-**každý nový reťazec vo `tt()` musí dostať pár v tom istom kroku** — inak sa v anglickom
-rozhraní zobrazí po slovensky.
+Keys are **neutral and language-independent** — `action.save`, not a display string in
+any language. `I18N` maps a key to each language. **Every new key must receive an entry
+for every supported language in the same step**; otherwise the key itself leaks into
+the interface.
 
-`swapText` prekladá textové uzly aj `title` / `placeholder` / `aria-label` / `data-tip`.
-**Nové páry pridávaj na začiatok poľa.** Každý nový používateľský reťazec musí mať pár.
+`swapText` translates text nodes as well as `title` / `placeholder` / `aria-label` /
+`data-tip`. Because substitution is sequential, entries are ordered **longest first** —
+a shorter string would otherwise overwrite part of a longer one.
 
-## 8. Komunikácia
+Slovak survives in exactly two places: the translation table and the `DEMO-CONTENT`
+block (`docs/GLOSSARY.md` §3). Gate 10 enforces this.
 
-Slovensky, priamo, plain language. Bežné anglicizmy (API, ISO, FHIR, GitHub) áno; hybridy
-a vymyslené zloženiny nie. Odborný termín vysvetli pri prvom použití. Blokery a konflikty
-hlás **na začiatku**, nie na konci. Stručné potvrdenie je lepšie než rozvíjanie.
+## 8. Communication
 
-## 9. Čo eskalovať, nie riešiť sám
+Direct, plain language. Written artefacts are English without exception; spoken and
+chat discussion may be held in any language the participants share. Common
+abbreviations (API, ISO, FHIR, GitHub) are fine; invented compounds are not. Explain a
+specialist term on first use. Report blockers and conflicts **at the start**, not at
+the end. A short confirmation beats elaboration.
 
-- Hranica návrh vs. rozhodnutie pri Hilbi IQ (`DSI-04`) — dotýka sa MDR. Rozhoduje compliance.
-- Podpisová úroveň per trh (`SIG-01`), retencia auditu (`AUD-03`).
-- Rozsah EHDS CE režimu pri prechode do módu `core` (`REP-03`).
-- Čokoľvek, čo by z prototypu spravilo nástroj pracujúci s reálnymi údajmi pacientov.
+## 9. What to escalate rather than decide alone
+
+- The boundary between suggestion and decision in Hilbi IQ (`DSI-04`) — it touches MDR.
+  Compliance decides.
+- Signature level per market (`SIG-01`), audit retention (`AUD-03`).
+- The scope of the EHDS CE regime when moving to `core` mode (`REP-03`).
+- Anything that would turn the prototype into a tool handling real patient data.
