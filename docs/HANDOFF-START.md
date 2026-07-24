@@ -4,7 +4,7 @@
 > je v repozitári. Duplikovať sem obsah by vytvorilo druhý zdroj pravdy.
 
 **Repo:** `patrikkmec-ivx/prototype` · **Live:** https://patrikkmec-ivx.github.io/prototype/
-**Verzia:** v162 · **Uzávierka:** 2026-07-23
+**Verzia:** v163 · **Uzávierka:** 2026-07-23
 
 ---
 
@@ -56,6 +56,17 @@ Skripty sa v prostredí nezachovajú — napíš ich znova podľa `CLAUDE.md` §
   kolízia ticho prepíše nesúvisiacu časť rozhrania (stalo sa s `.card`).
 - **Sanity brány nezachytia vizuálne chyby.** Nedostupné tlačidlo (v133) aj zalomený
   náhľad (v147) prešli všetkými bránami. **Väčšina UI od v126 nebola videná v prehliadači.**
+
+## 4b. Overený stav pri odovzdaní (v163)
+
+Deväť brán prechádza. Mŕtvy kód nula. Integrita dokumentácie overená:
+**173 normatívnych ID bez visiaceho odkazu** · všetkých **52 symbolov** z mapy
+`DEV-SUMMARY` §4 existuje v kóde · žiadny neplatný odkaz na súbor ·
+`README` index pokrýva všetkých 25 súborov v repe.
+
+**Známy a zdôvodnený dlh** je v `docs/HANDOFF.md` §4d — osirelé CSS triedy,
+rozostupy mimo škály v pôvodných komponentoch, pamäťové úložisko, nejednoznačnosť
+EN→SK. Nič z toho nie je chyba na opravu naslepo.
 
 ## 5. Kde sme
 
