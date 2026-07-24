@@ -4,7 +4,7 @@
 > ako sa v repozitári správať určuje `CLAUDE.md`; čo je čo určuje `README.md`.
 > **Aktualizuje sa na konci každej relácie.**
 
-Aktualizované: 2026-07-23 (uzávierka relácie) · Verzia prototypu: **v162** (`ea97b192`)
+Aktualizované: 2026-07-23 (uzávierka relácie) · Verzia prototypu: **v163** (`b623c3fa`)
 
 ---
 
@@ -151,15 +151,18 @@ každom náznaku reštartu (napr. keď zmizne obsah `/tmp`). Pravidlo je v `CLAU
 brace balance −1 · `node --check` · 89 handlerov · poradie CSS · **nedefinované tokeny**
 · drift tokenov · úplnosť prekladov · **konfliktné preklady** · konzistencia kľúčov zdrojov.
 
-**Čísla merané pri v162** (skript je v `CLAUDE.md` §4 — vždy premerať, necitovať staré):
-5 000 riadkov · 106 definovaných tokenov · 699 položiek `I18N` (699 unikátnych
-kľúčov, 0 duplicít) · 154 unikátnych reťazcov v `tt()`.
+**Čísla merané pri v163** (vždy premerať, necitovať staré):
+4 725 riadkov · 220 funkcií · **98 tokenov v `:root`** (106 vrátane definícií mimo
+`:root`, napr. `--navw` na `body`) · 699 položiek `I18N` (699 unikátnych kľúčov,
+0 duplicít, 0 konfliktov) · 154 unikátnych reťazcov v `tt()` · 89 handlerov.
+
+**Mŕtvy kód: nula.** Vo v163 odstránených 5 nepoužívaných funkcií.
 
 **Zdravie kódu:** 225 funkcií, najdlhšia `tplMgrRender` (64 riadkov). **Refaktor netreba** — jeden súbor
 je pri tejto veľkosti stále v poriadku a rozdelenie by rozbilo commit workflow
 aj GitHub Pages. Sledovať pri prekročení ~700 kB.
 
-**Dizajn tokeny:** 98 tokenov v `:root`, **drift nula, žiadny nedefinovaný** — žiadna hex farba mimo `:root`,
+**Dizajn tokeny:** **drift nula, žiadny nedefinovaný `var()`** — žiadna hex farba mimo `:root`,
 ktorá by už mala token. Vygenerovaný `tokens.json` (DTCG, 18 skupín, 16 aliasov)
 ako code-first SSOT.
 
@@ -168,6 +171,21 @@ Design System '26 (`ombR6X345rSPGaJPfnye7e`). Komponenty v Figme sa **neaktualiz
 z kódu** — smer je opačný: Figma je zdroj pre komponenty, kód je zdroj pre tokeny.
 Čo sa v prototype odchýlilo od DS (napr. veľkosti tlačidiel pred v143), sa opravilo
 v kóde, nie v Figme.
+
+## 4d. Známy dlh (pre nezávislý tím)
+
+Vedomé a zdôvodnené — **nemeniť bez vizuálnej kontroly**:
+
+- **~64 osirelých CSS tried** (`.alrg`, `.attn`, `.cbox`, `.confirm`, `.code`…) —
+  pozostatky starších iterácií. Odstránenie je bezpečné až po vizuálnej kontrole,
+  lebo časť názvov sa môže skladať dynamicky.
+- **Rozostupy mimo škály** v pôvodných komponentoch (`13px` 28×, `15/17/30/39px`) —
+  optické doladenie, nie drift. Škála 8/16/24/32 platí na novú prácu.
+- **Prototyp je v pamäti** — `Store` má pamäťový adaptér (`STO-01..05`); po obnovení
+  stránky sa všetko stratí. Je to zámer, nie chyba.
+- **EN→SK nie je vzájomne jednoznačné** — dve slovenské slová môžu mať rovnaký
+  anglický preklad (`Pracovisko` aj `Ambulancia` → `Clinic`). SK→EN je jednoznačné
+  a strážené bránou; spätný smer je inherentne nejednoznačný.
 
 ## 5. Overené, neoverené
 
