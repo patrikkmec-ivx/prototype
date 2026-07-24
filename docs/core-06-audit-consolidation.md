@@ -9,7 +9,7 @@ status: final
 version: 1.0
 created: 2026-07-21
 related: [CORE-AUDIT-US, CORE-AUDIT-EU, CORE-AUDIT-IN]
-classification: Dôverné — interné
+classification: Confidential — internal
 ---
 
 # Cross-Region Audit Consolidation
