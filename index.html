@@ -4,8 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v163 (Audit pred odovzdaním)</title>
+<title>Hilbi Cockpit — v164 (Provider / Practice)</title>
 <!-- CHANGELOG
+v164 (2026-07-24): Provider -> Practice model. A Provider (Organization) may have
+  several Practices (Organization.partOf); the flat ORG.fac field is gone. Practice is
+  resolved through practiceOf()/practiceName(), never stored on the document, which is
+  what REP-07 requires. Signatory identity moved to the Practice: a head of the Neurology
+  Clinic is a role in that Practice, not in the hospital, so sigList() assembles
+  Practice-level roles first and adds only the Provider-level ones that apply everywhere
+  (treating clinician, patient signature). Before this change the neurology heads would
+  have appeared on a general-practice document. FHIR: Provider -> Organization, Practice
+  -> Organization.partOf, signatory -> PractitionerRole.organization -> Practice.
+  Terminology fixed in docs/GLOSSARY.md: ambulancia and pracovisko are one concept,
+  Practice; never "clinic". Serves REP-07 and TPL-19 (cp-17 section 16 updated).
 v163 (2026-07-23): Audit pred odovzdaním nezávislému tímu. Odstránených 5 mŕtvych
   funkcií (langName, vGauge, vRange, irSignDo, phrGauge — posledná bola volaná už
   len z odstránenej vGauge). Mŕtvy kód je na nule. Overená integrita dokumentácie:
@@ -3696,8 +3707,39 @@ const CODEMAP=[
  {re:/relaps-remit|relapsing.remitting/i,         sct:'426373005', icd:'G35'}
 ];
 function codeOf(text){return CODEMAP.find(c=>c.re.test(text))||null;}
+/* PROVIDER -> PRACTICE model.
+   A Provider (the healthcare provider organisation) may have several Practices
+   (outpatient practices). Slovak uses both "ambulancia" and "pracovisko" for the
+   second; in English there is one word: Practice. See docs/GLOSSARY.md.
+
+   FHIR mapping:
+     Provider  -> Organization                                  (root)
+     Practice  -> Organization.partOf -> Provider               (or Location for a site)
+     Signatory -> PractitionerRole.organization -> Practice     (not the Provider)
+
+   REP-07 requires identity to be read from context and never hard-coded; a single
+   flat field cannot satisfy that, which is why the practice is resolved, not stored
+   on the document. TPL-19 keeps signatory identity with the organisation — this makes
+   explicit which organisation that is. */
+const PRACTICES=[
+ {id:'p-neuro', name:'Neurologická klinika — Centrum SM', code:'',
+  signatories:[
+    {k:'head',   name:'MUDr. M. Novák, PhD.', title:'prednosta Neurologickej kliniky', code:''},
+    {k:'senior', name:'MUDr. J. Horák, PhD.', title:'primár Neurologickej kliniky',    code:''}
+  ]},
+ {id:'p-gp',    name:'Všeobecná ambulancia pre dospelých', code:'', signatories:[]}
+];
+let CUR_PRACTICE='p-neuro';
+function practiceOf(id){return PRACTICES.find(function(p){return p.id===(id||CUR_PRACTICE);})||PRACTICES[0];}
+function practiceName(id){var p=practiceOf(id);return p?p.name:'';}
+/* Signatories are assembled Practice-first, then Provider-level roles that apply
+   to every practice (the treating clinician and the patient signature). */
+function sigList(id){
+  var p=practiceOf(id);
+  return (p&&p.signatories?p.signatories:[]).concat(ORG.signatories||[]);
+}
 /* Nastavenia hlavičky organizácie */
-const ORG_F=[['name','Názov zariadenia'],['fac','Pracovisko / ambulancia'],['addr','Adresa'],
+const ORG_F=[['name','Názov zariadenia'],['addr','Adresa'],
              ['ico','IČO'],['pzs','Kód PZS'],['contact','Kontakt'],['stamp','Text pätky']];
 function orgOpen(){mOpen('orgwrap');orgRender();}
 function orgRender(){
@@ -3911,7 +3953,6 @@ function srcName(k){return srcDisp(k,uiLang(),true);}       /* do navigácie a e
    Šablóna ich nikdy nenesie natvrdo; zmena adresy sa prejaví vo všetkých dokumentoch. */
 const ORG={
   name:'Fakultná nemocnica Trnava',
-  fac:'Neurologická klinika — Centrum SM',
   addr:'A. Žarnova 11, 917 05 Trnava',
   ico:'',
   pzs:'P00000000000',            /* demo kód */
@@ -3922,13 +3963,13 @@ const ORG={
   /* Identita podpisovateľov patrí ORGANIZÁCII; ktorí z nich sa na dokumente
      objavia, určuje ŠABLÓNA (TPL-19). Samotný podpis je runtime akt (SIG-*). */
   signatories:[
+    /* Provider-level roles only. Practice-level roles (head, senior) live on the
+       Practice — see PRACTICES / sigList(). */
     {k:'clinician',name:'Dr. E. Rodriguez',title:'ošetrujúci lekár',code:'A12345'},
-    {k:'head',     name:'MUDr. M. Novák, PhD.',title:'prednosta Neurologickej kliniky',code:''},
-    {k:'senior',   name:'MUDr. J. Horák, PhD.',title:'primár Neurologickej kliniky',code:''},
     {k:'patient',  name:'',title:'podpis pacienta alebo zákonného zástupcu',code:''}
   ]
 };
-function sigOf(k){return (ORG.signatories||[]).find(s=>s.k===k)||null;}
+function sigOf(k){return sigList().find(s=>s.k===k)||null;}
 /* Podpisový blok dokumentu — zloženie určuje šablóna, obsah organizácia */
 function sigBlockHTML(tpl){
   const ks=(tpl&&tpl.signers&&tpl.signers.length)?tpl.signers:['clinician'];
@@ -3943,11 +3984,11 @@ function sigBlockText(tpl){
     return (s.name?s.name+' — ':'')+tt(s.title)+(s.code?' · '+s.code:'')+': ..........................';}).filter(Boolean).join('\n');
 }
 function orgHeadHTML(){
-  return `<div class="orghd"><b>${escT(ORG.name)}</b>${ORG.fac?' · '+escT(ORG.fac):''}
+  return `<div class="orghd"><b>${escT(ORG.name)}</b>${practiceName()?' · '+escT(practiceName()):''}
     <span>${escT(ORG.addr)}${ORG.ico?' · IČO '+escT(ORG.ico):''}${ORG.pzs?' · '+tt('kód PZS')+' '+escT(ORG.pzs):''}</span></div>`;
 }
 function orgHeadText(){
-  const L=[ORG.name+(ORG.fac?' · '+ORG.fac:''),ORG.addr];
+  const L=[ORG.name+(practiceName()?' · '+practiceName():''),ORG.addr];
   if(ORG.ico||ORG.pzs)L.push([ORG.ico?'IČO '+ORG.ico:'',ORG.pzs?'kód PZS '+ORG.pzs:''].filter(Boolean).join(' · '));
   if(ORG.contact)L.push(ORG.contact);
   return L.join('\n');
@@ -4147,7 +4188,7 @@ function tplMgrRender(){
      Spravuje ju zariadenie (TPL-07), šablóna ju nikdy nenesie. */
   const orgCard=`<div class="orgcard">
     <div class="occ">
-      <div class="oct">${escT(ORG.name)}${ORG.fac?' · '+escT(ORG.fac):''}</div>
+      <div class="oct">${escT(ORG.name)}${practiceName()?' · '+escT(practiceName()):''}</div>
       <div class="ocs">${escT(ORG.addr)}${ORG.pzs?' · '+tt('kód PZS')+' '+escT(ORG.pzs):''}</div>
       <div class="ocn">${tt('Hlavička, pätka a podpisy — spravuje zariadenie, platia pre všetky šablóny')}</div>
     </div>
@@ -4176,7 +4217,7 @@ function tplMgrRender(){
       </select>
       <div class="cnsnote">${tt('Znenie je právny artefakt a spravuje sa v registri súhlasov. Šablóna určuje iba to, kde sa zobrazí.')}</div></div>`:''}
     <div class="fr"><div class="grph">${tt('Podpisy na dokumente')}</div>
-      ${(ORG.signatories||[]).map(s=>`<label class="sgpick">
+      ${sigList().map(s=>`<label class="sgpick">
         <input type="checkbox" ${(TPL_EDIT.signers||['clinician']).includes(s.k)?'checked':''} ${ro?'disabled':''}
           onchange="tplSigner('${s.k}',this.checked)">
         <span><b>${escT(tt(s.title))}</b>${s.name?' · '+escT(s.name):''}</span></label>`).join('')}
