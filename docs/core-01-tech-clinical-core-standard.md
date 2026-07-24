@@ -13,7 +13,7 @@ review_due: 2026-10-21
 tags: [ssot, standard, fhir, ehr, dekurz, composition, templates, provenance]
 related: [CP-TECH-STANDARD, CP-TECH-CONTRACTS, GSR-TECH-ARCH, GSR-SEC-ISO, CORE-AUDIT-CONSOLIDATION]
 iso_controls: [A.8.1, A.5.12, A.8.11]
-classification: Dôverné — interné
+classification: Confidential — internal
 ---
 
 # Hilbi Clinical Core (EHR Engine) — Standard v1.0
