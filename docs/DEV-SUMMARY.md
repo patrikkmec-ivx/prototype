@@ -73,6 +73,8 @@ configuration.
 | Freeze at signature | `AMD-05..09` | `rptSnapshot()`, `snapShellHTML()`, `rptHash()` |
 | Neutral source keys | `I18N-01`, `I18N-06` | `TPL_SRC` (`hist-past`, `allergies`…), `SRC_DISP` |
 | Two language axes | `I18N-02` | `srcAbbr()` = document language · `srcName()` = interface language |
+| Translation mechanism | `I18N-01` | `I18N` (English key -> translation) · `TR_SK`, `TR_EN` · `tt()`, `swapText()` |
+| Vitals panel | — | `phrGauge()`, `vGauge()`, `vRange()`, `renderVitals()` — restored in v165 |
 | Document language | `I18N-03` | `ORG.lang`, `docLang()`, stamped into the snapshot |
 | Translation on demand | `I18N-07`, `I18N-08` | `TR_LANG`, `trSet()`, `trBarHTML()` |
 | Consent per language | `I18N-11` | `CNS_REG` `(id, ver, lang)`, `cnsPick()` |
