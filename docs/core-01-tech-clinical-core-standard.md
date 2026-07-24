@@ -372,7 +372,7 @@ evidenced by the existence of the mapped resource (SM+ `getEventCompletion` patt
 generalized). "Next step" logic reads `CarePlan`/`PlanDefinition`, not UI state.
 
 ### F2. Prefill is a projection, not a copy
-**Description:** SM+ "Prevziať z posledného" generalizes: forms prefill from the latest
+**Description:** SM+ "carry over from the previous visit" generalizes: forms prefill from the latest
 relevant resource in the patient compartment; unchecking resets the form and never deletes
 history.
 **Requirements:** Prefilled values MUST be visibly badged; saving writes a **new** resource
