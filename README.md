@@ -1,106 +1,119 @@
-# Hilbi Cockpit — prototyp a klinické špecifikácie
+# Hilbi Cockpit — prototype and clinical specifications
 
-**Čítaj tento súbor prvý.** Definuje, čo je každý súbor v repozitári, **akú autoritu nesie**,
-**v akom poradí ho čítať** a **kto vyhráva pri konflikte**.
+**Read this file first.** It defines what every file in the repository is, **what
+authority it carries**, **in what order to read it** and **who wins in a conflict**.
 
-- **Live prototyp:** https://patrikkmec-ivx.github.io/prototype/
-- **Aktuálna verzia prototypu:** **v161** — changelog je v hlavičke `index.html`
-- Desktop ≥ 745 px, mobil ≤ 744 px; jazyky EN/SK (prepínač v menu)
+- **Live prototype:** https://patrikkmec-ivx.github.io/prototype/
+- **Current prototype version:** **v163** — the changelog lives in the header of `index.html`
+- Desktop ≥ 745 px, mobile ≤ 744 px; languages EN/SK (switcher in the menu)
 
-> **Prototyp nie je produkčný kód.** Žiadne reálne údaje pacientov. Prototyp implementuje
-> *štruktúru* noriem, nie ich produkčné naplnenie — nezhody sú vymenované v `cp-17` §10.
+> **The prototype is not production code.** No real patient data. It implements the
+> *structure* of the standards, not their production fulfilment — the deviations are
+> listed in `cp-17` §10.
+
+> **Language.** Everything written down in this repository is **English**: documents,
+> specifications, schemas, code, code comments, changelogs and commit messages. The
+> only exception is the demo content listed in `docs/GLOSSARY.md` §3. Working
+> discussion may be held in any language; artefacts may not. This follows `D17` of the
+> Care Plans Standard, under which the specification layer is authoritative in English.
 
 ---
 
-## Úrovne autority
+## Levels of authority
 
-| Úroveň | Význam | Pri konflikte s vyššou úrovňou |
+| Level | Meaning | In conflict with a higher level |
 |---|---|---|
-| **NORMATIVE** | Záväzné. Musí sa dodržať a musí sa voči tomu konformovať. | Nižšie postavený normatívny artefakt ustupuje vyššiemu. |
-| **BEHAVIORAL** | Riadi, *ako* AI nástroj uvažuje a koná. Nedefinuje podstatu. | Vo vecných otázkach ustupuje NORMATIVE. |
-| **INFORMATIVE** | Vysvetľujúca orientácia. Nezáväzné. | Nikdy nič neprebíja. |
-| **REFERENCE** | Ilustratívny vzor. Nie je zdroj pravdy. | Nikdy nič neprebíja; ak sa rozchádza s NORMATIVE, chyba je v ňom. |
+| **NORMATIVE** | Binding. Must be followed and conformed to. | A lower normative artefact yields to a higher one. |
+| **BEHAVIORAL** | Governs *how* an AI tool reasons and acts. Does not define substance. | Yields to NORMATIVE on any question of substance. |
+| **INFORMATIVE** | Explanatory orientation. Non-binding. | Never overrides anything. |
+| **REFERENCE** | An illustrative sample. Not a source of truth. | Never overrides anything; if it diverges from NORMATIVE, the error is in the sample. |
 
-## Precedencia
+## Precedence
 
 ```
-cp-17 (report conformance)  >  cp-15 (záznamový model)  >  index.html (implementácia)
-        core-01 je nadradený pre klinické jadro
-        (CLAUDE.md riadi správanie AI, vo veci ustupuje vyššiemu)
+cp-17 (report conformance)  >  cp-15 (record model)  >  index.html (implementation)
+        core-01 is superior for the clinical core
+        (CLAUDE.md governs AI behaviour; on substance it yields to the above)
 ```
 
-1. **Pri konflikte o tom, čo sa smie so záznamom stať** — kódovanie, podpis, verziovanie,
-   provenance, zdieľanie, AI transparentnosť — **vyhráva `cp-17`**.
-2. **Pri konflikte o záznamovom modeli** (SOAP, case, billing derivácia) — **vyhráva `cp-15`**.
-3. **Prototyp nikdy nedefinuje normu.** Ak sa `index.html` rozchádza so specom, chyba je
-   v prototype — okrem bodov vedome uvedených v `cp-17` §10 ako placeholder.
+1. **On what may happen to a record** — coding, signature, versioning, provenance,
+   sharing, AI transparency — **`cp-17` wins**.
+2. **On the record model** (SOAP, case, billing derivation) — **`cp-15` wins**.
+3. **The prototype never defines the standard.** If `index.html` diverges from the
+   specification, the error is in the prototype — except for the points deliberately
+   listed in `cp-17` §10 as placeholders.
 
-## Poradie čítania pre AI nástroj
+## Reading order for an AI tool
 
-1. **`README.md`** (tento súbor) — čo čítaš a akú to má váhu.
-2. **`CLAUDE.md`** — ako sa v tomto repozitári správať (sanity brány, commit pravidlá, disciplína tokenov).
-   Rýchly štart relácie: **`docs/HANDOFF-START.md`**.
-3. **`docs/cp-17-…`** — čo je záväzné pre report a jeho životný cyklus.
-4. **`docs/cp-15-…`** — záznamový model (SOAP, case, billing).
-5. **`docs/DEV-SUMMARY.md`** — rýchla orientácia a mapa „pravidlo → kde v kóde".
-6. **`index.html`** — implementácia.
+1. **`README.md`** (this file) — what you are reading and how much weight it carries.
+2. **`CLAUDE.md`** — how to behave in this repository (sanity gates, commit rules,
+   token discipline). Quick session start: **`docs/HANDOFF-START.md`**.
+3. **`docs/GLOSSARY.md`** — the one permitted English term per concept.
+4. **`docs/cp-17-…`** — what is binding for a report and its lifecycle.
+5. **`docs/cp-15-…`** — the record model (SOAP, case, billing).
+6. **`docs/DEV-SUMMARY.md`** — quick orientation and the "rule → where in the code" map.
+7. **`index.html`** — the implementation.
 
 ---
 
-## Index súborov
+## File index
 
-| Súbor | Autorita | Čo to je |
+| File | Authority | What it is |
 |---|---|---|
-| `README.md` | — | Tento index: autorita, precedencia, poradie čítania. |
-| `CLAUDE.md` | **BEHAVIORAL** | Operačný kontrakt pre AI nástroje (Claude Code) pracujúce v tomto repozitári. |
-| `docs/cp-17-tech-report-conformance-standard.md` | **NORMATIVE** | Report conformance: rola overlay/core, shell, terminológia, podpis, amendment, provenance a audit, súhlas, DSI. Trhová matica EU/US/IN. |
-| `docs/cp-15-tech-soap-case-billing-standard.md` | **NORMATIVE** | Záznamový model: SOAP jadro, case vrstva, billing derivácia. |
-| `docs/core-01-tech-clinical-core-standard.md` | **NORMATIVE** | Klinické jadro. |
-| `docs/cp-16-tech-records-simple-note-analysis.md` | **INFORMATIVE** | Analýza Records vrstvy; implementácia odložená. |
-| `docs/cp-19-tech-templates-intake-analysis.md` | **INFORMATIVE** | Analýza šablónovej vrstvy a IQ intake postupu; návrh pravidiel TPL-*/INT-*. |
-| `docs/cp-18-tech-report-lifecycle.mermaid` | **REFERENCE** | Životný cyklus reportu s Provenance bodmi — vizualizácia `cp-17`. |
-| `docs/cp-14-tech-soap-screen-flow.mermaid` | **REFERENCE** | Obrazovkový tok SOAP. |
-| `docs/core-02-tech-clinical-core-flow.mermaid` | **REFERENCE** | Tok klinického jadra. |
-| `docs/core-03-audit-us.md` | **INFORMATIVE** | Regionálny audit — US (`US-01..10`). |
-| `docs/core-04-audit-eu.md` | **INFORMATIVE** | Regionálny audit — EÚ (`EU-01..10`). |
-| `docs/core-05-audit-in.md` | **INFORMATIVE** | Regionálny audit — India (`IN-01..10`). |
-| `docs/core-06-audit-consolidation.md` | **INFORMATIVE** | Konsolidácia regionálnych auditov. |
-| `docs/core-07-pack-us.md` | **INFORMATIVE** | Regionálny balík — US. |
-| `docs/core-08-pack-eu.md` | **INFORMATIVE** | Regionálny balík — EÚ. |
-| `docs/core-09-pack-in.md` | **INFORMATIVE** | Regionálny balík — India. |
-| `docs/core-10-executive-summary.md` | **INFORMATIVE** | Zhrnutie pre vedenie. |
-| `docs/core-11-tech-careplan-pathway-mapping.md` | **NORMATIVE** | Mapovanie care plan → pathway. |
-| `docs/core-12-tech-sync-standard.md` | **NORMATIVE** | Synchronizačný kontrakt. |
-| `docs/DEV-SUMMARY.md` | **INFORMATIVE** | Orientácia pre dev tím + mapa „pravidlo → kde v kóde". |
-| `docs/HANDOFF-START.md` | **INFORMATIVE** | Kompaktný štart relácie — vlož do prvej správy nového chatu. |
-| `docs/HANDOFF.md` | **INFORMATIVE** | Podrobný stav práce, fázy, otvorené body. |
-| `tokens.json` | **REFERENCE** | Dizajn tokeny v DTCG formáte, generované z `:root`. Vstup pre Style Dictionary → Figma Variables. Neupravovať ručne. |
-| `index.html` | — | Prototyp. Implementácia, nikdy nie norma. |
+| `README.md` | — | This index: authority, precedence, reading order. |
+| `CLAUDE.md` | **BEHAVIORAL** | Operating contract for AI tools (Claude Code) working in this repository. |
+| `docs/GLOSSARY.md` | **NORMATIVE for wording** | One English term per concept; the language rule and the demo-content exception. |
+| `docs/cp-17-tech-report-conformance-standard.md` | **NORMATIVE** | Report conformance: overlay/core role, shell, terminology, signature, amendment, provenance and audit, consent, DSI. Market matrix EU/US/IN. |
+| `docs/cp-15-tech-soap-case-billing-standard.md` | **NORMATIVE** | Record model: SOAP core, case layer, billing derivation. |
+| `docs/core-01-tech-clinical-core-standard.md` | **NORMATIVE** | The clinical core. |
+| `docs/cp-16-tech-records-simple-note-analysis.md` | **INFORMATIVE** | Analysis of the Records layer; implementation deferred. |
+| `docs/cp-19-tech-templates-intake-analysis.md` | **INFORMATIVE** | Analysis of the template layer and the IQ intake flow; proposed `TPL-*`/`INT-*` rules. |
+| `docs/cp-18-tech-report-lifecycle.mermaid` | **REFERENCE** | Report lifecycle with Provenance points — a visualisation of `cp-17`. |
+| `docs/cp-14-tech-soap-screen-flow.mermaid` | **REFERENCE** | SOAP screen flow. |
+| `docs/core-02-tech-clinical-core-flow.mermaid` | **REFERENCE** | Clinical core flow. |
+| `docs/core-03-audit-us.md` | **INFORMATIVE** | Regional audit — US (`US-01..10`). |
+| `docs/core-04-audit-eu.md` | **INFORMATIVE** | Regional audit — EU (`EU-01..10`). |
+| `docs/core-05-audit-in.md` | **INFORMATIVE** | Regional audit — India (`IN-01..10`). |
+| `docs/core-06-audit-consolidation.md` | **INFORMATIVE** | Consolidation of the regional audits. |
+| `docs/core-07-pack-us.md` | **INFORMATIVE** | Regional pack — US. |
+| `docs/core-08-pack-eu.md` | **INFORMATIVE** | Regional pack — EU. |
+| `docs/core-09-pack-in.md` | **INFORMATIVE** | Regional pack — India. |
+| `docs/core-10-executive-summary.md` | **INFORMATIVE** | Summary for management. |
+| `docs/core-11-tech-careplan-pathway-mapping.md` | **NORMATIVE** | Care plan → pathway mapping. |
+| `docs/core-12-tech-sync-standard.md` | **NORMATIVE** | Synchronisation contract. |
+| `docs/DEV-SUMMARY.md` | **INFORMATIVE** | Orientation for the dev team plus the "rule → where in the code" map. |
+| `docs/HANDOFF-START.md` | **INFORMATIVE** | Compact session start — paste into the first message of a new chat. |
+| `docs/HANDOFF.md` | **INFORMATIVE** | Detailed state of work, phases, open points. |
+| `tokens.json` | **REFERENCE** | Design tokens in DTCG format, generated from `:root`. Input for Style Dictionary → Figma Variables. Do not edit by hand. |
+| `index.html` | — | The prototype. An implementation, never a standard. |
 
-> **Poradie čítania pri zmene:** norma (`cp-17`) → mapa do kódu (`DEV-SUMMARY` §4) →
-> implementácia. Každý normatívny krok sa premieta do `cp-17` §14 (stav prototypu),
-> `DEV-SUMMARY` §4 a §5, a `HANDOFF`. Dokumentácia sa aktualizuje **v tom istom kroku**,
-> nie neskôr.
-
----
-
-## Pravidlo, ktoré rieši väčšinu otázok
-
-> **Hilbi je orchestrátor, nie system of record.** Východisková rola je **overlay** nad
-> existujúcim systémom poskytovateľa; rola `core` je opt-in a viaže sa na ňu certifikačná
-> vrstva podľa trhu. Pozri `cp-17` §1 — v súlade s **A1** Care Plans Standardu
-> („orchestrator, not an EHR"), ktorý túto pozíciu zamkol skôr.
-
-## Konformita v jednej vete
-
-Výstup je konformný, keď je klinický obsah **kódovaný dual coding** (záznam SNOMED CT, výkaz
-klasifikácia trhu) so **zachovaným naratívom**, nesie **podpisovú úroveň trhu**, **podpis zmrazí
-obsah do snímky s odtlačkom**, má **nemenný audit s purpose-of-use**, opravuje sa **výhradne
-addendom**, zdieľa sa **len po podpise a so súhlasovým kontextom**, každý **AI výstup je označený
-ako návrh** s deklarovanou logikou, a **jazyk dokumentu je nezávislý od jazyka rozhrania**
-(klinický obsah sa neprekladá automaticky, súhlas nikdy).
+> **Reading order when making a change:** the standard (`cp-17`) → the map into the
+> code (`DEV-SUMMARY` §4) → the implementation. Every normative step is reflected in
+> `cp-17` §14 (prototype state), `DEV-SUMMARY` §4 and §5, and `HANDOFF`. Documentation
+> is updated **in the same step**, never later.
 
 ---
 
-*Vlastník: Hilbi Health Group (R&D). Markdown je SSOT; akýkoľvek `.docx` je z neho generovaný
-pre obeh a nie je autoritatívny.*
+## The rule that answers most questions
+
+> **Hilbi is an orchestrator, not a system of record.** The default role is **overlay**
+> on top of the provider's existing system; the `core` role is opt-in and carries a
+> certification layer that depends on the market. See `cp-17` §1 — consistent with
+> **A1** of the Care Plans Standard ("orchestrator, not an EHR"), which locked this
+> position earlier.
+
+## Conformance in one sentence
+
+Output is conformant when the clinical content is **dual coded** (SNOMED CT for the
+record, the market's classification for the claim) with the **narrative preserved**,
+carries the **market's signature level**, where the **signature freezes the content
+into a snapshot with a fingerprint**, has an **immutable audit with purpose-of-use**,
+is corrected **exclusively by addendum**, is shared **only after signature and with a
+consent context**, every **AI output is labelled as a suggestion** with its logic
+declared, and the **document language is independent of the interface language**
+(clinical content is never machine-translated silently, consent never at all).
+
+---
+
+*Owner: Hilbi Health Group (R&D). Markdown is the SSOT; any `.docx` is generated from
+it for circulation and is not authoritative.*
