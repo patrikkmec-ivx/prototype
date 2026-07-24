@@ -9,7 +9,7 @@ status: final
 version: 1.0
 created: 2026-07-21
 audited_document: CORE-TECH-CLINICAL-CORE v0.9
-classification: Dôverné — interné
+classification: Confidential — internal
 ---
 
 # Independent Audit — European Union
