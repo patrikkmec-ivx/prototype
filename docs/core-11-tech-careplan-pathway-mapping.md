@@ -13,7 +13,7 @@ review_due: 2026-10-21
 tags: [mapping, care-plans, pathway, timeline, encounter, kokpit, fhir]
 related: [CORE-TECH-CLINICAL-CORE, CP-TECH-STANDARD, CP-15 (SOAP/CASE/ENC/BILL), CORE-PACK-US, CORE-PACK-EU, CORE-PACK-IN]
 iso_controls: [A.8.1]
-classification: Dôverné — interné
+classification: Confidential — internal
 ---
 
 # Care Plans × Patient Pathway × Clinical Core — Binding Map v0.2
