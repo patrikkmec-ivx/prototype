@@ -4,7 +4,7 @@
 > je v repozitári. Duplikovať sem obsah by vytvorilo druhý zdroj pravdy.
 
 **Repo:** `patrikkmec-ivx/prototype` · **Live:** https://patrikkmec-ivx.github.io/prototype/
-**Verzia:** v161 · **Uzávierka:** 2026-07-23
+**Verzia:** v162 · **Uzávierka:** 2026-07-23
 
 ---
 
@@ -13,6 +13,9 @@
 1. **Prečítaj v tomto poradí:**
    `README.md` → `CLAUDE.md` → `docs/HANDOFF.md` → `docs/cp-17-…` → `docs/DEV-SUMMARY.md`
 2. **Stiahni `index.html` z `main`** a over, že sa zhoduje s tým, čo máš lokálne.
+   **Bez tokenu je GitHub API rate-limited (403)** — na čítanie použi
+   `raw.githubusercontent.com/patrikkmec-ivx/prototype/main/<súbor>`, ten funguje
+   bez autentifikácie.
 3. **Na zápis potrebuješ čerstvý fine-grained token** (Patrik ho dodá):
    repozitár `prototype`, oprávnenie **Contents: Read and write**. Po relácii revoknúť.
 
@@ -27,15 +30,17 @@
 
 Pri konflikte vyhráva `cp-17`. Čo je hotové a čo placeholder: **`cp-17` §16**.
 
-## 3. Sanity brány — všetkých sedem pred každým commitom
+## 3. Sanity brány — všetkých deväť pred každým commitom
 
 1. brace balance — **baseline `-1`**, nie `0`
 2. `node --check` na extrahovanom `<script>`
 3. **handlery** — každý `onclick`/`onchange`/`oninput` má definíciu
 4. **poradie CSS** — media query nesmie byť prebitý neskorším základným pravidlom
-5. **tokeny** — žiadna hex farba mimo `:root`, ktorá už má token
-6. **preklady** — každý reťazec v `tt()` aj statický popisok má pár v `I18N`
-7. **kľúče zdrojov** — konzistentné naprieč šiestimi registrami
+5. **nedefinované tokeny** — každý `var(--x)` má definíciu, aj ten s fallbackom
+6. **drift tokenov** — žiadna hex farba mimo `:root`, ktorá už má token
+7. **úplnosť prekladov** — každý reťazec v `tt()` aj statický popisok má pár
+8. **konfliktné preklady** — žiadny SK kľúč nemá dva rôzne EN preklady
+9. **kľúče zdrojov** — konzistentné naprieč šiestimi registrami
 
 Skripty sa v prostredí nezachovajú — napíš ich znova podľa `CLAUDE.md` §4.
 
