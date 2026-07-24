@@ -1,207 +1,231 @@
-# HAND-OFF — kde sme a čo je ďalej
+# HAND-OFF — where we are and what comes next
 
-> **Autorita: INFORMATIVE.** Stav rozpracovanej práce. Záväzné sú `cp-17` a `cp-15`;
-> ako sa v repozitári správať určuje `CLAUDE.md`; čo je čo určuje `README.md`.
-> **Aktualizuje sa na konci každej relácie.**
+> **Authority: INFORMATIVE.** The state of work in progress. `cp-17` and `cp-15` are
+> binding; `CLAUDE.md` governs how to behave in the repository; `README.md` says what
+> is what. **Updated at the end of every session.**
 
-Aktualizované: 2026-07-23 (uzávierka relácie) · Verzia prototypu: **v163** (`b623c3fa`)
+Updated: 2026-07-24 · Prototype version: **v163**
 
 ---
 
-## 1. Štart novej relácie
+## 1. Starting a new session
 
-1. Prečítaj `README.md` → `CLAUDE.md` → `docs/cp-17-…` → `docs/DEV-SUMMARY.md`.
-2. Stiahni aktuálny `index.html` z `main` (autoritatívny je obsah repa; GitHub Pages nie).
-3. Na zápis potrebuješ **čerstvý fine-grained token** — Patrik ho dodá na začiatku relácie.
-   Rozsah: repozitár `prototype`, oprávnenie **Contents: Read and write**.
-   **Po relácii token revoknúť.** Token nikdy nepatrí do repozitára.
-4. Sanity pred každým commitom: brace balance **baseline `-1`** + `node --check` na
-   extrahovanom `<script>`.
+1. Read `README.md` → `CLAUDE.md` → `docs/GLOSSARY.md` → `docs/cp-17-…` →
+   `docs/DEV-SUMMARY.md`.
+2. **Fetch `index.html` from `main` pinned to a commit SHA.** The repository is
+   authoritative, not GitHub Pages — and not a mutable ref either; the CDN behind
+   `raw.githubusercontent.com/…/main/…` has served a file two versions old.
+3. Writing requires a **fresh fine-grained token** — Patrik supplies it at the start of
+   the session. Scope: repository `prototype`, permission **Contents: Read and write**.
+   **Revoke it after the session.** A token never belongs in the repository.
+4. Sanity before every commit: all ten gates (`CLAUDE.md` §4).
 
-## 2. Čo sa uzavrelo naposledy (v126–v129)
+## 2. Language
 
-Konformančný cyklus pre report vrstvu — sedem oblastí z regionálneho review
-(US / EÚ / India). Rozhodnutia sú zapísané normatívne v `cp-17`, implementácia je
-v `index.html`, mapa pravidlo → kód je v `docs/DEV-SUMMARY.md` §4.
+Everything written down is English (`docs/GLOSSARY.md`). Migration status and the
+remaining stages: `docs/EN-MIGRATION-PLAN.md`.
 
-| Oblasť | Stav |
+## 3. What closed most recently (v126–v129)
+
+The conformance cycle for the report layer — seven areas from the regional review
+(US / EU / India). The decisions are recorded normatively in `cp-17`, the
+implementation is in `index.html`, and the rule → code map is in `docs/DEV-SUMMARY.md`
+§4.
+
+| Area | State |
 |---|---|
-| Dokumentové profily per trh | hotové |
-| Terminológia (dual coding) | štruktúra hotová, **capture-side chýba** |
-| Podpisová úroveň per trh | deklarovaná, integrácia chýba |
-| Amendment / addendum | hotové (bez dôvodu opravy) |
-| Provenance + AuditEvent | hotové (log len v pamäti) |
-| Súhlas pri zdieľaní | deklarovaný, dialóg chýba |
-| AI transparentnosť (DSI) | hotové (bez verzovania logiky) |
+| Document profiles per market | done |
+| Terminology (dual coding) | structure done, **capture-side missing** |
+| Signature level per market | declared, integration missing |
+| Amendment / addendum | done (without a reason for correction) |
+| Provenance + AuditEvent | done (log in memory only) |
+| Consent on sharing | declared, dialogue missing |
+| AI transparency (DSI) | done (without logic versioning) |
 
-Plus: rola systému **overlay** (default) vs **core** (opt-in) je zapísaná normatívne —
-v súlade s A1 Care Plans Standardu.
+Plus: the system role **overlay** (default) versus **core** (opt-in) is recorded
+normatively — consistent with A1 of the Care Plans Standard.
 
-Presný zoznam nezhôd voči norme je **`cp-17` §10**. Ten je zdroj pravdy o tom, čo je
-hotové a čo je placeholder — nie tento súbor.
+The exact list of deviations from the standard is **`cp-17` §10**. That is the source
+of truth for what is done and what is a placeholder — not this file.
 
-## 3. Plán fáz
+## 4. Phase plan
 
-| Fáza | Obsah | Stav |
+| Phase | Content | State |
 |---|---|---|
-| 1 | SSOT dokumentácia — `cp-17`, `cp-18`, `README`, `CLAUDE.md`, `DEV-SUMMARY` | **hotová** |
-| 2 | Traceability matica: normatívne ID → obrazovka/komponent | hrubá verzia v `DEV-SUMMARY` §4; plná chýba |
-| 3a | Šablónový povrch — picker, coverage, dva renderery (v131) | **hotová** |
-| 3b | Rozhranie správy šablón — zoznam, editor sekcií, validácia TPL-02 (v132); vstup z profilového menu (v134) | **hotová** |
-| 3b+ | Šablóny: register, editor, náhľad, extrakcia zo vzorky, hlavička organizácie, anamnéza, súhlas, okruhy vlastníctva (v136–v139) | **hotová** |
-| 3c1 | Šablóny ako podstránka, dizajn systém (tlačidlá, polia, taby, rozostupy) — v140–v147 | **hotová** |
-| 3c2 | Zmrazenie obsahu pri podpise — snímka + odtlačok (AMD-05..09), v148 | **hotová** |
-| 3c3 | Jazyková vrstva — neutrálne kľúče, jazyk dokumentu, súhlas per jazyk, preklad na vyžiadanie (I18N-01..15), v149 | **hotová** |
-| 3c4 | Šablóna **FNTT SM** podľa reálnej ambulantnej správy + zdroje ako podmnožiny slotov (TPL-17, TPL-18), v152 | **hotová** |
-| 3d | **Rozhranie dekurzu** — intake, kandidáti z IQ, validácia po položkách (INT-01..05) | **ďalšia na rade** |
-| 3d | Anamnestické okruhy na pacientskej úrovni (TPL-04) | čaká |
-| 4 | UX podpis, amendment s dôvodom, súhlasový dialóg | čaká |
-| 5 | Audit a verzie ako systémová plocha (nie len v reporte) | čaká |
-| 6 | Kokpit cieľový layout — Life ID panel, taby, dekurz modal, IQ widget | čaká |
-| 7 | i18n, tokeny, mobil pass | čaká |
+| 1 | SSOT documentation — `cp-17`, `cp-18`, `README`, `CLAUDE.md`, `DEV-SUMMARY` | **done** |
+| 2 | Traceability matrix: normative ID → screen/component | rough version in `DEV-SUMMARY` §4; the full one is missing |
+| 3a | Template surface — picker, coverage, two renderers (v131) | **done** |
+| 3b | Template management interface — list, section editor, `TPL-02` validation (v132); entry from the profile menu (v134) | **done** |
+| 3b+ | Templates: registry, editor, preview, extraction from a sample, organisation header, history, consent, ownership scopes (v136–v139) | **done** |
+| 3c1 | Templates as a subpage, design system (buttons, fields, tabs, spacing) — v140–v147 | **done** |
+| 3c2 | Content freeze at signature — snapshot + fingerprint (AMD-05..09), v148 | **done** |
+| 3c3 | Language layer — neutral keys, document language, consent per language, translation on demand (I18N-01..15), v149 | **done** |
+| 3c4 | The **FNTT SM** template from a real outpatient report + sources as slot subsets (TPL-17, TPL-18), v152 | **done** |
+| 3d | **Progress note interface** — intake, IQ candidates, per-item validation (INT-01..05) | **next in line** |
+| 3d | Patient-level history scopes (TPL-04) | waiting |
+| 4 | Signature UX, amendment with a reason, consent dialogue | waiting |
+| 5 | Audit and versions as a system surface (not only inside the report) | waiting |
+| 6 | Cockpit target layout — Life ID panel, tabs, progress note modal, IQ widget | waiting |
+| 7 | i18n, tokens, mobile pass | waiting |
 
-**Fáza 3 je architektonicky najdôležitejšia.** Dnes sa kód odvodzuje regexom až pri
-renderi (`codeOf` sa volá len v `renderOut`). To je obrátene — kód patrí do udalosti,
-lebo udalosti sú SSOT. Fáza 3 mení dátový model udalosti (pribudne `coding[]`), preto
-sa dotýka `cp-16` a musí sa premietnuť do `cp-17` §10 v tom istom commite.
+**Phase 3 is architecturally the most important.** Today the code is derived by regex
+only at render time (`codeOf` is called only from `renderOut`). That is backwards — the
+code belongs in the event, because events are the SSOT. Phase 3 changes the event data
+model (`coding[]` is added), therefore it touches `cp-16` and must be reflected in
+`cp-17` §10 in the same commit.
 
-## 3b. Čo z jazykovej vrstvy ešte chýba
+## 4b. What is still missing from the language layer
 
-- Systémové šablóny sú lokalizované len čiastočne (`I18N-04`).
-- Taxonómia sa zatiaľ neprekladá cez **zobrazovací termín kódu** (`I18N-05`) — dnes
-  cez `SRC_DISP`; produkčne má čerpať z terminologického servera.
-- Cudzie dokumenty na časovej osi (`I18N-10`), jazyk tlače (`I18N-13`) a locale
-  formátovanie čísel a dátumov (`I18N-14`) zatiaľ neriešené.
-- Jazyk pacienta ako samostatná os (riadi súhlasy a pacientske listy).
+- System templates are only partly localised (`I18N-04`).
+- Taxonomy is not yet translated through the **code display term** (`I18N-05`) — today
+  it goes through `SRC_DISP`; in production it should come from a terminology server.
+- Foreign documents on the timeline (`I18N-10`), print language (`I18N-13`) and locale
+  formatting of numbers and dates (`I18N-14`) are not addressed yet.
+- Patient language as a separate axis (it governs consents and patient letters).
 
-## 3c. Poskytovateľské šablóny
+## 4c. Provider templates
 
-Prvá reálna šablóna je **FNTT SM** (okruh `provider`), adaptovaná z ambulantnej správy
-Neurologickej kliniky — Centrum SM. Sekcie: TO · Obj. · HK/DK · Laboratórne a likvorové
-vyšetrenia · Záver · Dop. · Recepty · Diagnózy · Vyhlásenie pacienta.
+The first real template is **FNTT SM** (scope `provider`), adapted from an outpatient
+report of the Neurology Clinic — MS Centre. Sections: TO · Obj. · UL/LL · Laboratory and
+CSF examinations · Conclusion · Recommendations · Prescriptions · Diagnoses · Patient
+statement.
 
-Pri adaptácii sa preberá **iba štruktúra** (`TPL-08`) — klinické hodnoty, identita
-pacienta ani cudzie právne texty sa nekopírujú; demo dáta a znenie súhlasu sú vlastné.
+When adapting, only the **structure** is taken (`TPL-08`) — clinical values, patient
+identity and third-party legal wording are never copied; demo data and consent wording
+are our own.
 
-Ďalšie poskytovateľské šablóny sa pridávajú rovnako: rozpoznať sekcie → namapovať na
-zdroje (v prípade potreby doplniť nový zdroj podľa `TPL-17`) → overiť minimum trhu →
-zabezpečiť znenie súhlasu v jazyku dokumentu → **vybrať podpisovateľov** (`TPL-19`).
+Further provider templates are added the same way: recognise the sections → map them to
+sources (adding a new source per `TPL-17` where needed) → verify the market minimum →
+ensure consent wording in the document language → **select the signatories** (`TPL-19`).
 
-Hlavička, pätka a podpisovatelia sa editujú v **nastaveniach zariadenia**, nie v šablóne;
-z editora šablóny tam vedie odkaz.
+The header, footer and signatories are edited in the **facility settings**, not in the
+template; the template editor links there.
 
-## 3e. Ďalší krok — tvorba dokumentov
+## 5. Next step — document creation
 
-Všetky tri predpoklady sú uzavreté (`DOC-*`, `STO-*`). Tvorba dokumentov znamená:
+All three prerequisites are closed (`DOC-*`, `STO-*`). Document creation means:
 
-1. **Vstup** — vytvorenie dokumentu z kokpitu alebo z časovej osi
-2. **Výber typu a šablóny** — `slotKey` + šablóna z okruhu (`TPL-03`, `TPL-16`)
-3. **Naplnenie zo zdrojov** — encounter + pacientska úroveň (`TPL-04`, `TPL-17`)
-4. **Náhľad a coverage** — čo ešte chýba pred podpisom (`INT-03`)
-5. **Podpis** — snímka, ľudské číslo, zápis do registra (`AMD-05`, `DOC-04`)
-6. **Výstup** — štruktúra, plain text do schránky, **tlač v jazyku dokumentu** (`I18N-13`)
+1. **Entry** — creating a document from the cockpit or from the timeline
+2. **Type and template selection** — `slotKey` + a template from a scope (`TPL-03`, `TPL-16`)
+3. **Population from sources** — encounter + patient level (`TPL-04`, `TPL-17`)
+4. **Preview and coverage** — what is still missing before signature (`INT-03`)
+5. **Signature** — snapshot, human-readable number, write into the registry (`AMD-05`, `DOC-04`)
+6. **Output** — structure, plain text to the clipboard, **print in the document
+   language** (`I18N-13`)
 
-Tlačový výstup zatiaľ **neexistuje** — nie je tlačová šablóna ani `@media print`.
-Patrí k tomuto kroku.
+Print output **does not exist yet** — there is neither a print template nor
+`@media print`. It belongs to this step.
 
-Potom nasleduje **rozhranie dekurzu** (`INT-01..05`): IQ intake, kandidáti z OCR ako
-`validated=false`, validácia po položkách, označenie prenesených položiek
-z predchádzajúcej návštevy (`INT-04`, klonovaná dokumentácia).
+Then follows the **progress note interface** (`INT-01..05`): IQ intake, OCR candidates
+as `validated=false`, per-item validation, marking of items carried over from the
+previous visit (`INT-04`, cloned documentation).
 
-## 3d. Predpoklady tvorby dokumentov
+## 5b. Prerequisites of document creation
 
-Tri veci treba uzavrieť **pred** tvorbou dokumentov — nie sú to doplnky:
+Three things had to close **before** document creation — they were not add-ons:
 
-1. ~~Identita dokumentu~~ — **hotové vo v158** (`DOC-01..07`): `masterIdentifier`,
-   verzie, ľudské číslo pri podpise, `DOC_REG` ako jeden register.
-2. ~~Zobrazenie v obidvoch pohľadoch~~ — **hotové vo v159**: časová os aj Records
-   čítajú z `DOC_REG`, kópia nevzniká, addendum aktualizuje existujúci záznam.
-3. ~~Perzistenčný seam~~ — **hotové vo v160** (`STO-01..05`): `Store` s piatimi
-   kolekciami, pamäťový adaptér, všetky zápisy cez seam.
+1. ~~Document identity~~ — **done in v158** (`DOC-01..07`): `masterIdentifier`,
+   versions, a human-readable number at signature, `DOC_REG` as the single registry.
+2. ~~Display in both views~~ — **done in v159**: the timeline and Records both read
+   from `DOC_REG`, no copy is created, an addendum updates the existing record.
+3. ~~Persistence seam~~ — **done in v160** (`STO-01..05`): `Store` with five
+   collections, an in-memory adapter, every write through the seam.
 
-**Všetky tri predpoklady sú uzavreté — tvorba dokumentov môže začať.**
+**All three prerequisites are closed — document creation can begin.**
 
-Tlačový výstup (`I18N-13`) patrí k tvorbe dokumentov a spraví sa s ňou.
+Print output (`I18N-13`) belongs to document creation and is done alongside it.
 
-## 4. Otvorené body mimo kódu
+## 6. Open points outside the code
 
-- **Marek (compliance):** hranica návrh vs. rozhodnutie pri Hilbi IQ (MDR) · podpisová
-  úroveň per trh · retencia auditu · rozsah EHDS CE režimu pri prechode do módu `core` ·
-  India CERT-In.
-- **Registrácia použitia SNOMED CT** u NCZI. Slovensko je členom SNOMED International
-  (NCZI = národné release centrum), použitie v členskej krajine je bez licenčného poplatku.
-- **Výber terminologického servera** pre `$expand` / `$validate-code` — blokuje Fázu 3
-  v produkčnej podobe (v prototype stačí demo ValueSet, ale UI vzor musí byť správny).
-- **Návrh perzistentného, tamper-evident audit logu** (`AUD-02`).
-- **`doc_id`** priradenie pre `cp-17` a `cp-18` podľa `gsr-13`.
+- **Marek (compliance):** the boundary between suggestion and decision in Hilbi IQ
+  (MDR) · signature level per market · audit retention · the scope of the EHDS CE
+  regime when moving to `core` mode · India CERT-In · **whether a faithful translation
+  of `cp-17` and `cp-15` counts as a change of the standard under K35**.
+- **Registering SNOMED CT usage** with NCZI. Slovakia is a member of SNOMED
+  International (NCZI is the national release centre); use within a member country
+  carries no licence fee.
+- **Selecting a terminology server** for `$expand` / `$validate-code` — this blocks
+  Phase 3 in production form (a demo ValueSet is enough in the prototype, but the UI
+  pattern must be right).
+- **Designing a persistent, tamper-evident audit log** (`AUD-02`).
+- **`doc_id` assignment** for `cp-17` and `cp-18` per `gsr-13`.
 
-## 4b. Poučenie z incidentu v148
+## 7. Lessons from two incidents
 
-Commit **v148 ticho prepísal v145–v147**: prostredie sa reštartovalo, lokálny
-`index.html` sa vrátil do staršieho stavu a nebol znovu stiahnutý z `main`. Tri
-následné commity sa aplikovali na starý súbor a odstránili podstránku šablón.
-Obnovené vo **v151**.
+**v148 silently overwrote v145–v147.** The environment restarted, the local
+`index.html` rolled back to an older state and was not re-fetched from `main`. Three
+subsequent commits were applied to the old file and removed the templates subpage.
+Restored in **v151**.
 
-Preto platí: **pred úpravami over zhodu lokálneho súboru s `main`** a opakuj to po
-každom náznaku reštartu (napr. keď zmizne obsah `/tmp`). Pravidlo je v `CLAUDE.md` §4.
+**2026-07-24 — the same failure mode, different cause.** A session started by reading
+files from `raw.githubusercontent.com/…/main/…`, which is CDN-cached and returned v161
+while `main` was already at v163. Nothing was committed before the mismatch was found,
+so no damage occurred.
 
-## 4c. Stav pri uzávierke relácie 2026-07-23
+Therefore: **read pinned to a commit SHA, and verify the local file matches `main`**
+before editing, repeating the check after any hint of a restart (for example when
+`/tmp` has been emptied). The rule is in `CLAUDE.md` §4.
 
-**Všetko je na GitHube**, lokálny súbor sedí s `main`. **Deväť** sanity brán prechádza:
-brace balance −1 · `node --check` · 89 handlerov · poradie CSS · **nedefinované tokeny**
-· drift tokenov · úplnosť prekladov · **konfliktné preklady** · konzistencia kľúčov zdrojov.
+## 8. State at the close of the 2026-07-23 session
 
-**Čísla merané pri v163** (vždy premerať, necitovať staré):
-4 725 riadkov · 220 funkcií · **98 tokenov v `:root`** (106 vrátane definícií mimo
-`:root`, napr. `--navw` na `body`) · 699 položiek `I18N` (699 unikátnych kľúčov,
-0 duplicít, 0 konfliktov) · 154 unikátnych reťazcov v `tt()` · 89 handlerov.
+**Everything is on GitHub.** Nine gates pass (a tenth, the Slovak-leak gate, was added
+on 2026-07-24 and does not yet pass on `index.html` — see `EN-MIGRATION-PLAN.md`).
 
-**Mŕtvy kód: nula.** Vo v163 odstránených 5 nepoužívaných funkcií.
+**Figures measured at v163** (always re-measure, never quote old ones):
+4 725 lines · 220 functions · **98 tokens in `:root`** (106 including definitions
+outside `:root`, for example `--navw` on `body`) · 699 `I18N` entries (699 unique keys,
+0 duplicates, 0 conflicts) · 154 unique strings in `tt()` · 89 handlers.
 
-**Zdravie kódu:** 225 funkcií, najdlhšia `tplMgrRender` (64 riadkov). **Refaktor netreba** — jeden súbor
-je pri tejto veľkosti stále v poriadku a rozdelenie by rozbilo commit workflow
-aj GitHub Pages. Sledovať pri prekročení ~700 kB.
+**Dead code: zero.** Five unused functions were removed in v163.
 
-**Dizajn tokeny:** **drift nula, žiadny nedefinovaný `var()`** — žiadna hex farba mimo `:root`,
-ktorá by už mala token. Vygenerovaný `tokens.json` (DTCG, 18 skupín, 16 aliasov)
-ako code-first SSOT.
+**Code health:** the longest function is `tplMgrRender` (64 lines). **No refactor is
+needed** — a single file is still fine at this size and splitting it would break both
+the commit workflow and GitHub Pages. Revisit above roughly 700 kB.
 
-**Figma:** ďalší krok je `tokens.json` → Style Dictionary → Figma Variables do súboru
-Design System '26 (`ombR6X345rSPGaJPfnye7e`). Komponenty v Figme sa **neaktualizujú
-z kódu** — smer je opačný: Figma je zdroj pre komponenty, kód je zdroj pre tokeny.
-Čo sa v prototype odchýlilo od DS (napr. veľkosti tlačidiel pred v143), sa opravilo
-v kóde, nie v Figme.
+**Design tokens:** **zero drift, no undefined `var()`** — no hex colour outside `:root`
+that already has a token. The generated `tokens.json` (DTCG, 18 groups, 16 aliases) is
+the code-first SSOT.
 
-## 4d. Známy dlh (pre nezávislý tím)
+**Figma:** the next step is `tokens.json` → Style Dictionary → Figma Variables into the
+Design System '26 file (`ombR6X345rSPGaJPfnye7e`). Components in Figma are **not
+updated from the code** — the direction is the opposite: Figma is the source for
+components, the code is the source for tokens. Where the prototype diverged from the
+design system (for example button sizes before v143), the code was corrected, not Figma.
 
-Vedomé a zdôvodnené — **nemeniť bez vizuálnej kontroly**:
+## 9. Known debt (for the independent team)
 
-- **~64 osirelých CSS tried** (`.alrg`, `.attn`, `.cbox`, `.confirm`, `.code`…) —
-  pozostatky starších iterácií. Odstránenie je bezpečné až po vizuálnej kontrole,
-  lebo časť názvov sa môže skladať dynamicky.
-- **Rozostupy mimo škály** v pôvodných komponentoch (`13px` 28×, `15/17/30/39px`) —
-  optické doladenie, nie drift. Škála 8/16/24/32 platí na novú prácu.
-- **Prototyp je v pamäti** — `Store` má pamäťový adaptér (`STO-01..05`); po obnovení
-  stránky sa všetko stratí. Je to zámer, nie chyba.
-- **EN→SK nie je vzájomne jednoznačné** — dve slovenské slová môžu mať rovnaký
-  anglický preklad (`Pracovisko` aj `Ambulancia` → `Clinic`). SK→EN je jednoznačné
-  a strážené bránou; spätný smer je inherentne nejednoznačný.
+Deliberate and reasoned — **do not change without a visual check**:
 
-## 5. Overené, neoverené
+- **~64 orphaned CSS classes** (`.alrg`, `.attn`, `.cbox`, `.confirm`, `.code`…) —
+  remnants of earlier iterations. Removal is safe only after a visual check, because
+  some names may be assembled dynamically.
+- **Off-scale spacing** in the original components (`13px` 28×, `15/17/30/39px`) —
+  optical tuning, not drift. The 8/16/24/32 scale applies to new work.
+- **The prototype is in memory** — `Store` has an in-memory adapter (`STO-01..05`);
+  everything is lost on reload. That is intentional, not a defect.
+- **Translation between languages is not one-to-one** — two Slovak words can share one
+  English translation (`Pracovisko` and `Ambulancia` → `Clinic`). This is the reason the
+  migration moves to neutral keys rather than swapping the columns of the pair table:
+  with a key per meaning, neither direction is ambiguous. Nine such collisions exist at
+  v163 and are resolved as part of stage 4.
 
-- Overené staticky: sedem sanity brán (viď §4c) plus cielené testy — nemennosť
-  snímky pri zmene živých dát, životný cyklus identity dokumentu, jeden dokument
-  v dvoch pohľadoch bez duplikátu, rozhranie úložiska.
-- **Neoverené vizuálne:** väčšina UI od v126. Vizuálne chyby sanity brány
-  nezachytia — zachytili sa tak už dvakrát (nedostupné tlačidlo vo v133,
-  zalomený náhľad vo v147). Pred ďalšou iteráciou sa oplatí prototyp otvoriť.
+## 10. Verified, unverified
 
-## 6. Staršie, mimo report vrstvy
+- Verified statically: the sanity gates (see §8) plus targeted tests — immutability of
+  a snapshot when live data changes, the document identity lifecycle, one document in
+  two views without a duplicate, the store interface.
+- **Unverified visually:** most of the UI since v126. Gates do not catch visual
+  defects — two have slipped through already (an unreachable button in v133, a broken
+  preview in v147). It is worth opening the prototype before the next iteration, and it
+  is required before stage 4.3 of the migration, which moves every visible label.
 
-- Figma sync tokenov v81 → v129+: token SSOT code-first (`tokens.json` DTCG +
-  Style Dictionary) → Figma Variables; nový súbor „Hilbi Design System".
-  Kľúče: DS '26 `ombR6X345rSPGaJPfnye7e`, Marketplace `QWv1xbC62cOhiy0MYlgVts`.
-- Otvorený dlh tokenov: pill `#6AD5E5` → `--brand-cyan`, `#06343E` → nový
-  `--brand-cyan-ink`, organizačné gradienty do tokenov.
-- Sub-špecializácie lekárov: keď budú dáta na odlíšenie viacerých lekárov na rovnakom
-  oddelení, doplniť do `SPECBY` — prejde všade naraz (dropdown, pill, tooltip).
+## 11. Older, outside the report layer
+
+- Figma token sync v81 → v129+: a code-first token SSOT (`tokens.json` DTCG + Style
+  Dictionary) → Figma Variables; a new "Hilbi Design System" file. Keys: DS '26
+  `ombR6X345rSPGaJPfnye7e`, Marketplace `QWv1xbC62cOhiy0MYlgVts`.
+- Open token debt: the pill `#6AD5E5` → `--brand-cyan`, `#06343E` → a new
+  `--brand-cyan-ink`, organisation gradients into tokens.
+- Physician sub-specialities: once there is data to distinguish several physicians in
+  the same department, add it to `SPECBY` — it propagates everywhere at once (dropdown,
+  pill, tooltip).
