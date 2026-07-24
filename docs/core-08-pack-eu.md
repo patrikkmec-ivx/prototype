@@ -13,7 +13,7 @@ review_due: 2026-10-21
 tags: [region-pack, eu, ehds, eehrxf, eidas, gdpr, ezdravie, gematik]
 related: [CORE-TECH-CLINICAL-CORE, CORE-AUDIT-EU, CORE-AUDIT-CONSOLIDATION, GSR-SEC-ISO]
 iso_controls: [A.8.1, A.5.12, A.8.11]
-classification: Dôverné — interné
+classification: Confidential — internal
 ---
 
 # EU Region Pack — Scope & Service Boundaries v0.1
@@ -73,7 +73,7 @@ Process owner: Marek; engineering owner: Juraj. Release-gating per P1 dates.
 **Description:** Regional instantiation of Core H6 (EU-02).
 **Requirements:** Erasure/restriction requests MUST adjudicate against the **member-state
 retention matrix** (O6): statutory medical-record retention prevails where national law says
-so (e.g. SK retains zdravotná dokumentácia for decades); outside statutory retention, GDPR
+so (e.g. SK retains zdravotná documentation for decades); outside statutory retention, GDPR
 Art. 17 executes via H6 mechanics (crypto-shred, tombstones, cascade, backup SLA).
 Art. 18 restriction and Art. 20 portability (patient export = IPS + full FHIR bundle of the
 compartment, EU-07) are served by the same service.
