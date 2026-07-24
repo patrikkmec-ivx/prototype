@@ -61,8 +61,13 @@ cp-17 (report conformance)  >  cp-15 (záznamový model)  >  index.html (impleme
 | `docs/cp-18-tech-report-lifecycle.mermaid` | **REFERENCE** | Životný cyklus reportu s Provenance bodmi — vizualizácia `cp-17`. |
 | `docs/cp-14-tech-soap-screen-flow.mermaid` | **REFERENCE** | Obrazovkový tok SOAP. |
 | `docs/core-02-tech-clinical-core-flow.mermaid` | **REFERENCE** | Tok klinického jadra. |
-| `docs/core-03…06-audit-*` | **INFORMATIVE** | Regionálne audity (US, EU, IN) a konsolidácia. |
-| `docs/core-07…09-pack-*` | **INFORMATIVE** | Regionálne balíky. |
+| `docs/core-03-audit-us.md` | **INFORMATIVE** | Regionálny audit — US (`US-01..10`). |
+| `docs/core-04-audit-eu.md` | **INFORMATIVE** | Regionálny audit — EÚ (`EU-01..10`). |
+| `docs/core-05-audit-in.md` | **INFORMATIVE** | Regionálny audit — India (`IN-01..10`). |
+| `docs/core-06-audit-consolidation.md` | **INFORMATIVE** | Konsolidácia regionálnych auditov. |
+| `docs/core-07-pack-us.md` | **INFORMATIVE** | Regionálny balík — US. |
+| `docs/core-08-pack-eu.md` | **INFORMATIVE** | Regionálny balík — EÚ. |
+| `docs/core-09-pack-in.md` | **INFORMATIVE** | Regionálny balík — India. |
 | `docs/core-10-executive-summary.md` | **INFORMATIVE** | Zhrnutie pre vedenie. |
 | `docs/core-11-tech-careplan-pathway-mapping.md` | **NORMATIVE** | Mapovanie care plan → pathway. |
 | `docs/core-12-tech-sync-standard.md` | **NORMATIVE** | Synchronizačný kontrakt. |
