@@ -4,7 +4,7 @@
 authority it carries**, **in what order to read it** and **who wins in a conflict**.
 
 - **Live prototype:** https://patrikkmec-ivx.github.io/prototype/
-- **Current prototype version:** **v163** — the changelog lives in the header of `index.html`
+- **Current prototype version:** **v166** — the changelog lives in the header of `index.html`
 - Desktop ≥ 745 px, mobile ≤ 744 px; languages EN/SK (switcher in the menu)
 
 > **The prototype is not production code.** No real patient data. It implements the
@@ -84,6 +84,9 @@ cp-17 (report conformance)  >  cp-15 (record model)  >  index.html (implementati
 | `docs/DEV-SUMMARY.md` | **INFORMATIVE** | Orientation for the dev team plus the "rule → where in the code" map. |
 | `docs/HANDOFF-START.md` | **INFORMATIVE** | Compact session start — paste into the first message of a new chat. |
 | `docs/HANDOFF.md` | **INFORMATIVE** | Detailed state of work, phases, open points. |
+| `docs/CHANGELOG-archive-v41-v154.md` | **INFORMATIVE** | Historical changelog, preserved in Slovak. |
+| `docs/EN-MIGRATION-PLAN.md` | **INFORMATIVE** | The English-only migration, stages and status. |
+| `tools/gates.py`, `tools/smoke.js` | — | The ten sanity gates and the load-time smoke test. |
 | `tokens.json` | **REFERENCE** | Design tokens in DTCG format, generated from `:root`. Input for Style Dictionary → Figma Variables. Do not edit by hand. |
 | `index.html` | — | The prototype. An implementation, never a standard. |
 
