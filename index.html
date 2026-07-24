@@ -4,8 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v162 (Opravy tokenov a prekladov)</title>
+<title>Hilbi Cockpit — v163 (Audit pred odovzdaním)</title>
 <!-- CHANGELOG
+v163 (2026-07-23): Audit pred odovzdaním nezávislému tímu. Odstránených 5 mŕtvych
+  funkcií (langName, vGauge, vRange, irSignDo, phrGauge — posledná bola volaná už
+  len z odstránenej vGauge). Mŕtvy kód je na nule. Overená integrita dokumentácie:
+  173 normatívnych ID, žiadny visiaci odkaz; všetkých 52 symbolov z mapy
+  DEV-SUMMARY §4 existuje v kóde; žiadny neplatný odkaz na súbor.
 v162 (2026-07-23): Opravy z nezávislej kontroly. 1) TOKENY — var(--ok,#2E7D5B)
   padal na fallback, --ok nebol definovaný; doplnené --ok a --ok-soft, fallback
   odstránený. --surface-0 sa používal 3x a NEBOL definovaný vôbec (tri neplatné
@@ -3902,7 +3907,6 @@ function srcDisp(k,lang,long){const d=SRC_DISP[k];if(!d)return k;
 function srcAbbr(k){return srcDisp(k,docLang(),false);}     /* do dokumentu */
 function srcName(k){return srcDisp(k,uiLang(),true);}       /* do navigácie a editora */
 /* I18N-12: chýbajúci preklad => originál s poznámkou, nikdy prázdno */
-function langName(k){const l=LANGS.find(x=>x.k===k);return l?l.n:k;}
 /* HLAVIČKA A PÄTKA POSKYTOVATEĽA (TPL-07) — patria ORGANIZÁCII, nie šablóne.
    Šablóna ich nikdy nenesie natvrdo; zmena adresy sa prejaví vo všetkých dokumentoch. */
 const ORG={
@@ -4524,38 +4528,7 @@ function phrTab(ev,id){
   const el=document.getElementById('pt-'+id); if(el)el.hidden=false;
 }
 /* radiálny gauge: frac 0..1 (null = no data), color = CSS var/hodnota */
-function phrGauge(frac,color){
-  const cx=42,cy=42,r=33,A0=225,SW=270;
-  const pol=(deg)=>{const a=(deg-90)*Math.PI/180;return[cx+r*Math.cos(a),cy+r*Math.sin(a)];};
-  const arc=(d0,d1)=>{const[sx,sy]=pol(d0);const[ex,ey]=pol(d1);const lg=(d1-d0)>180?1:0;return 'M'+sx.toFixed(1)+' '+sy.toFixed(1)+' A'+r+' '+r+' 0 '+lg+' 1 '+ex.toFixed(1)+' '+ey.toFixed(1);};
-  let track='<path d="'+arc(A0,A0+SW)+'" stroke="var(--surface-2)" stroke-width="7" fill="none" stroke-linecap="round"/>';
-  if(frac==null) return '<svg class="vg" viewBox="0 0 84 84">'+track+'</svg>';
-  const f=Math.max(0,Math.min(1,frac));
-  const nd=A0+f*SW; const[nx,ny]=pol(nd);
-  return '<svg class="vg" viewBox="0 0 84 84">'+track
-    +'<path d="'+arc(A0,nd)+'" stroke="'+color+'" stroke-width="7" fill="none" stroke-linecap="round"/>'
-    +'<line x1="42" y1="42" x2="'+nx.toFixed(1)+'" y2="'+ny.toFixed(1)+'" stroke="var(--nav-active)" stroke-width="3" stroke-linecap="round"/>'
-    +'<circle cx="42" cy="42" r="4" fill="var(--nav-active)"/></svg>';
-}
 const PHR_COL={normal:'var(--success)',elevated:'var(--accent-7-strong)',high:'var(--danger)',na:'var(--text-disabled)'};
-function vGauge(o){
-  const col=PHR_COL[o.zone]||PHR_COL.normal;
-  const val=o.frac==null?'<b>—</b>':('<b style="color:'+col+'">'+o.val+'</b>'+(o.unit?'<small>'+o.unit+'</small>':''));
-  return '<div class="vcard"><div class="vch"><svg class="ico" aria-hidden="true"><use href="#'+o.icon+'"/></svg>'+o.name+'</div>'
-    +'<div class="vcb"><div class="vgwrap">'+phrGauge(o.frac,col)+'<div class="vgval'+(o.frac==null?' na':'')+'">'+val+'</div></div>'
-    +'<div class="vstat"><div class="vsrow"><span>Status</span><b>'+o.status+'</b></div><div class="vsrow"><span>'+(o.frac==null?'Records':'Average')+'</span><b>'+o.avg+'</b></div></div></div>'
-    +'<div class="vcf"><button class="vdet">Detail</button><span class="vsrc">'+o.src+'</span></div></div>';
-}
-function vRange(o){
-  const segs=o.zones.map(z=>'<span class="seg" style="background:'+z+'"></span>').join('');
-  const facts=o.facts?('<div class="vrfacts">'+o.facts.map(f=>'<div><b'+(f.hl?' class="hl"':'')+'>'+f.v+'</b><span>'+f.k+'</span></div>').join('')+'</div>'):'';
-  const scale=o.scale?('<div class="vrscale">'+o.scale.map(s=>'<span>'+s+'</span>').join('')+'</div>'):'';
-  return '<div class="vcard"><div class="vch"><svg class="ico" aria-hidden="true"><use href="#'+o.icon+'"/></svg>'+o.name+'</div>'
-    +'<div class="vrange"><div class="vrbar">'+segs+'<span class="vrpin" style="left:'+o.pin+'%">▼</span></div>'
-    +scale+'<div class="vrlab">'+o.labels.map(l=>'<span>'+l+'</span>').join('')+'</div>'
-    +'<div class="vrval"><b>'+o.val+'</b><em>'+o.status+'</em></div>'+facts+'</div>'
-    +'<div class="vcf"><button class="vdet">Detail</button><span class="vsrc">'+o.src+'</span></div></div>';
-}
 function renderVitals(){
   const el=document.getElementById('pt-vitals'); if(!el)return;
   const G=[
@@ -4736,14 +4709,6 @@ function irStop(){
   irFoot('<button class="btn" onclick="irOpen()">Re-record</button><button class="btn primary" onclick="irSign()">Sign</button>');
 }
 function irSign(){pinSign('Sign — IQ session',irSignDo);}
-function irSignDo(){
-  const secs=[...document.querySelectorAll('#irEdit .iqsec')].map(s=>s.querySelector('.iqsh').innerText.trim()+': '+s.querySelector('.iqtx').innerText.trim());
-  const txt=secs.join('\n');
-  const now=new Date();const tm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  encEvent({slot:'S',icon:'i-mic',title:'IQ session — '+irFmt,sub:'Hilbi IQ · '+irFmt,who:'Hilbi IQ',time:tm,detail:txt});
-  if(typeof dekAddEv==='function')dekAddEv('S','IQ session — '+irFmt,'Hilbi IQ');
-  mClose('iqrec');showToast('Signed — saved to the pathway','ok');
-}
 function irFmtMenu(ev){ev.stopPropagation();document.getElementById('irFmtDD').classList.toggle('open');}
 function irFmtPick(v){irFmt=v;document.getElementById('irFmtVal').textContent=v;document.getElementById('irFmtDD').classList.remove('open');}
 document.addEventListener('click',e=>{const d=document.getElementById('irFmtDD');if(d&&d.classList.contains('open')&&!e.target.closest('#irFmtDD'))d.classList.remove('open');});
