@@ -13,7 +13,7 @@ review_due: 2026-10-21
 tags: [region-pack, india, abdm, abha, hip, hiu, dpdp, nhcx, nrces]
 related: [CORE-TECH-CLINICAL-CORE, CORE-AUDIT-IN, CORE-AUDIT-CONSOLIDATION]
 iso_controls: [A.8.1, A.5.12]
-classification: Dôverné — interné
+classification: Confidential — internal
 ---
 
 # India Region Pack — Scope & Service Boundaries v0.1
