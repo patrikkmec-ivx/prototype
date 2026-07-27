@@ -121,9 +121,13 @@ gate(9, "source keys", not gaps, str(gaps)[:110] if gaps else f"{len(ALL)} sourc
 
 # 10 Slovak leak
 SK = re.compile("[ľĺŕôäťďňČčŠšŽžŤŇĎĽŔÔÄ]")
+# I was matched against `js`, so its offsets are relative to the script block. Masking
+# them straight onto `t` blanked an arbitrary stretch of HTML and left every I18N
+# translation counted — the gate was reporting ~849 where the real figure was ~330.
+JS0 = t.index(js)
 scan = t
 for pm in re.finditer(r'\[\s*"((?:[^"\\]|\\.)*)"\s*,\s*"((?:[^"\\]|\\.)*)"\s*\]', I.group(1)):
-    s = I.start(1) + pm.start(1)
+    s = JS0 + I.start(1) + pm.start(1)
     scan = scan[:s] + " " * (pm.end(2) - pm.start(1)) + scan[s + (pm.end(2) - pm.start(1)):]
 dm = re.search(r"/\*\s*DEMO-CONTENT-START\s*\*/(.*?)/\*\s*DEMO-CONTENT-END\s*\*/", scan, re.S)
 if dm:
