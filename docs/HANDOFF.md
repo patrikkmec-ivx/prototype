@@ -4,7 +4,7 @@
 > binding; `CLAUDE.md` governs how to behave in the repository; `README.md` says what
 > is what. **Updated at the end of every session.**
 
-Updated: 2026-07-27 · Prototype version: **v168**
+Updated: 2026-07-27 · Prototype version: **v169**
 
 ---
 
@@ -247,6 +247,46 @@ reason `.a4` is a standalone class rather than something local to this modal.
 
 **Desktop only.** Below roughly 900 px the sheet scrolls horizontally. Mobile full-screen
 sheets are `M-06` and were not pulled forward.
+
+## 5h. v169 — stamp and signature
+
+Marks per signatory, bottom-right: stamp left, signature right, both **above the rule**,
+name and role below. Uploaded in facility settings, keyed by signatory so a mark follows
+the person rather than the current practice. A sample stamp ships in the shape of a real
+Slovak one, with English demo text.
+
+**`SIG-08` is the rule that matters.** An uploaded mark is an image. It satisfies none of
+eIDAS QES, IT Act e-sign or HIPAA e-sign — the mechanisms `MKT` already declares per
+market. The mark therefore never replaces the rule, the rule stays, and the upload panel
+says plainly that this is not an electronic signature. A stamp is issued to the physician;
+the system must not generate one. `SIG-09` records that a mark is personal data which
+freezes into the snapshot and travels with every share.
+
+**Third instance of the same defect shape.** `sigBlockHTML()` was called from exactly one
+place — `reportShell()`, the live draft. Neither the template preview nor `snapShellHTML()`
+carried it, so **a signed document had no signature block at all**, while `cp-17` recorded
+`TPL-19` as met. After `DOC-06` in v167 and this, the pattern is clear: a rule marked ✓ in
+§16 has usually been verified at its point of introduction and nowhere else. Anything that
+renders a document should be checked in all three surfaces — live draft, preview, snapshot.
+
+The snapshot now renders its **own frozen signatories**, not live `ORG`. Otherwise
+replacing a stamp would silently reprint every document ever signed (`AMD-05`). Verified:
+clearing a stamp after signature leaves the signed document byte-identical.
+
+**Geometry was checked arithmetically before the browser** — at the first attempt the
+stamp was clipped by its own `max-width` and the two marks collided by 14 px. Deriving the
+widths from the marks' aspect ratios caught it without a render. Worth repeating wherever
+absolutely-positioned images share a box.
+
+**Gate 10 was broken.** I18N offsets are relative to the script block but were applied to
+the whole file, so the mask blanked an arbitrary stretch of HTML and counted every Slovak
+translation as a leak. It reported **849 where the real figure is 433**. Fixed in
+`tools/gates.py`; the baseline in `HANDOFF-START` §4 is restated. Any earlier reading of
+this gate, including in `EN-MIGRATION-PLAN`, should be treated as unreliable.
+
+**For Marek:** whether a scanned stamp on an exported document creates any exposure under
+EHDS or HIPAA beyond ordinary personal data, and whether SK or CZ practice expects the
+physician's stamp on an electronically transmitted report at all.
 
 ## 6. Open points outside the code
 
