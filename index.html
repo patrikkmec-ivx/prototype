@@ -4,8 +4,29 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v169 (stamp and signature)</title>
+<title>Hilbi Cockpit — v170 (footer uploads, English scope tabs)</title>
 <!-- CHANGELOG
+v170 (2026-07-27): Two defects found by opening the prototype in a browser, which is
+  where the gates keep failing to help.
+  (1) The stamp and signature upload was buried in the facility-settings modal, behind
+  the Edit button on the header card — invisible on the templates page. It now sits at
+  the BOTTOM of the template editor as a footer card, the counterpart of the header card
+  at the top: the header is the first thing on a document and comes first in the editor,
+  the stamp and signature are the last and come last. It lists only the signatories the
+  template actually selects (TPL-19), so it shows who will really appear. The settings
+  modal keeps signatory identity (name, role, code) and now points at the footer.
+  Ownership is unchanged and still stated: the marks belong to the facility and apply to
+  every template; the template only decides who signs (TPL-07).
+  (2) TPL_SCOPES carried Slovak labels — Systémové / Zariadenia / Moje šablóny — so the
+  scope tabs stayed Slovak while the rest of the interface was English. v166 converted
+  ORG_F, SLOTS, TPL_REG and TPL_SRC to English source strings but missed this register.
+  Now English with I18N pairs. Measured while fixing it: 21 of 188 tt()/rxT() calls still
+  pass a Slovak key, nearly all of them in the prescription modal — the same v166 gap,
+  not addressed here.
+  Verified in jsdom: tabs English under EN and Slovak under SK; the footer card is the
+  last block in the editor; the settings modal no longer carries a file input; a mark
+  uploaded from the footer reaches both the preview and the A4 sheet.
+
 v169 (2026-07-27): Stamp and signature marks per signatory, bottom-right, the way a
   Slovak or Czech report is signed: stamp left, signature right, both ABOVE the rule,
   name and role below it. Upload in facility settings — PNG/JPG/SVG/WebP up to 200 kB,
@@ -3263,24 +3284,8 @@ function orgRender(){
         +'<input type="text" value="'+escT(s.title)+'" placeholder="'+tt('Role')+'" oninput="ORG.signatories['+i+'].title=this.value">'
         +'<input type="text" value="'+escT(s.code||'')+'" placeholder="'+tt('Code')+'" style="flex:0 1 120px" oninput="ORG.signatories['+i+'].code=this.value">'
         +'</div>';}).join('')
-    +'<div class="cnsnote">'+tt('Which of them appear on a given document is decided by the template.')+'</div></div>'
-    +'<div class="fr"><div class="grph">'+tt('Stamp and signature')+'</div>'
-    +'<div class="signote">'+tt('An uploaded stamp or signature is an image, not an electronic signature. It is printed above the signature rule, which stays in place — the document is still signed.')+'</div>'
-    +sigList().map(function(s){return ''
-      +'<div class="markrow">'
-      +'<div class="mkid"><b>'+escT(s.name||tt('unnamed'))+'</b><span>'+escT(tt(s.title))+'</span></div>'
-      +['stampImg','signImg'].map(function(fld){
-        var lbl=fld==='stampImg'?tt('Stamp'):tt('Signature');
-        return '<div class="mkcell"><label class="fl">'+lbl+'</label>'
-          +(s[fld]
-            ? '<span class="mkprev"><img src="'+s[fld]+'" alt=""></span>'
-              +'<button class="btn icob ghost" title="'+tt('Remove')+'" onclick="sigMarkClear(\''+s.k+'\',\''+fld+'\')">&times;</button>'
-            : '<label class="btn mkup"><input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" hidden'
-              +' onchange="sigMarkUpload(\''+s.k+'\',\''+fld+'\',this)">'+tt('Upload')+'</label>')
-          +'</div>';}).join('')
-      +'<button class="btn ghost mksamp" onclick="sigMarkSample(\''+s.k+'\')">'+tt('Use sample')+'</button>'
-      +'</div>';}).join('')
-    +'<div class="cnsnote">'+tt('PNG, JPG, SVG or WebP up to 200 kB. The mark is frozen into the document at signature, so replacing it later does not alter documents already signed.')+'</div></div>';
+    +'<div class="cnsnote">'+tt('Which of them appear on a given document is decided by the template.')
+    +' '+tt('Stamp and signature marks are set in the document footer, on the template page.')+'</div></div>';
 }
 function orgSave(){
   logProv('amend','Organization · header',{role:'author'});
@@ -3658,7 +3663,7 @@ const TPL_SRC=[
  {k:'consent',n:'Informed consent',g:'doc'}
 ];
 let TPL_EDIT=null,TPL_TAB='edit',TPL_SCOPE='system',TPL_NEW=false;
-const TPL_SCOPES=[{k:'system',n:'Systémové',i:'layers'},{k:'provider',n:'Zariadenia',i:'bldg'},{k:'my',n:'Moje šablóny',i:'user'}];
+const TPL_SCOPES=[{k:'system',n:'System',i:'layers'},{k:'provider',n:'Facilities',i:'bldg'},{k:'my',n:'My templates',i:'user'}];
 function tplScope(k){TPL_SCOPE=k;TPL_NEW=false;TPL_IMP=null;TPL_TAB='edit';
   const l=TPL_REG.filter(x=>x.kind===k);
   TPL_EDIT=l.length?JSON.parse(JSON.stringify(l[0])):null;tplMgrRender();}
@@ -3764,6 +3769,31 @@ function tplPrevOpen(){
   mOpen('tplprevwrap');
   logAudit('preview','Template '+TPL_EDIT.id);
 }
+/* Footer of the document — the counterpart of orgCard at the top. The header is the
+   first thing on a document and sits first in the editor; the stamp and signature are
+   the last thing on it and sit last. Both belong to the facility, never to the
+   template (TPL-07), which is why the wording mirrors the header card. */
+function tplFootHTML(tpl){
+  const ks=(tpl&&tpl.signers&&tpl.signers.length)?tpl.signers:['clinician'];
+  const rows=ks.map(function(k){const s=sigOf(k); if(!s)return '';
+    return '<div class="markrow">'
+      +'<div class="mkid"><b>'+escT(s.name||tt('unnamed'))+'</b><span>'+escT(tt(s.title))+(s.code?' · '+escT(s.code):'')+'</span></div>'
+      +['stampImg','signImg'].map(function(fld){
+        const lbl=fld==='stampImg'?tt('Stamp'):tt('Signature');
+        return '<div class="mkcell"><label class="fl">'+lbl+'</label>'
+          +(s[fld]
+            ? '<span class="mkprev"><img src="'+s[fld]+'" alt=""></span>'
+              +'<button class="btn icob ghost" title="'+tt('Remove')+'" onclick="sigMarkClear(\''+k+'\',\''+fld+'\')">&times;</button>'
+            : '<label class="btn mkup"><input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" hidden'
+              +' onchange="sigMarkUpload(\''+k+'\',\''+fld+'\',this)">'+tt('Upload')+'</label>')
+          +'</div>';}).join('')
+      +'<button class="btn ghost mksamp" onclick="sigMarkSample(\''+k+'\')">'+tt('Use sample')+'</button>'
+      +'</div>';}).join('');
+  return '<div class="fr footcard"><div class="grph">'+tt('Document footer — stamp and signature')+'</div>'
+    +'<div class="signote">'+tt('An uploaded stamp or signature is an image, not an electronic signature. It is printed above the signature rule, which stays in place — the document is still signed.')+'</div>'
+    +(rows||'<div class="tempty">'+tt('No signatory selected on this template.')+'</div>')
+    +'<div class="cnsnote">'+tt('PNG, JPG, SVG or WebP up to 200 kB. Managed by the facility and applied to all templates; the template only decides who signs. The mark is frozen into the document at signature, so replacing it later does not alter documents already signed.')+'</div></div>';
+}
 function tplMgrRender(){
   const side=document.getElementById('tplside'),ed=document.getElementById('tpledit');
   if(!side||!ed)return;
@@ -3825,6 +3855,7 @@ function tplMgrRender(){
     <div class="fr"><label class="fl">
       <input type="checkbox" ${TPL_EDIT.codes?'checked':''} ${ro?'disabled':''}
         onchange="TPL_EDIT.codes=this.checked"> ${tt('Include codes in text output')}</label></div>
+    ${tplFootHTML(TPL_EDIT)}
     <div class="tplval ${v.ok?'ok':'bad'}">${v.ok
       ? '✓ '+tt('Template meets market minimum')+' ('+MKTC+')'
       : '⚠ '+(v.empty?tt('Template has no sections'):tt('Missing market minimum')+' ('+MKTC+'): '+v.miss.join(', '))}</div>`;
@@ -4175,6 +4206,13 @@ const I18N=[
  ["Select a template on the left or create a new one.","Vyberte šablónu vľavo alebo vytvorte novú."],
  ["Short follow-up (mine)","Krátka kontrola (moja)"],
  ["Preview","Náhľad"],
+ ["Document footer — stamp and signature","Pätička dokumentu — pečiatka a podpis"],
+ ["No signatory selected on this template.","Na tejto šablóne nie je vybraný žiadny podpisovateľ."],
+ ["Stamp and signature marks are set in the document footer, on the template page.","Pečiatku a podpis nastavíte v pätičke dokumentu na stránke šablón."],
+ ["PNG, JPG, SVG or WebP up to 200 kB. Managed by the facility and applied to all templates; the template only decides who signs. The mark is frozen into the document at signature, so replacing it later does not alter documents already signed.","PNG, JPG, SVG alebo WebP do 200 kB. Spravuje zariadenie a platí pre všetky šablóny; šablóna určuje len to, kto podpisuje. Značka sa pri podpise zmrazí do dokumentu, takže neskoršia výmena nemení už podpísané dokumenty."],
+ ["System","Systémové"],
+ ["Facilities","Zariadenia"],
+ ["My templates","Moje šablóny"],
  ["Stamp and signature","Pečiatka a podpis"],
  ["Stamp","Pečiatka"],
  ["Signature","Podpis"],
