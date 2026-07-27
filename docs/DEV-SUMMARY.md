@@ -84,6 +84,7 @@ configuration.
 | One document, two views | `DOC-06` | `renderDocViews()`, `docOpen(master)` |
 | Signature block | `TPL-19` | `ORG.signatories` (identity) · `tpl.signers` (selection) · `sigBlockHTML()` |
 | Template preview, side and A4 | `TPL-16` | `tplPrevBodyHTML()` (one body) · `tplPreviewHTML()` · `tplPrevOpen()` |
+| Stamp and signature marks | `SIG-08`, `SIG-09` | `sigMarksHTML()` · `sigMarkUpload()` · `STAMP_SAMPLE` / `SIGN_SAMPLE` · `snapSigHTML()` |
 
 The snapshot carries two different `doc` concepts and they must never share a key.
 `snap.doc` is the **document identity** (`master`, `humanId`, `created`);
