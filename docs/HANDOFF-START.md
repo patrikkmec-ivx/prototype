@@ -14,7 +14,7 @@ repo `patrikkmec-ivx/prototype`, deployed at
 https://patrikkmec-ivx.github.io/prototype/. Hilbi is an **orchestrator/overlay**, not an
 EHR (`A1`, `REP-01`). The clinical source of truth is FHIR R4.
 
-**Current version: v166.** `main` HEAD when this was written: `8936341b`.
+**Current version: v167.** `main` HEAD when this was written: `d7406693`.
 
 ---
 
@@ -64,7 +64,10 @@ into chat.** Assert the anchor count is exactly 1 before replacing.
 
 `cp-17` §16 is the live map of what conforms and what is a placeholder. Recently closed:
 Provider→Practice model (v164), the fatal render regression and English default (v165),
-English as the source language (v166), the `TERM_BIND`/`SRC_STYLE` register gaps.
+English as the source language (v166), the `TERM_BIND`/`SRC_STYLE` register gaps, and
+**document identity (v167)** — `DOC-01..07` had been recorded as met since v158 while a
+duplicate `doc:` key in `rptSnapshot()` discarded it, so no signed document could be
+opened from the timeline or Records (`HANDOFF` §5f).
 
 **Open, non-blocking:** gate-10 code comments and demo content (needs `DEMO-CONTENT`
 markers so the gate can see it); neutral i18n keys as the target state
