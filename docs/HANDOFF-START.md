@@ -14,7 +14,7 @@ repo `patrikkmec-ivx/prototype`, deployed at
 https://patrikkmec-ivx.github.io/prototype/. Hilbi is an **orchestrator/overlay**, not an
 EHR (`A1`, `REP-01`). The clinical source of truth is FHIR R4.
 
-**Current version: v167.** `main` HEAD when this was written: `d7406693`.
+**Current version: v168.** `main` HEAD when this was written: `d7406693`.
 
 ---
 
