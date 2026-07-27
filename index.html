@@ -4,8 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v166 (English source language)</title>
+<title>Hilbi Cockpit — v167 (document identity restored)</title>
 <!-- CHANGELOG
+v167 (2026-07-27): Document identity was silently discarded at signature. rptSnapshot()
+  declared the key doc: twice — first as the document identity {master, humanId, created},
+  then twelve lines later as doc:m.doc, the market document profile. In an object literal
+  the second wins, so every snapshot carried the string "EEHRxF / OpConsult" where its
+  identity belonged. Consequences, all present since v158: the assignment
+  sn.doc.humanId = DOC.humanId failed silently (a property set on a primitive);
+  docRegister() wrote master: undefined; the timeline and Records both emitted
+  docOpen('undefined'), so a signed document could not be opened from either view; and
+  Store.put('documents') keys on master, so a second document would have overwritten the
+  first. DOC-01..07 and DOC-06 were recorded as done in v158 but were broken in practice.
+  The market profile is now docProfile: and the identity key is intact. No change to the
+  state model. Verified in jsdom: one register row per document across both views, the
+  same master in each, docOpen resolves, the market profile still renders in the frozen
+  footer, and an addendum updates the existing row to version 2 / amended rather than
+  creating a second. Ten gates unchanged. Found because the six-step document-creation
+  flow starts at exactly this seam; no static gate can see a duplicate object key.
+
 v166 (2026-07-24): English is now the source language. Every UI string in the document,
   in tt() arguments and in registers that feed tt() (ORG_F, SLOTS, TPL_REG, TPL_SRC) is
   English; I18N maps an English key to each translation and TR_SK/TR_EN replace
@@ -2967,7 +2984,7 @@ function rptSnapshot(tpl){
     org:Object.assign({},ORG),
     id:Object.assign({},RPT_ID),
     codes:{rec:m.rec,rep:m.rep,med:m.med,lab:m.lab},
-    sig:m.sig,doc:m.doc,
+    sig:m.sig,docProfile:m.doc,   /* market document profile — NOT the document identity (see doc: above) */
     sections:tpl.sections.map(s=>({
       label:tt(s.label),src:s.src,
       items:s.src==='consent'?[]:rptSource(s.src).map(it=>({text:it.text,slot:it.slot,coding:it.coding,pt:!!it.pt}))
@@ -2992,7 +3009,7 @@ function snapShellHTML(sn){
     <h4>${escT(sn.tpl.name)}</h4>
     <div class="rsec">${escT(sn.id.patient)} · ${escT(sn.id.pid)} · ${escT(sn.id.date)} · ${escT(sn.by)}</div>
     ${snapBodyHTML(sn)}
-    <div class="rft">${tt('signature')}: ${escT(sn.by)} · ${escT(sn.sig)} · ${tt('profile')}: ${escT(sn.doc)}
+    <div class="rft">${tt('signature')}: ${escT(sn.by)} · ${escT(sn.sig)} · ${tt('profile')}: ${escT(sn.docProfile)}
       · Composition.status: ${sn.st}
       <br>${tt('record')}: ${sn.codes.rec} + ${sn.codes.lab} · ${tt('report')}: ${sn.codes.rep}
       · ${tt('document language')}: ${escT(sn.lang.toUpperCase())}
