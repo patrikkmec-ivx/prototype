@@ -111,6 +111,17 @@ Scope: the clinical report and its lifecycle. Out of scope: the Records library
 - **SIG-03** In `overlay` mode Hilbi **presents and records** the signature; the legally
   valid signature is performed by the host system. Hilbi MUST NOT present its own UI
   state as a legally valid signature.
+- **SIG-08** An uploaded **stamp or signature image is a visual artefact, not a
+  signature**. It satisfies none of the mechanisms in `SIG-01` (eIDAS QES, IT Act e-sign,
+  HIPAA e-sign). Therefore: the image MUST be drawn **above the signature rule and never
+  instead of it**; the rule MUST remain; and the interface MUST state that the mark is
+  not an electronic signature. A stamp is issued to the physician — the system MUST NOT
+  generate one.
+- **SIG-09** A stamp or signature image is **personal data** and, for a signature,
+  biometric-adjacent. It is frozen into the snapshot (`AMD-06`), enters the content
+  fingerprint, and travels with every share and export. Retention and the lawful basis
+  follow the document, not the account: removing the mark from the facility settings
+  MUST NOT alter documents already signed.
 
 ## 5. Amendment
 
@@ -391,13 +402,14 @@ deliberate placeholders and do NOT conform to the standard:
 | TPL-08..10 | ✓ extraction from a sample: structure only, mapping as a suggestion, the TPL-02 gate |
 | TPL-16 | ✓ three ownership scopes, system templates read-only · preview in two surfaces, a side column and an A4 sheet at true format (v168), both from one body function so they cannot diverge |
 | TPL-17, TPL-18 | ✓ `exam-neuro`, `labs`, `dx-coded` as subsets of slots |
-| TPL-19 | ✓ v164 — signatory identity sits on the **Practice** (`PRACTICES[].signatories`), with Provider-level roles added by `sigList()`; `tpl.signers` still selects. Before v164 a practice-level role appeared on every practice's documents |
+| TPL-19 | ✓ v164 — signatory identity sits on the **Practice** (`PRACTICES[].signatories`), with Provider-level roles added by `sigList()`; `tpl.signers` still selects. Before v164 a practice-level role appeared on every practice's documents · **the block itself was rendered only in the live draft until v169** — neither the template preview nor the frozen snapshot carried it, so a signed document had no signature block at all |
 | TPL-12, TPL-13, TPL-15 | ✓ consent registry, both forms from one source, type-sensitive validation |
 | TPL-14 | ~ the wording version is displayed; the binding to a signed `Consent` is missing |
 | INT-03 | ✓ coverage |
 | INT-01, INT-02, INT-04..07 | ✗ the intake layer is not built yet |
 | SYS-01..04 | ✗ the integration is not built yet |
 | SIG-04..07 | ✗ the seam for regional verification does not exist yet |
+| SIG-08, SIG-09 | ✓ stamp and signature upload per signatory (v169); marks render above the rule, which stays; the interface states they are not electronic signatures; frozen into the snapshot and into the fingerprint, so replacing a mark leaves signed documents untouched |
 | I18N-01, I18N-02, I18N-06 | ✓ v166 — **English is the source language**; `I18N` maps an English key to each translation. A round trip is lossless over two cycles. Keys are still display strings rather than neutral identifiers; that remains open |
 | I18N-09 | ✓ v166 — demo and clinical content (consent wording, patient instructions, sample findings) is never a translation key and is never machine-translated |
 | I18N-03 | ✓ document language from the organisation settings, stamped into the snapshot |
