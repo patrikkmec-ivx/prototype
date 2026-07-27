@@ -1,134 +1,138 @@
-# Hilbi Cockpit — session start
+# HANDOFF-START — read this first in a new chat
 
-> Paste this text into the first message of a new chat. **It is deliberately short** —
-> all the depth lives in the repository. Duplicating content here would create a second
-> source of truth.
-
-**Repo:** `patrikkmec-ivx/prototype` · **Live:** https://patrikkmec-ivx.github.io/prototype/
-**Version:** v163 · **State:** audited, prepared for handover · 2026-07-23
+You are continuing work on the Hilbi Health Group clinical cockpit. This file gets a new
+chat to a correct start in a few minutes. The detailed state is in `docs/HANDOFF.md`; the
+data layer is in `docs/gsr-22-tech-data-master.md`.
 
 ---
 
-## 1. First three steps
+## 1. The one-paragraph picture
 
-1. **Read in this order:**
-   `README.md` → `CLAUDE.md` → `docs/GLOSSARY.md` → `docs/HANDOFF.md` →
-   `docs/cp-17-…` → `docs/DEV-SUMMARY.md`
-2. **Fetch `index.html` from `main` pinned to a commit SHA** and verify it matches your
-   local copy. Resolve `main` to a SHA first (`GET /repos/{owner}/{repo}/commits/main`),
-   then read files at that SHA. **`raw.githubusercontent.com/…/main/…` is CDN-cached
-   and has served a file two versions old** — never read from a mutable ref.
-   Without a token the GitHub API is rate-limited (403), so a token is needed even for
-   reading reliably.
-3. **Writing requires a fresh fine-grained token** (Patrik supplies it): repository
-   `prototype`, permission **Contents: Read and write**. Revoke it after the session.
+Hilbi is an AI-first digital health platform for six markets (SK, CZ, DE, IN, US, AE).
+The active build is the clinical cockpit — a single-file prototype `index.html` in the
+repo `patrikkmec-ivx/prototype`, deployed at
+https://patrikkmec-ivx.github.io/prototype/. Hilbi is an **orchestrator/overlay**, not an
+EHR (`A1`, `REP-01`). The clinical source of truth is FHIR R4.
 
-## 2. Language
-
-**Everything written down is English** — documents, specifications, schemas, code, code
-comments, changelogs, commit messages. Use the term from `docs/GLOSSARY.md`; one
-concept, one word. Working discussion may be held in any language.
-
-The only Slovak that survives is the demo content fenced by `DEMO-CONTENT`
-(`GLOSSARY.md` §3) and the translation table. Gate 10 enforces this.
-
-Migration status: `docs/EN-MIGRATION-PLAN.md`.
-
-## 3. What is binding
-
-| File | Authority | Content |
-|---|---|---|
-| `docs/cp-17-…` | **NORMATIVE** | 93 rules: report, terminology, signature, provenance, templates, consent, language, store, document identity |
-| `docs/cp-15-…`, `core-01`, `core-11`, `core-12` | **NORMATIVE** | record model, clinical core, mapping, synchronisation |
-| `docs/GLOSSARY.md` | **NORMATIVE for wording** | one English term per concept |
-| `CLAUDE.md` | **BEHAVIORAL** | how to work in this repo — gates, interface patterns, commit workflow |
-| `index.html` | — | the implementation, **never the standard** |
-
-In a conflict `cp-17` wins. **What is done and what is a placeholder: `cp-17` §16.**
-
-## 4. Sanity gates — all ten before every commit
-
-1. brace balance — the **baseline is `-1`**, not `0`
-2. `node --check` on the extracted `<script>`
-3. **handlers** — every `onclick`/`onchange`/`oninput` has a definition
-4. **CSS order** — a media query must not be overridden by a later base rule
-5. **undefined tokens** — every `var(--x)` has a definition, including those with a fallback
-6. **token drift** — no hex colour outside `:root` that already has a token
-7. **translation completeness** — every string in `tt()` and every static label has an entry
-8. **conflicting translations** — no key has two different values in one language
-9. **source keys** — consistent across the six registers
-10. **Slovak leak** — Slovak only in the translation table and in `DEMO-CONTENT`
-
-The scripts do not survive in the environment — rewrite them from `CLAUDE.md` §4.
-
-## 5. Five things that are not obvious and have already hurt
-
-- **Read pinned to a commit SHA, and verify the local file matches after any hint of a
-  restart.** If `/tmp` has been emptied, `index.html` may have rolled back too. Editing
-  a stale file **silently reverts earlier commits** — this happened at v148 and was
-  only repaired at v151. It nearly happened again on 2026-07-24 through a stale CDN read.
-- **Every text substitution needs an assert, and the script writes only at the end.** A
-  substitution that misses its anchor runs silently and without error. Take the anchor
-  from the file you just read — one space is enough (`--phrw:280px}` vs `--phrw:280px }`).
-- **Before adding a CSS class, check the name does not exist.** One namespace; a
-  collision silently overwrites an unrelated part of the interface (this happened with
-  `.card`).
-- **`new Map(I18N)` keeps the last entry**, and new pairs are added at the front. A
-  duplicate key therefore loses silently and a round trip between languages corrupts the
-  text. Gate 8 guards this.
-- **Gates do not catch visual defects.** An unreachable button (v133) and a broken
-  preview (v147) passed all of them. **Most of the UI since v126 has never been opened
-  in a browser.**
-
-## 6. Verified state at handover (v163)
-
-Gates pass · **dead code zero** · 4 730 lines · 220 functions · 98 tokens in `:root`
-(zero drift, no undefined `var()`) · 699 `I18N` entries (0 duplicates, 0 conflicts) ·
-89 handlers · no field without a label.
-
-**Documentation integrity verified:** 173 normative IDs with no dangling reference ·
-all 52 symbols from the `DEV-SUMMARY` §4 map exist in the code · no invalid file
-reference · the `README` index covers every file in the repository.
-
-**Known and reasoned debt:** `docs/HANDOFF.md` §4d — orphaned CSS classes, off-scale
-spacing in the original components, in-memory store. **None of it is a defect to fix
-blind.**
-
-## 7. Where we are
-
-Done: report shell · dual coding (SNOMED for the record, market classification for the
-claim) · provenance and audit · AI transparency · templates as a subpage (three
-ownership scopes, editor with live preview, extraction from a sample, facility header
-and signatories, consent per language) · content freeze at signature · language layer ·
-document identity · one document in two views · persistence seam.
-
-**Next step: document creation** — the six-point breakdown is in `docs/HANDOFF.md` §3e.
-Recommended split into three commits: *type and template selection* → *population and
-coverage* → *signature and output including the print layer* (`I18N-13`, does not exist yet).
-
-Then the **progress note interface** (`INT-01..05`): IQ intake, OCR candidates as
-`validated=false`, per-item validation, marking of items carried over from the previous
-visit (cloned documentation).
-
-## 8. Open decisions
-
-- **Entry point for document creation** — the dock, the patient detail header, or both?
-  A structural change; decide before implementing.
-- **Visual check of the prototype** — see §5, last bullet.
-- **`cp-17` and `cp-15` in English** — translation pending K35 sign-off (Roman + Marek).
-
-## 9. Outside the code
-
-- **Marek (compliance):** the MDR boundary for IQ · signature level per market · audit
-  retention · the EHDS CE regime when moving to `core` mode · India CERT-In · when
-  machine translation is sufficient and when human verification is required
-- **Registering SNOMED CT usage** with NCZI (Slovakia is a member; usage is registered)
-- **Figma:** `tokens.json` → Style Dictionary → Figma Variables (DS '26
-  `ombR6X345rSPGaJPfnye7e`). The direction is **code → tokens → Figma**; components go
-  the other way — Figma is their source and the code is corrected to match.
+**Current version: v166.** `main` HEAD when this was written: `8936341b`.
 
 ---
 
-*Communication: direct, plain language. Blockers at the start, not at the end. A short
-confirmation beats elaboration. Structural changes do not approve themselves — ask
-before, not after.*
+## 2. Language rule — no exceptions
+
+Discussion and chat are in **Slovak**. Every written artefact — documents, specs, code,
+comments, CSV registers, changelogs, commit messages — is in **English** (`D17`). The
+only exception is delivered clinical/demo content the author-physician writes in their own
+language: consent wording, sample findings, the demo facility header. Since v166 English
+is the **source language** of the prototype; the language round trip is lossless.
+
+---
+
+## 3. How to work with the repo
+
+- GitHub is reached through `/home/claude/gh.py` — a urllib wrapper over the Contents API
+  with `get_file()`, `put_file()`, `head_sha()`; it reads the token from `.tok`.
+- **Always fetch the current SHA before a PUT.** The environment can restart and silently
+  revert the local file.
+- **Read files pinned to a commit SHA**, never through `raw.githubusercontent.com/main`
+  (CDN-cached; it served a two-version-old file in a past session).
+- The token is a fine-grained PAT needing `Contents: Read and write`. **Revoke and
+  regenerate it after each session** — remind the user.
+
+---
+
+## 4. The gates — run before every prototype commit
+
+`tools/gates.py` runs ten sanity gates; `tools/smoke.js` is a jsdom load-time smoke test
+(gate 3b). Both are committed — recreate them locally only if missing.
+
+Baselines that surprise people: **brace balance is −1, not 0.** Gate 10 (Slovak leak)
+currently reports ≈ 849 hits — these are code comments and unfenced demo content, not a
+functional defect; the user sees English. The other nine gates pass.
+
+**The load-time smoke test exists because a purely static gate missed a fatal defect:**
+v163 removed four functions passed as callbacks (`G.map(vGauge)`), which static analysis
+cannot see; executing the script does. Never trust a static check alone for "is this
+function still referenced".
+
+**Edit on disk with `str_replace` / a single-count Python replace; never paste full code
+into chat.** Assert the anchor count is exactly 1 before replacing.
+
+---
+
+## 5. State of the prototype against the standard
+
+`cp-17` §16 is the live map of what conforms and what is a placeholder. Recently closed:
+Provider→Practice model (v164), the fatal render regression and English default (v165),
+English as the source language (v166), the `TERM_BIND`/`SRC_STYLE` register gaps.
+
+**Open, non-blocking:** gate-10 code comments and demo content (needs `DEMO-CONTENT`
+markers so the gate can see it); neutral i18n keys as the target state
+(`EN-MIGRATION-PLAN`); the practice resolved from `CUR_PRACTICE` rather than the encounter
+(waits on the case layer, `cp-15` CASE-04).
+
+---
+
+## 6. NEXT TASK — the dekurz (document creation, then intake)
+
+This is where the new chat starts working.
+
+### 6a. Document creation — the six-step flow (`HANDOFF` §5)
+
+Prerequisites `DOC-*` and `STO-*` are closed. The flow:
+
+1. **Entry** — create a document from the cockpit or the timeline
+2. **Type and template** — `slotKey` + a template from a scope (`TPL-03`, `TPL-16`)
+3. **Population from sources** — encounter level + patient level (`TPL-04`, `TPL-17`)
+4. **Preview and coverage** — what is missing before signature (`INT-03`)
+5. **Signature** — snapshot, human-readable number, write to the registry (`AMD-05`,
+   `DOC-04`)
+6. **Output** — structure, plain text to the clipboard, **print in the document
+   language** (`I18N-13`)
+
+**Print output does not exist yet** — no print template, no `@media print`. It belongs to
+this step.
+
+### 6b. Then the intake layer (`INT-01..07`)
+
+IQ intake for "the patient brings documentation": OCR/AI extraction produces **candidates**
+(`validated=false`, attributed to Hilbi IQ, labelled as a suggestion). An unvalidated
+candidate never reaches a signed document (`INT-02`). Carried-over items from a previous
+encounter are marked, confirmed **item by item**, and their `Provenance` carries the
+source encounter — the cloned-documentation risk (`INT-04`, `INT-05`). Recording needs
+consent and an audio-retention decision (`INT-06`, `INT-07`). Full analysis: `cp-19`.
+
+### 6c. Design and modal discipline before touching UI
+
+Unified central focus overlay (M 520px / L 920px for Dekurz), no stacked modals, Esc
+navigates back through steps. Reuse existing tokens by value; only a genuinely new
+semantic gets a new `:root` token, reported as "NEW TOKEN". Severity uses dual coding
+(colour + shape + text) per IEC 60601-1-8. Selection states: cyan-soft + teal border +
+teal text; navy solid is reserved for navigation and the "Current" status only.
+
+**Structural changes require explicit approval before they are made** — a rule the user
+set after a tab was removed without asking.
+
+### 6d. Auto-documentation — same PR, not a later step
+
+Any change to the prototype updates the documentation in the same commit: `cp-17` §16 for
+conformance, the `DEV-SUMMARY` rule→code map, `HANDOFF` for state, the changelog in the
+file header. "What is not documented does not exist."
+
+---
+
+## 7. Key anchors to have in mind
+
+`cp-15` = the record model (SOAP, case, billing). `cp-17` = report conformance
+(REP/TERM/SIG/AMD/PROV/AUD/CNS/DSI/TPL/INT/SYS/STO/DOC/I18N). `cp-19` = the dekurz/intake
+analysis. `core-01` = the clinical core standard. The Care Plans Standard holds the
+lettered rules (A1, B5-B10, D15-D17, F21-F26, K35 change control = Roman + Marek).
+Data layer: `gsr-22` is the entry point, detail in `gsr-16` to `gsr-21`.
+
+---
+
+## 8. Decisions that are waiting (not your work — flag, do not resolve)
+
+Terminology server (Roman + Juraj) · own interaction checking (Marek + Roman) · thirteen
+unowned registries (Roman, `gsr-20` §7) · SNOMED CT registration with NCZI (Patrik +
+Marek) · which PRO instruments are paid (clinical owner + Marek) · NICE-for-AI (Marek).
