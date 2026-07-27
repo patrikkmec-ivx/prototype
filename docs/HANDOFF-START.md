@@ -14,7 +14,7 @@ repo `patrikkmec-ivx/prototype`, deployed at
 https://patrikkmec-ivx.github.io/prototype/. Hilbi is an **orchestrator/overlay**, not an
 EHR (`A1`, `REP-01`). The clinical source of truth is FHIR R4.
 
-**Current version: v168.** `main` HEAD when this was written: `d7406693`.
+**Current version: v169.** `main` HEAD when this was written: `d7406693`.
 
 ---
 
@@ -47,7 +47,7 @@ is the **source language** of the prototype; the language round trip is lossless
 (gate 3b). Both are committed — recreate them locally only if missing.
 
 Baselines that surprise people: **brace balance is −1, not 0.** Gate 10 (Slovak leak)
-currently reports ≈ 849 hits — these are code comments and unfenced demo content, not a
+currently reports 433 hits — these are code comments and unfenced demo content, not a
 functional defect; the user sees English. The other nine gates pass.
 
 **The load-time smoke test exists because a purely static gate missed a fatal defect:**
