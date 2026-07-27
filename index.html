@@ -4,8 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v167 (document identity restored)</title>
+<title>Hilbi Cockpit — v168 (A4 template preview)</title>
 <!-- CHANGELOG
+v168 (2026-07-27): A4 preview for document templates. The side preview column is narrow
+  and gives no sense of how the document sits on a page, so the Preview heading gained an
+  eye button that opens the template on a true A4 sheet — 210x297 mm, rendered at 96 dpi
+  as 794x1123 px inside an L overlay (920 px). The page keeps a fixed width and scrolls in
+  its frame; narrowing the sheet to fit would stop it being A4 and defeat the purpose.
+  Margins are 76 px, roughly the 20 mm a printed report uses.
+  The body of both previews now comes from one function, tplPrevBodyHTML(). Assembling
+  the content twice would let the sheet and the column drift apart, and a clinician
+  checking a template would be reading a different document in each. Verified in jsdom:
+  the two render character-identical text (696 chars), the sheet follows the selected
+  template, Esc closes it, and the Slovak label resolves.
+  New icon i-eye on the 24 px Lucide grid. No new :root token — the sheet reuses
+  --surface-white, --surface-2 and the existing overlay shadow. Opening the sheet writes
+  an AuditEvent, consistent with every other read of document content.
+  NOT addressed: this is a desktop layout. Below ~900 px the sheet scrolls horizontally;
+  mobile full-screen sheets are M-06 and are not pulled forward here.
+
 v167 (2026-07-27): Document identity was silently discarded at signature. rptSnapshot()
   declared the key doc: twice — first as the document identity {master, humanId, created},
   then twelve lines later as doc:m.doc, the market document profile. In an object literal
@@ -1011,6 +1028,17 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
 .edtabs{border-bottom:1px solid var(--border-default);margin-bottom:13px}
 .tprev{border:1px solid var(--border-default);border-radius:10px;padding:14px;background:var(--surface-white)}
 .tprevn{font-size:10.5px;color:var(--text-muted);margin-top:7px;font-style:italic}
+/* The eye floats right instead of turning .grph into a flex container: .grph is
+   used elsewhere in the editor and a layout change would reach those too. */
+.prevb{float:right;margin-top:-6px}
+/* Preview at true A4. 210x297 mm at 96 dpi = 794x1123 px. The page keeps a fixed
+   width and scrolls inside its frame, because narrowing the sheet would stop it
+   being A4. Desktop-first; mobile full-screen sheets belong to M-06. */
+.a4frame{flex:1;min-height:0;overflow:auto;background:var(--surface-2);padding:24px;display:flex;justify-content:center}
+.a4{width:794px;flex:none;min-height:1123px;background:var(--surface-white);
+  box-shadow:0 2px 10px rgba(27,35,64,.16);padding:76px 76px 60px;box-sizing:border-box}
+.a4 h4{margin:0 0 4px}
+.a4mark{position:absolute;right:24px;bottom:14px;font-size:10.5px;color:var(--text-muted)}
 .tplmeta{font-size:11px;color:var(--text-muted);margin-bottom:8px;font-variant-numeric:tabular-nums}
 .tplro{font-size:11.5px;color:var(--text-muted);margin-bottom:10px;font-style:italic}
 .tplbar .genrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 10px}
@@ -1468,6 +1496,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
 <symbol id="i-cam" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></symbol>
 <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4"/></symbol>
 <symbol id="i-scan" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></symbol>
 <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
 <symbol id="i-sok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
 <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
@@ -1974,6 +2003,17 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
       <div class="tpledit" id="orgform"></div>
     </div>
     <div class="sh-f"><button class="btn" onclick="mClose('orgwrap')">Cancel</button><button class="btn primary" onclick="orgSave()">Save</button></div>
+  </div>
+</div>
+
+<!-- Template preview at true A4. The content is the same as the side preview
+     (tplPrevBodyHTML) — one source, so the two previews cannot drift apart. -->
+<div class="sheetwrap" id="tplprevwrap"><div class="scrim" onclick="mClose('tplprevwrap')"></div>
+  <div class="sheet lsize">
+    <div class="sh-h"><span class="hic"><svg class="ico s14"><use href="#i-eye"/></svg></span><b id="tplprevTitle">A4 preview</b>
+      <span class="tag st-plan" style="margin-left:4px" id="tplprevFmt">A4 · 210 &times; 297 mm</span>
+      <button class="x" onclick="mClose('tplprevwrap')" title="Close">&times;</button></div>
+    <div class="a4frame"><div class="a4" id="tplprevA4"></div></div>
   </div>
 </div>
 
@@ -3547,15 +3587,32 @@ function tplSideHTML(){
         <span class="kb">${t.slotKey} · v${t.ver||1}</span></div>`).join('')
     : `<div class="tempty">${tt('There are no templates in this scope yet.')}</div>`;
 }
-/* Náhľad dokumentu podľa upravovanej šablóny */
+/* Preview body — ONE source for both the side preview and the A4 pop-up. If each
+   assembled its own content they would drift, and the A4 sheet would show a
+   different document from the column beside it. */
+function tplPrevBodyHTML(tpl){
+  return `${orgHeadHTML()}
+      <h4>${escT(tt(tpl.name))}</h4>
+      <div class="rsec">${rptIdLine()} · ${escT(RPT_ID.clinician)}</div>
+      ${tplBodyHTML(tpl)}
+      <div class="rft">${escT(ORG.stamp)}</div>`;
+}
+/* Document preview for the template being edited */
 function tplPreviewHTML(){
   if(!TPL_EDIT)return '';
-  return `<div class="grph">${tt('Preview')}</div><div class="tprev rendout show">${orgHeadHTML()}
-      <h4>${escT(tt(TPL_EDIT.name))}</h4>
-      <div class="rsec">${rptIdLine()} · ${escT(RPT_ID.clinician)}</div>
-      ${tplBodyHTML(TPL_EDIT)}
-      <div class="rft">${escT(ORG.stamp)}</div></div>
+  return `<div class="grph">${tt('Preview')}
+      <button class="btn icob ghost prevb" onclick="tplPrevOpen()" title="${tt('Open A4 preview')}"
+        aria-label="${tt('Open A4 preview')}"><svg class="ico s18" aria-hidden="true"><use href="#i-eye"/></svg></button>
+    </div><div class="tprev rendout show">${tplPrevBodyHTML(TPL_EDIT)}</div>
       <div class="tprevn">${tt('Preview with today\u2019s data. History is projected from the patient level.')}</div>`;
+}
+/* A4 pop-up — the same content, set on a true-format page */
+function tplPrevOpen(){
+  if(!TPL_EDIT)return;
+  document.getElementById('tplprevTitle').textContent=tt(TPL_EDIT.name);
+  document.getElementById('tplprevA4').innerHTML=tplPrevBodyHTML(TPL_EDIT);
+  mOpen('tplprevwrap');
+  logAudit('preview','Template '+TPL_EDIT.id);
 }
 function tplMgrRender(){
   const side=document.getElementById('tplside'),ed=document.getElementById('tpledit');
@@ -3815,7 +3872,7 @@ function finalizeSign(){
 }
 document.addEventListener('keydown',e=>{
   const open=id=>document.getElementById(id).classList.contains('open');
-  if(e.key==='Escape'){['recwrap','nswrap','fotwrap','dkwrap','casewrap','evdwrap'].forEach(id=>{if(open(id))mClose(id)});}
+  if(e.key==='Escape'){['recwrap','nswrap','fotwrap','tplprevwrap','dkwrap','casewrap','evdwrap'].forEach(id=>{if(open(id))mClose(id)});}
   if(e.key==='Enter'&&!e.target.matches('textarea')){
     if(open('recwrap')){saveRec();e.preventDefault()}
     else if(open('nswrap')){nsSave();e.preventDefault()}
@@ -3968,6 +4025,8 @@ const I18N=[
  ["Select a template on the left or create a new one.","Vyberte šablónu vľavo alebo vytvorte novú."],
  ["Short follow-up (mine)","Krátka kontrola (moja)"],
  ["Preview","Náhľad"],
+ ["Open A4 preview","Otvoriť náhľad A4"],
+ ["A4 preview","Náhľad A4"],
  ["Preview with today\u2019s data. History is projected from the patient level.","Náhľad s dnešnými údajmi. Anamnéza sa preberá z pacientskej úrovne."],
  ["Document","Dokument"],
  ["Encounter note / report","Dekurz / správa"],
