@@ -409,7 +409,7 @@ deliberate placeholders and do NOT conform to the standard:
 | INT-01, INT-02, INT-04..07 | ✗ the intake layer is not built yet |
 | SYS-01..04 | ✗ the integration is not built yet |
 | SIG-04..07 | ✗ the seam for regional verification does not exist yet |
-| SIG-08, SIG-09 | ✓ stamp and signature upload per signatory (v169); marks render above the rule, which stays; the interface states they are not electronic signatures; frozen into the snapshot and into the fingerprint, so replacing a mark leaves signed documents untouched |
+| SIG-08, SIG-09 | ✓ stamp and signature upload per signatory (v169); marks render above the rule, which stays; the interface states they are not electronic signatures; frozen into the snapshot and into the fingerprint, so replacing a mark leaves signed documents untouched · the upload sits in the document footer on the template page (v170), listing only the signatories the template selects |
 | I18N-01, I18N-02, I18N-06 | ✓ v166 — **English is the source language**; `I18N` maps an English key to each translation. A round trip is lossless over two cycles. Keys are still display strings rather than neutral identifiers; that remains open |
 | I18N-09 | ✓ v166 — demo and clinical content (consent wording, patient instructions, sample findings) is never a translation key and is never machine-translated |
 | I18N-03 | ✓ document language from the organisation settings, stamped into the snapshot |
