@@ -4,7 +4,7 @@
 > binding; `CLAUDE.md` governs how to behave in the repository; `README.md` says what
 > is what. **Updated at the end of every session.**
 
-Updated: 2026-07-27 · Prototype version: **v167**
+Updated: 2026-07-27 · Prototype version: **v168**
 
 ---
 
@@ -227,6 +227,26 @@ oversight, and it is the cheapest remaining protection for this class of defect.
 so all versions belong to whichever document is current. This is invisible while one
 document exists per encounter, and becomes real the moment step 1 of document creation can
 produce a second one. Move them onto `DOC` at that point, not before.
+
+## 5g. v168 — A4 template preview
+
+The template editor's side preview is a narrow column and says nothing about how the
+document sits on a page. The Preview heading now carries an eye button that opens the
+template on a **true A4 sheet** — 210x297 mm, 794x1123 px at 96 dpi, inside an L overlay
+(920 px), margins 76 px. The page holds a fixed width and scrolls in its frame; fitting
+the sheet to the viewport would stop it being A4.
+
+Both previews draw their body from **one function**, `tplPrevBodyHTML()`. Assembling the
+content twice would let the sheet and the column drift, and a clinician checking a
+template would read a different document in each. Verified in jsdom as character-identical.
+
+**Not print.** This is an on-screen A4 preview of a *template*. Print output for a signed
+*document* (`I18N-13`, `@media print`) is still missing and still belongs to step 6 of
+document creation. The two should share the page geometry when print lands — that is the
+reason `.a4` is a standalone class rather than something local to this modal.
+
+**Desktop only.** Below roughly 900 px the sheet scrolls horizontally. Mobile full-screen
+sheets are `M-06` and were not pulled forward.
 
 ## 6. Open points outside the code
 
