@@ -4,7 +4,7 @@
 > binding; `CLAUDE.md` governs how to behave in the repository; `README.md` says what
 > is what. **Updated at the end of every session.**
 
-Updated: 2026-07-27 · Prototype version: **v169**
+Updated: 2026-07-27 · Prototype version: **v170**
 
 ---
 
@@ -287,6 +287,35 @@ this gate, including in `EN-MIGRATION-PLAN`, should be treated as unreliable.
 **For Marek:** whether a scanned stamp on an exported document creates any exposure under
 EHDS or HIPAA beyond ordinary personal data, and whether SK or CZ practice expects the
 physician's stamp on an electronically transmitted report at all.
+
+## 5i. v170 — where the upload belongs, and a missed register
+
+Two defects, both found by **opening the prototype**, not by a gate.
+
+**The upload was invisible.** It had been placed in the facility-settings modal, behind
+the Edit button on the header card, so nothing about it was visible on the templates page.
+It now sits at the **bottom of the template editor** as a footer card — the counterpart of
+the header card at the top. The header is the first thing on a document and comes first in
+the editor; the stamp and signature are the last and come last. The card lists only the
+signatories the template actually selects (`TPL-19`), so it shows who will really appear.
+Ownership is unchanged and still stated on the card: the marks belong to the facility and
+apply to every template, the template only decides who signs (`TPL-07`).
+
+**`TPL_SCOPES` was still Slovak.** The scope tabs read Systémové / Zariadenia / Moje
+šablóny while the rest of the interface was English. v166 converted `ORG_F`, `SLOTS`,
+`TPL_REG` and `TPL_SRC` but missed this register.
+
+**Measured while fixing it: 21 of 188 `tt()`/`rxT()` calls still pass a Slovak key**,
+almost all in the prescription modal (`rxT` is a `tt` alias over Slovak keys, so that
+screen renders Slovak in both languages). Not fixed here — it is a contained, mechanical
+piece of the v166 migration and deserves its own commit. It is the most visible remaining
+language defect a user can reach.
+
+**Pattern worth naming.** v167, v169 and v170 were all found by looking, never by a gate:
+a duplicate object key, a block rendered in one surface out of three, an upload nobody
+could see, a register left untranslated. The gates verify structure; none of them can see
+whether a thing is reachable, visible or in the right place. `§10` already says most of
+the UI is visually unverified since v126 — these three are the evidence.
 
 ## 6. Open points outside the code
 
