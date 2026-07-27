@@ -407,7 +407,7 @@ deliberate placeholders and do NOT conform to the standard:
 | I18N-04, I18N-05 | ~ system templates only partly localised; the taxonomy does not yet draw on the code display term |
 | I18N-10, I18N-13, I18N-14 | ✗ foreign documents, print language and locale formatting are not addressed yet |
 | STO-01..05 | ✓ Store with five collections, in-memory adapter, writes exclusively through the seam |
-| DOC-01..07 | ✓ masterIdentifier, versions, human-readable number at signature, `DOC_REG`, display on the timeline and in Records from one registry |
+| DOC-01..07 | ✓ masterIdentifier, versions, human-readable number at signature, `DOC_REG`, display on the timeline and in Records from one registry · **recorded as met from v158, in fact broken until v167**: a duplicate `doc:` key in `rptSnapshot()` overwrote the identity with the market document profile, so `DOC_REG` held `master: undefined` and `DOC-06` did not hold in either view |
 | AMD-05..09 | ✓ snapshot at signature, render exclusively from the snapshot, content fingerprint · versioned references are values in the prototype |
 
 ## 17. Open points
