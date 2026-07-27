@@ -389,7 +389,7 @@ deliberate placeholders and do NOT conform to the standard:
 | TPL-04, TPL-11 | ✓ RA/OA/AA/FA/SA/PA/GA at the patient level, mapped to FHIR resources |
 | TPL-07 | ✓ header and footer in the organisation settings |
 | TPL-08..10 | ✓ extraction from a sample: structure only, mapping as a suggestion, the TPL-02 gate |
-| TPL-16 | ✓ three ownership scopes, system templates read-only |
+| TPL-16 | ✓ three ownership scopes, system templates read-only · preview in two surfaces, a side column and an A4 sheet at true format (v168), both from one body function so they cannot diverge |
 | TPL-17, TPL-18 | ✓ `exam-neuro`, `labs`, `dx-coded` as subsets of slots |
 | TPL-19 | ✓ v164 — signatory identity sits on the **Practice** (`PRACTICES[].signatories`), with Provider-level roles added by `sigList()`; `tpl.signers` still selects. Before v164 a practice-level role appeared on every practice's documents |
 | TPL-12, TPL-13, TPL-15 | ✓ consent registry, both forms from one source, type-sensitive validation |
