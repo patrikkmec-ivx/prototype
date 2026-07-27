@@ -4,8 +4,38 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v168 (A4 template preview)</title>
+<title>Hilbi Cockpit — v169 (stamp and signature)</title>
 <!-- CHANGELOG
+v169 (2026-07-27): Stamp and signature marks per signatory, bottom-right, the way a
+  Slovak or Czech report is signed: stamp left, signature right, both ABOVE the rule,
+  name and role below it. Upload in facility settings — PNG/JPG/SVG/WebP up to 200 kB,
+  addressed by signatory key so a mark follows the person, not the current practice.
+  A sample stamp is provided in the shape of a real Slovak one (facility and address
+  left, physician code and name right) with English demo text.
+  SIG-08, new normative rule: an uploaded mark is an IMAGE, not an electronic signature.
+  It satisfies none of eIDAS QES, IT Act e-sign or HIPAA e-sign, which MKT already
+  declares per market. So the mark is drawn above the rule and never instead of it, the
+  rule stays, and the upload panel says so. A stamp is issued to the physician; the
+  system does not generate one. SIG-09: a mark is personal data, frozen into the
+  snapshot and into the fingerprint, and it travels with every share.
+  Found while doing this: sigBlockHTML() was rendered in ONE place, reportShell() — the
+  live draft. Neither the template preview nor snapShellHTML() carried it, so a signed
+  document had no signature block at all, while cp-17 recorded TPL-19 as met. Same shape
+  of defect as DOC-06 in v167. The block is now in all three, and the snapshot renders
+  its own frozen signatories rather than reading live ORG — otherwise replacing a stamp
+  would silently reprint every document ever signed (AMD-05).
+  Verified in jsdom: marks reach preview, A4 and snapshot; clearing a stamp after
+  signature leaves the signed document byte-identical; marks change the fingerprint.
+  Geometry checked arithmetically before the browser: at the first attempt the stamp was
+  clipped by its max-width and the two marks collided by 14 px. Block widened to 300 px
+  and mark heights derived from their aspect ratios — 141 px and 102 px, 58 px apart.
+  NEW TOKEN --ink-stamp:#37409B — document ink, the colour of an artefact belonging to
+  the physician rather than to the interface. No other new token.
+  tools/gates.py: gate 10 was masking the wrong region. I18N offsets are relative to the
+  script block but were applied to the whole file, so an arbitrary stretch of HTML was
+  blanked and every Slovak translation was counted. It reported 849 where the real figure
+  is 433. Baseline restated accordingly; this commit lowers it by 5.
+
 v168 (2026-07-27): A4 preview for document templates. The side preview column is narrow
   and gives no sense of how the document sits on a page, so the Preview heading gained an
   eye button that opens the template on a true A4 sheet — 210x297 mm, rendered at 96 dpi
@@ -151,6 +181,9 @@ Entries v154 and older: docs/CHANGELOG-archive-v41-v154.md (Slovak, preserved ve
   --border-default:#E7ECF3; --border-strong:#E1E7EF;
   /* SEMANTIC */
   --success:#2BB673; --warning:#E0883A; --danger:#E5484D;
+  /* DOCUMENT INK — stamp and signature marks on a printed document. Not a UI colour:
+     it is the ink of an artefact that belongs to the physician, not to the interface. */
+  --ink-stamp:#37409B;
   /* TINTS / SOFT */
   --brand-cyan-soft:#E1F5F9; --tint-soft:#F4F2FB;
   --success-soft:#E4F5EC; --warning-soft:#FCF0DC; --danger-soft:#FBE7E8;
@@ -887,11 +920,36 @@ body[data-tab="comm"] .timeline{display:none}
 .cnsh .cnsv{font-weight:400;color:var(--text-muted);font-size:11px}
 .cnst{font-size:11.5px;line-height:17px;color:var(--text-body)}
 .sgrow{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px}
-.sgrow.docsig{margin-top:26px;padding-top:6px}
+.sgrow.docsig{margin-top:26px;padding-top:6px;justify-content:flex-end}
 .sgrow.docsig .sgc{line-height:15px}
+.sgrow.docsig .sgl{flex:0 0 auto;width:300px}
 .sgl{flex:1 1 150px;min-width:140px}
 .sgl .sgn{display:block;border-bottom:1px solid var(--text-muted);height:20px}
 .sgl .sgc{display:block;font-size:10.5px;color:var(--text-muted);margin-top:3px;text-align:center}
+/* Stamp left, signature right, both sitting on the rule. Widths are derived from the
+   marks' own aspect ratios (stamp 208:74, signature 150:56) so that at these heights
+   they occupy 141 px and 102 px of the 300 px block — clear of each other and inside
+   the 52% cap. Without marks the strip keeps a height so the layout does not jump
+   between a signed and an unsigned document. */
+.sgmarks{display:block;position:relative;height:20px}
+.sgmarks.has{height:58px}
+.sgmarks img{position:absolute;bottom:-4px;max-width:52%;object-fit:contain}
+.sgmarks .stmp{left:0;height:50px}
+.sgmarks .sgim{right:0;height:38px;bottom:-8px}
+/* Upload rows in facility settings */
+.signote{font-size:11px;line-height:16px;color:var(--warning);background:var(--warning-soft);
+  border-radius:8px;padding:8px 10px;margin-bottom:12px}
+.markrow{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;padding:10px 0;
+  border-bottom:1px solid var(--border-default)}
+.markrow .mkid{flex:1 1 150px;min-width:130px;font-size:12px;color:var(--text-body)}
+.markrow .mkid span{display:block;font-size:10.5px;color:var(--text-muted)}
+.markrow .mkcell{display:flex;gap:6px;align-items:center;flex:0 0 auto}
+.markrow .mkcell .fl{margin:0 4px 0 0;font-size:10.5px}
+.mkprev{display:inline-flex;align-items:center;justify-content:center;height:38px;width:96px;
+  border:1px solid var(--border-default);border-radius:8px;background:var(--surface-white);padding:3px}
+.mkprev img{max-height:100%;max-width:100%;object-fit:contain}
+.mkup{cursor:pointer}
+.mksamp{font-size:11px}
 .cnsbox.cnsmiss{background:var(--warning-soft);border-color:var(--warning);color:var(--text-body);font-size:11.5px;line-height:17px}
 .orgcard{display:flex;gap:16px;align-items:center;flex-wrap:wrap;max-width:720px;margin-bottom:20px;
   padding:16px 18px;border-radius:12px;background:var(--brand-cyan-soft);border:1px solid var(--brand-cyan)}
@@ -3025,16 +3083,30 @@ function rptSnapshot(tpl){
     id:Object.assign({},RPT_ID),
     codes:{rec:m.rec,rep:m.rep,med:m.med,lab:m.lab},
     sig:m.sig,docProfile:m.doc,   /* market document profile — NOT the document identity (see doc: above) */
+    /* Signatories are frozen WITH their marks. Rendering them from live ORG would mean
+       that replacing a stamp silently reprints every document ever signed — a breach of
+       AMD-05. The marks are part of the content and therefore part of the fingerprint. */
+    signatories:((tpl&&tpl.signers&&tpl.signers.length)?tpl.signers:['clinician'])
+      .map(function(k){var g=sigOf(k);return g?{k:k,name:g.name,title:tt(g.title),code:g.code||'',
+        stampImg:g.stampImg||null,signImg:g.signImg||null}:null;}).filter(Boolean),
     sections:tpl.sections.map(s=>({
       label:tt(s.label),src:s.src,
       items:s.src==='consent'?[]:rptSource(s.src).map(it=>({text:it.text,slot:it.slot,coding:it.coding,pt:!!it.pt}))
     })),
     narrative:rptPlain(tpl)
   };
-  snap.hash=rptHash(snap.narrative+'|'+JSON.stringify(snap.sections));
+  snap.hash=rptHash(snap.narrative+'|'+JSON.stringify(snap.sections)+'|'+JSON.stringify(snap.signatories));
   return snap;
 }
-/* Vykreslenie zo snímky — bez akéhokoľvek dotyku so živými dátami */
+/* Signature block of a frozen document — read from the snapshot, never from live ORG */
+function snapSigHTML(sn){
+  const cols=(sn.signatories||[]).map(function(s){
+    return `<div class="sgl">${sigMarksHTML(s)}<span class="sgn"></span>
+      <span class="sgc">${s.name?escT(s.name)+'<br>':''}${escT(s.title)}${s.code?' · '+escT(s.code):''}</span></div>`;
+  }).join('');
+  return cols?`<div class="sgrow docsig">${cols}</div>`:'';
+}
+/* Rendered from the snapshot — never touching live data */
 function snapBodyHTML(sn){
   return sn.sections.map(s=>{
     if(s.src==='consent')return cnsBlockHTML({consentId:sn.tpl.consentId});
@@ -3057,6 +3129,7 @@ function snapShellHTML(sn){
     <div class="docid"><b>${escT(sn.doc.humanId||'—')}</b>
       <span class="hash">${tt('identifier')} ${escT(docShort(sn.doc.master))}</span>
       · ${tt('version')} ${sn.ver}</div>
+    ${snapSigHTML(sn)}
     <div class="snapmark">${tt('Frozen content')} · v${sn.ver} · ${escT(sn.ts)}
       · ${tt('template')} ${escT(sn.tpl.id)} v${sn.tpl.ver}
       · <span class="hash">${tt('fingerprint')} ${sn.hash}</span></div>`;
@@ -3190,7 +3263,24 @@ function orgRender(){
         +'<input type="text" value="'+escT(s.title)+'" placeholder="'+tt('Role')+'" oninput="ORG.signatories['+i+'].title=this.value">'
         +'<input type="text" value="'+escT(s.code||'')+'" placeholder="'+tt('Code')+'" style="flex:0 1 120px" oninput="ORG.signatories['+i+'].code=this.value">'
         +'</div>';}).join('')
-    +'<div class="cnsnote">'+tt('Which of them appear on a given document is decided by the template.')+'</div></div>';
+    +'<div class="cnsnote">'+tt('Which of them appear on a given document is decided by the template.')+'</div></div>'
+    +'<div class="fr"><div class="grph">'+tt('Stamp and signature')+'</div>'
+    +'<div class="signote">'+tt('An uploaded stamp or signature is an image, not an electronic signature. It is printed above the signature rule, which stays in place — the document is still signed.')+'</div>'
+    +sigList().map(function(s){return ''
+      +'<div class="markrow">'
+      +'<div class="mkid"><b>'+escT(s.name||tt('unnamed'))+'</b><span>'+escT(tt(s.title))+'</span></div>'
+      +['stampImg','signImg'].map(function(fld){
+        var lbl=fld==='stampImg'?tt('Stamp'):tt('Signature');
+        return '<div class="mkcell"><label class="fl">'+lbl+'</label>'
+          +(s[fld]
+            ? '<span class="mkprev"><img src="'+s[fld]+'" alt=""></span>'
+              +'<button class="btn icob ghost" title="'+tt('Remove')+'" onclick="sigMarkClear(\''+s.k+'\',\''+fld+'\')">&times;</button>'
+            : '<label class="btn mkup"><input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" hidden'
+              +' onchange="sigMarkUpload(\''+s.k+'\',\''+fld+'\',this)">'+tt('Upload')+'</label>')
+          +'</div>';}).join('')
+      +'<button class="btn ghost mksamp" onclick="sigMarkSample(\''+s.k+'\')">'+tt('Use sample')+'</button>'
+      +'</div>';}).join('')
+    +'<div class="cnsnote">'+tt('PNG, JPG, SVG or WebP up to 200 kB. The mark is frozen into the document at signature, so replacing it later does not alter documents already signed.')+'</div></div>';
 }
 function orgSave(){
   logProv('amend','Organization · header',{role:'author'});
@@ -3402,11 +3492,70 @@ const ORG={
   ]
 };
 function sigOf(k){return sigList().find(s=>s.k===k)||null;}
-/* Podpisový blok dokumentu — zloženie určuje šablóna, obsah organizácia */
+/* ── STAMP AND SIGNATURE MARKS ────────────────────────────────────────────────
+   IMPORTANT: an uploaded stamp or signature is an IMAGE. It is not an electronic
+   signature. MKT declares eIDAS QES (EU), IT Act e-sign (IN) and HIPAA e-sign (US);
+   a scan satisfies none of them. The marks are therefore drawn ABOVE the signature
+   rule, never instead of it — the document is still signed. See cp-17 SIG-08.
+   The samples below are demo artefacts in the shape of a Slovak physician's stamp
+   (facility and address left, physician code and name right). A real stamp is issued
+   to the physician; the system never generates one. */
+const SIG_MAX=200*1024;                       /* 200 kB — a stamp is a small mark */
+const SIG_TYPES=['image/png','image/jpeg','image/svg+xml','image/webp'];
+function svgData(s){return 'data:image/svg+xml,'+encodeURIComponent(s);}
+const STAMP_SAMPLE=svgData(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 208 74">
+<g fill="none" stroke="#37409B" stroke-width="2.2">
+ <rect x="3" y="3" width="202" height="68" rx="1"/><path d="M78 3V71"/><path d="M78 24H205"/></g>
+<g fill="#37409B" font-family="Helvetica,Arial,sans-serif" font-weight="700">
+ <text x="9" y="19" font-size="8">PRIVATE</text><text x="9" y="30" font-size="8">NEUROLOGY</text>
+ <text x="9" y="41" font-size="8">PRACTICE</text>
+ <text x="9" y="54" font-size="7.5" font-weight="400">Zarnova 11</text>
+ <text x="9" y="65" font-size="7.5" font-weight="400">TRNAVA</text>
+ <text x="141" y="18" font-size="11" text-anchor="middle">21-5028-10118</text>
+ <text x="141" y="40" font-size="9.5" text-anchor="middle">Dr. E. Rodriguez</text>
+ <text x="141" y="53" font-size="8" text-anchor="middle" font-weight="400">specialist physician</text>
+ <text x="141" y="65" font-size="8" text-anchor="middle" font-weight="400">neurologist</text></g></svg>`);
+const SIGN_SAMPLE=svgData(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 56">
+<g fill="none" stroke="#37409B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <path d="M10 42C14 20 20 10 25 12c4 2-1 18-5 26-3 6-4 2 0-4 6-8 14-12 20-8 5 3-2 14-4 10-2-4 6-12 14-10 6 2 2 12 0 10"/>
+ <path d="M56 34c4-12 10-20 16-18 5 2-2 16-8 22-4 4-4 0 2-4 8-5 18-8 26-4"/>
+ <path d="M92 30c6-10 12-14 16-10 3 3-4 14-8 18-3 3-2-2 4-6 8-5 18-6 26 0"/>
+ <path d="M118 44c8-4 16-4 23-1"/></g></svg>`);
+/* Upload target is addressed by signatory key, so a mark follows the person who
+   owns it rather than whichever practice happens to be current. */
+function sigMarkSet(k,field,val){
+  const s=sigOf(k); if(!s)return;
+  s[field]=val; orgRender();
+  if(typeof renderOut==='function'&&document.getElementById('rendout').classList.contains('show'))renderOut();
+  if(typeof tplMgrRender==='function'&&document.body.dataset.page==='tpl')tplMgrRender();
+}
+function sigMarkUpload(k,field,input){
+  const f=input.files&&input.files[0]; if(!f)return;
+  if(SIG_TYPES.indexOf(f.type)<0){showToast('Unsupported file type — use PNG, JPG, SVG or WebP');input.value='';return;}
+  if(f.size>SIG_MAX){showToast('File is too large — the limit is 200 kB');input.value='';return;}
+  const r=new FileReader();
+  r.onload=function(){sigMarkSet(k,field,r.result);
+    logProv('update','Signatory '+k+'.'+field,{role:'author'});};
+  r.readAsDataURL(f);
+  input.value='';
+}
+function sigMarkClear(k,field){sigMarkSet(k,field,null);}
+function sigMarkSample(k){const s=sigOf(k);if(!s)return;
+  s.stampImg=STAMP_SAMPLE;s.signImg=SIGN_SAMPLE;sigMarkSet(k,'code',s.code||'21-5028-10118');}
+/* Document signature block — the template decides who appears, the organisation owns
+   the content. Sits bottom-right, the way a Slovak or Czech report is signed: stamp and signature
+   ABOVE the rule, name and role below it. The rule stays even when both marks are
+   present, because the marks are images and the document is still signed by hand or
+   by a qualified electronic signature (SIG-08). */
+function sigMarksHTML(s){
+  const st=s.stampImg?`<img class="stmp" src="${s.stampImg}" alt="">`:'';
+  const sg=s.signImg?`<img class="sgim" src="${s.signImg}" alt="">`:'';
+  return `<span class="sgmarks${st||sg?' has':''}">${st}${sg}</span>`;
+}
 function sigBlockHTML(tpl){
   const ks=(tpl&&tpl.signers&&tpl.signers.length)?tpl.signers:['clinician'];
   const cols=ks.map(k=>{const s=sigOf(k);if(!s)return '';
-    return `<div class="sgl"><span class="sgn"></span>
+    return `<div class="sgl">${sigMarksHTML(s)}<span class="sgn"></span>
       <span class="sgc">${s.name?escT(s.name)+'<br>':''}${escT(tt(s.title))}${s.code?' · '+escT(s.code):''}</span></div>`;}).join('');
   return cols?`<div class="sgrow docsig">${cols}</div>`:'';
 }
@@ -3595,7 +3744,8 @@ function tplPrevBodyHTML(tpl){
       <h4>${escT(tt(tpl.name))}</h4>
       <div class="rsec">${rptIdLine()} · ${escT(RPT_ID.clinician)}</div>
       ${tplBodyHTML(tpl)}
-      <div class="rft">${escT(ORG.stamp)}</div>`;
+      <div class="rft">${escT(ORG.stamp)}</div>
+      ${sigBlockHTML(tpl)}`;
 }
 /* Document preview for the template being edited */
 function tplPreviewHTML(){
@@ -4025,6 +4175,16 @@ const I18N=[
  ["Select a template on the left or create a new one.","Vyberte šablónu vľavo alebo vytvorte novú."],
  ["Short follow-up (mine)","Krátka kontrola (moja)"],
  ["Preview","Náhľad"],
+ ["Stamp and signature","Pečiatka a podpis"],
+ ["Stamp","Pečiatka"],
+ ["Signature","Podpis"],
+ ["Upload","Nahrať"],
+ ["Use sample","Použiť vzorku"],
+ ["unnamed","bez mena"],
+ ["An uploaded stamp or signature is an image, not an electronic signature. It is printed above the signature rule, which stays in place — the document is still signed.","Nahraná pečiatka alebo podpis je obrázok, nie elektronický podpis. Tlačí sa nad podpisovú čiaru, ktorá zostáva — dokument sa stále podpisuje."],
+ ["PNG, JPG, SVG or WebP up to 200 kB. The mark is frozen into the document at signature, so replacing it later does not alter documents already signed.","PNG, JPG, SVG alebo WebP do 200 kB. Značka sa pri podpise zmrazí do dokumentu, takže neskoršia výmena nemení už podpísané dokumenty."],
+ ["Unsupported file type — use PNG, JPG, SVG or WebP","Nepodporovaný typ súboru — použite PNG, JPG, SVG alebo WebP"],
+ ["File is too large — the limit is 200 kB","Súbor je príliš veľký — limit je 200 kB"],
  ["Open A4 preview","Otvoriť náhľad A4"],
  ["A4 preview","Náhľad A4"],
  ["Preview with today\u2019s data. History is projected from the patient level.","Náhľad s dnešnými údajmi. Anamnéza sa preberá z pacientskej úrovne."],
