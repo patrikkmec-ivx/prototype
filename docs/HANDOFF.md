@@ -4,7 +4,7 @@
 > binding; `CLAUDE.md` governs how to behave in the repository; `README.md` says what
 > is what. **Updated at the end of every session.**
 
-Updated: 2026-07-24 · Prototype version: **v163**
+Updated: 2026-07-27 · Prototype version: **v167**
 
 ---
 
@@ -198,6 +198,35 @@ only where a string is genuinely a translation key.
 identifiers (`action.save`). Neutral keys remain the target — `EN-MIGRATION-PLAN.md`.
 Gate 10 still reports Slovak in code comments and in unfenced demo content; the demo
 content stays Slovak by decision and needs `DEMO-CONTENT` markers so the gate can see it.
+
+## 5f. v167 — document identity was broken, not done
+
+`DOC-01..07` and `DOC-06` were recorded as closed in v158. They were not. `rptSnapshot()`
+declared `doc:` twice in one object literal — the identity `{master, humanId, created}`
+first, the market document profile `doc:m.doc` twelve lines later. The later key wins, so
+every snapshot carried the string `EEHRxF / OpConsult` where its identity belonged.
+
+What that meant in practice, for nine versions: `sn.doc.humanId = DOC.humanId` set a
+property on a primitive and failed silently; `docRegister()` wrote `master: undefined`;
+both the timeline and Records emitted `docOpen('undefined')`, so **a signed document could
+not be opened from either view**; and because `Store.put('documents')` keys on `master`, a
+second document would have overwritten the first.
+
+Fixed by renaming the market profile to `docProfile:`. **No change to the state model.**
+Verified in jsdom rather than by reading: one register row per document across both views
+with the same `master`, `docOpen` resolves, the profile still renders in the frozen footer,
+and an addendum updates the existing row to v2 / `amended` instead of creating a second.
+
+**Two things follow from this.** First, a claim of conformance in `cp-17` §16 is only worth
+what the test behind it is worth — this one had none. Second, a duplicate key in an object
+literal is legal JavaScript: `node --check` accepts it and no gate sees it. A gate would
+need an AST parse (acorn); it was **not added here** — it is a deliberate deferral, not an
+oversight, and it is the cheapest remaining protection for this class of defect.
+
+**Deferred, not blocking:** `RPT_VERS` and `RPT_VIEW_VER` are still module-level globals,
+so all versions belong to whichever document is current. This is invisible while one
+document exists per encounter, and becomes real the moment step 1 of document creation can
+produce a second one. Move them onto `DOC` at that point, not before.
 
 ## 6. Open points outside the code
 
