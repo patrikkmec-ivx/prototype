@@ -84,6 +84,13 @@ configuration.
 | One document, two views | `DOC-06` | `renderDocViews()`, `docOpen(master)` |
 | Signature block | `TPL-19` | `ORG.signatories` (identity) · `tpl.signers` (selection) · `sigBlockHTML()` |
 
+The snapshot carries two different `doc` concepts and they must never share a key.
+`snap.doc` is the **document identity** (`master`, `humanId`, `created`);
+`snap.docProfile` is the **market document profile** (`EEHRxF / OpConsult`,
+`US Core / C-CDA`, `ABDM Prescription`). They collided in one object literal from v158
+to v167 and the identity lost, because in a literal the later key wins. A duplicate key
+is legal JavaScript, so `node --check` accepts it and no gate detects it.
+
 ## 5. What production must replace
 
 The prototype implements **structure**. These are deliberate placeholders — the full
