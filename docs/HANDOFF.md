@@ -4,7 +4,7 @@
 > binding; `CLAUDE.md` governs how to behave in the repository; `README.md` says what
 > is what. **Updated at the end of every session.**
 
-Updated: 2026-07-27 · Prototype version: **v173**
+Updated: 2026-07-27 · Prototype version: **v174**
 
 ---
 
@@ -391,6 +391,32 @@ working against Lovable, so it described a case that no longer applies. If a pla
 ever refuses embedding, the frame will just be blank with nothing explaining why — an
 accepted trade for a clean surface, worth revisiting when the register points at the real
 microservice.
+
+### v174 — hero and tab strip at narrow widths
+
+Measured before touching anything. At a 1280 viewport the centre column is 732px, leaving
+the hero row 650px inside its padding:
+
+- `.phead .who` was `flex:none` with every line `white-space:nowrap` — a fixed ~287px claim
+- `.prow` had no `flex-wrap`, so the chips had nowhere to go
+- `.center` is `overflow:hidden`, so the overflow vanished instead of scrolling
+
+The chips were left **253px against a 353px widest row**. Now `.prow` wraps, `.who` is
+`flex:1 1 auto; min-width:0`, the identity line may break between its three facts, and
+`.chips` has a 320px basis. At 1280 the chips get 429px; below ~1100 they take a full-width
+line of their own.
+
+**The tab strip scrolls — and this was never only a mobile matter.** Six tabs plus the icon
+group do not fit a 732px centre either. `overflow-x:auto` with snapping and a hidden bar;
+scroll appears only when needed.
+
+**Nearly a self-inflicted regression:** `overflow-y:hidden` would have clipped the active
+underline, which sits at `bottom:-1px`. The strip now carries `padding-bottom:1px`.
+
+**The mobile block already had `overflow-x:auto` on `.tabs`** — the slider existed there.
+What it also did was hide every tab label, leaving six unlabelled icons for a clinician to
+guess between. Labels restored. Worth checking the mobile block before assuming a
+responsive gap is unaddressed; `.chips .row` already scrolls there too.
 
 ## 6. Open points outside the code
 
