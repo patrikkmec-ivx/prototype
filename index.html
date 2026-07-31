@@ -4,8 +4,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v170 (footer uploads, English scope tabs)</title>
+<title>Hilbi Cockpit — v171 (care plans embedded)</title>
 <!-- CHANGELOG
+v171 (2026-07-27): Care plans open as embedded applications. The dropdown previously
+  showed a toast and did nothing; each entry now resolves through CP_APPS to a URL and
+  opens in a pane in the centre column, using the same body[data-tab] mechanism as the
+  communication pane. Three plans point at published Lovable prototypes — Care Plan
+  Studio, SM Care Plan, Fabry; Dementia and Colorectal are not published and show an
+  honest placeholder saying so rather than an empty frame.
+  The cockpit embeds a plan, it does not reimplement one. CP_APPS is the seam: in
+  production the same register points at the Care Plans microservice instead of at a
+  builder preview, and nothing else changes.
+  Framing: sandbox allows scripts, forms, popups and same-origin but NOT
+  allow-top-navigation, so an embedded app cannot navigate the whole cockpit away;
+  referrerpolicy=no-referrer. Whether these Lovable URLs permit embedding at all could
+  not be checked from the build environment (the network blocks lovable.app), so every
+  frame carries a visible "open in a new window" link and a line explaining that a blank
+  frame means the service refuses embedding. That turns an unverifiable dependency into
+  a visible state rather than a dead end.
+  NOT done, deliberately: no patient context is passed. In production the identifier
+  MUST NOT travel in the URL — a query string reaches gateway logs, the Referer header of
+  every outbound request the embedded app makes, and browser history. Hand over with an
+  origin-checked postMessage or a short-lived server-side token. Recorded in code and in
+  HANDOFF; these prototypes carry demo data only.
+  Verified in jsdom: all five dropdown entries resolve to the register, published plans
+  produce a sandboxed frame with no query string, unpublished ones produce a placeholder
+  and no frame, close returns to the pathway, Slovak resolves.
+
 v170 (2026-07-27): Two defects found by opening the prototype in a browser, which is
   where the gates keep failing to help.
   (1) The stamp and signature upload was buried in the facility-settings modal, behind
@@ -878,6 +903,22 @@ body[data-ax="ms"] .timeline .ssep{display:none}
 .commpane{display:none;flex-direction:column;gap:10px;padding:6px 2px;max-width:640px}
 body[data-tab="comm"] .commpane{display:flex}
 body[data-tab="comm"] .timeline{display:none}
+/* Care plan pane — an embedded plan service. The plan runs as its own app; the cockpit
+   gives it a frame and a header, nothing more. This is the seam where a Lovable
+   prototype today becomes a Care Plans microservice later. */
+.cppane{display:none;flex-direction:column;gap:10px;padding:6px 2px}
+body[data-tab="cp"] .cppane{display:flex}
+body[data-tab="cp"] .timeline{display:none}
+.cphd{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cphd b{font-size:15px;color:var(--text-heading)}
+.cphd .cpsp{margin-left:auto;display:flex;gap:6px;align-items:center}
+.cpframe{position:relative;border:1px solid var(--border-default);border-radius:12px;
+  overflow:hidden;background:var(--surface-white);min-height:560px}
+.cpframe iframe{display:block;width:100%;height:72vh;min-height:560px;border:0}
+.cpmiss{padding:28px 22px;text-align:center;color:var(--text-muted);font-size:13px;line-height:20px}
+.cpmiss b{display:block;font-size:15px;color:var(--text-heading);margin-bottom:6px}
+.cpnote{font-size:11.5px;line-height:17px;color:var(--text-muted)}
+.cpnote a{color:var(--brand-teal-text)}
 .cbub{max-width:78%;padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:19px;color:var(--text-body)}
 .cbub.pt{align-self:flex-start;background:var(--surface-white);border:1px solid var(--border-default);border-bottom-left-radius:4px}
 .cbub.dr{align-self:flex-end;background:var(--brand-cyan-soft);border-bottom-right-radius:4px}
@@ -1716,12 +1757,12 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
       <div class="tabdd">
       <button class="tab" onclick="cpMenu(event)"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-cliplist"/></svg><span class="tlb">Care plans</span> <span class="chev"><svg width="12" height="7" viewBox="0 0 14 8" fill="none"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
       <div class="cpdrop" id="cpdrop">
-        <button class="cpstudio" onclick="cpPick(this)"><svg class="ico s14" aria-hidden="true"><use href="#i-slide"/></svg>Care Plan Studio</button>
+        <button class="cpstudio" data-cp="studio" onclick="cpPick(this)"><svg class="ico s14" aria-hidden="true"><use href="#i-slide"/></svg>Care Plan Studio</button>
         <div class="cpsep"></div>
-        <button onclick="cpPick(this)">SM Care Plan</button>
-        <button onclick="cpPick(this)">Dementia Care plan</button>
-        <button onclick="cpPick(this)">Fabry Care plan</button>
-        <button onclick="cpPick(this)">Colorectal Care plan</button>
+        <button data-cp="sm" onclick="cpPick(this)">SM Care Plan</button>
+        <button data-cp="dem" onclick="cpPick(this)">Dementia Care plan</button>
+        <button data-cp="fab" onclick="cpPick(this)">Fabry Care plan</button>
+        <button data-cp="crc" onclick="cpPick(this)">Colorectal Care plan</button>
       </div>
       </div>
       <button class="tab"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-folder2"/></svg><span class="tlb">Records</span></button>
@@ -1894,6 +1935,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
       </div>
 
       </div><!-- /timeline -->
+      <div class="cppane" id="cppane"></div>
       <div class="commpane">
         <div class="cbub pt"><span class="cwho">Jane Carter · 08:41</span><span class="ctext">Since morning I have tingling in my left hand and more fatigue than usual.</span><br><button class="s2dek" onclick="chat2S(this)"><b>S</b><span>→ to progress note</span></button></div>
         <div class="cbub dr"><span class="cwho">Dr. Novak · 08:52</span><span class="ctext">Thanks for letting me know. Please measure your blood pressure today — see you at the 10:00 check-up.</span></div>
@@ -2565,13 +2607,56 @@ function updComp(){
   document.querySelectorAll('.scomp .si').forEach(i=>i.classList.toggle('full',have.has(i.dataset.s)));
   if(typeof updSignVal==='function')updSignVal();
 }
-function cpMenu(ev){ev.stopPropagation();const w=ev.currentTarget.closest('.tabdd');w.classList.toggle('open');}
-function cpPick(btn){const w=btn.closest('.tabdd');w.classList.remove('open');
-  const t=btn.textContent.trim();
+/* ── CARE PLAN APPS ───────────────────────────────────────────────────────────
+   Each plan is its own application. The cockpit embeds it; it does not reimplement
+   it. Today these point at Lovable prototypes; in production the same register
+   points at the Care Plans microservice, one URL per plan or one URL with a plan
+   parameter. That is the only line that has to change.
+
+   NOTE for production, not for the prototype: the patient identifier MUST NOT be
+   passed in the URL — a query string reaches gateway logs, the Referer header of
+   every outbound request the embedded app makes, and browser history. Hand the
+   context over with postMessage after an origin-checked handshake, or with a
+   short-lived token exchanged server-side. These prototypes carry demo data only. */
+const CP_APPS=[
+  {id:'studio', label:'Care Plan Studio',      url:'https://eraskrkexperthilbicom.lovable.app'},
+  {id:'sm',     label:'SM Care Plan',          url:'https://sm-careplans.lovable.app'},
+  {id:'dem',    label:'Dementia Care plan',    url:null},
+  {id:'fab',    label:'Fabry Care plan',       url:'https://fabry-care-plan.lovable.app'},
+  {id:'crc',    label:'Colorectal Care plan',  url:null}
+];
+function cpApp(id){return CP_APPS.find(a=>a.id===id)||null;}
+function cpOpen(id){
+  const a=cpApp(id); if(!a)return;
+  const p=document.getElementById('cppane');
+  const body=a.url
+    ? `<div class="cpframe"><iframe src="${a.url}" title="${escT(tt(a.label))}"
+         sandbox="allow-scripts allow-forms allow-popups allow-same-origin"
+         referrerpolicy="no-referrer" loading="lazy"></iframe></div>
+       <div class="cpnote">${tt('Embedded from')} <a href="${a.url}" target="_blank" rel="noopener noreferrer">${escT(a.url.replace('https://',''))}</a>.
+         ${tt('If the frame stays blank the service refuses embedding — open it in a new window instead.')}</div>`
+    : `<div class="cpframe"><div class="cpmiss"><b>${tt('Not published yet')}</b>
+         ${tt('This plan has no public address. Publish it in the builder, then add its URL to the plan register.')}</div></div>`;
+  p.innerHTML=`<div class="cphd"><svg class="ico s18" aria-hidden="true"><use href="#i-cliplist"/></svg>
+      <b>${escT(tt(a.label))}</b>
+      <span class="tag ${a.url?'st-plan':'st-wait'}">${a.url?tt('embedded'):tt('not published')}</span>
+      <span class="cpsp">
+        ${a.url?`<a class="btn" href="${a.url}" target="_blank" rel="noopener noreferrer">${tt('Open in new window')}</a>`:''}
+        <button class="btn" onclick="cpClose()">${tt('Close')}</button>
+      </span></div>${body}`;
   document.querySelectorAll('.center>.tabs .tab').forEach(x=>x.classList.remove('active'));
-  w.querySelector('.tab').classList.add('active');
-  showToast((LANG==='en'?'Opening — ':'Otváram — ')+t);
+  const tab=document.querySelector('.tabdd .tab'); if(tab)tab.classList.add('active');
+  document.body.dataset.tab='cp';
+  logAudit('read','Care plan '+a.id);
 }
+function cpClose(){
+  document.body.dataset.tab='';
+  document.getElementById('cppane').innerHTML='';
+  document.querySelectorAll('.center>.tabs .tab').forEach(x=>x.classList.remove('active'));
+  const first=document.querySelector('.center>.tabs .tab'); if(first)first.classList.add('active');
+}
+function cpMenu(ev){ev.stopPropagation();const w=ev.currentTarget.closest('.tabdd');w.classList.toggle('open');}
+function cpPick(btn){btn.closest('.tabdd').classList.remove('open');cpOpen(btn.dataset.cp);}
 /* Profilové menu v ľavej lište (.me → gear) */
 function umToggle(e){
   if(e)e.stopPropagation();
@@ -4206,6 +4291,13 @@ const I18N=[
  ["Select a template on the left or create a new one.","Vyberte šablónu vľavo alebo vytvorte novú."],
  ["Short follow-up (mine)","Krátka kontrola (moja)"],
  ["Preview","Náhľad"],
+ ["Embedded from","Vložené z"],
+ ["If the frame stays blank the service refuses embedding — open it in a new window instead.","Ak rámec zostane prázdny, služba vloženie odmieta — otvorte ju v novom okne."],
+ ["Not published yet","Zatiaľ nepublikované"],
+ ["This plan has no public address. Publish it in the builder, then add its URL to the plan register.","Tento plán nemá verejnú adresu. Publikujte ho v nástroji a doplňte URL do registra plánov."],
+ ["Open in new window","Otvoriť v novom okne"],
+ ["embedded","vložené"],
+ ["not published","nepublikované"],
  ["Document footer — stamp and signature","Pätička dokumentu — pečiatka a podpis"],
  ["No signatory selected on this template.","Na tejto šablóne nie je vybraný žiadny podpisovateľ."],
  ["Stamp and signature marks are set in the document footer, on the template page.","Pečiatku a podpis nastavíte v pätičke dokumentu na stránke šablón."],
