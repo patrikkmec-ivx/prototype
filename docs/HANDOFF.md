@@ -4,7 +4,7 @@
 > binding; `CLAUDE.md` governs how to behave in the repository; `README.md` says what
 > is what. **Updated at the end of every session.**
 
-Updated: 2026-07-27 · Prototype version: **v178**
+Updated: 2026-07-27 · Prototype version: **v179**
 
 ---
 
@@ -475,6 +475,13 @@ and a frame around it reads as a second container competing with it.
 
 **Gate 6 earned its keep** — it caught hex literals in the *comment* above the rule, where
 both colours had been quoted by value. Contrast figures belong in prose as token names.
+
+### v179 — plan aligned to the hero
+
+v178 stripped the cockpit padding entirely, which took the plan to the very edge of
+`.center` while `.phead` keeps `margin:8px` — so the two blocks did not line up.
+`body[data-tab="cp"] .scroll` now carries 8px at the sides, matching the hero rather than
+`.scroll`'s own 24px gutter. Vertical fill is unchanged.
 
 ### v178 — whose background is it
 
