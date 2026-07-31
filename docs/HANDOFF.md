@@ -4,7 +4,7 @@
 > binding; `CLAUDE.md` governs how to behave in the repository; `README.md` says what
 > is what. **Updated at the end of every session.**
 
-Updated: 2026-07-27 · Prototype version: **v176**
+Updated: 2026-07-27 · Prototype version: **v177**
 
 ---
 
@@ -455,6 +455,26 @@ handler sits on the whole tab. After the tab labels in v174, it is worth reading
 **Testing note that cost time:** jsdom with `runScripts:'outside-only'` does **not**
 evaluate inline `onclick` attributes. A check that fired `.click()` on a tab reported the
 menu never opening — an artefact of the harness, not a defect. Call handlers directly.
+
+### v177 — active tab indicator and the plan frame
+
+`cpOpen()` marked `document.querySelector('.tabdd .tab')`. A bare selector returns the
+**first** dropdown tab in the strip, which is Patient pathway — so opening a plan lit the
+wrong tab and the underline never moved. It now resolves from `#cpdrop` to its own
+`.tabdd`. Worth remembering: there are two `.tabdd` wrappers in the strip, and any bare
+`.tabdd` selector silently means the first one.
+
+**Underline colour: azure, but `--brand-teal`, not `--brand-cyan`.** The underline is a
+state indicator, so `WCAG 1.4.11` asks 3:1 against its background. On white, brand-cyan
+measures **1.71:1** and brand-teal **3.61:1**. Both read as azure; only one is reliably
+visible. The navy it replaces was off-system regardless — navy is reserved for navigation
+and the *current* status, not for tab state.
+
+The embedded plan frame lost its border and background: the plan brings its own surface,
+and a frame around it reads as a second container competing with it.
+
+**Gate 6 earned its keep** — it caught hex literals in the *comment* above the rule, where
+both colours had been quoted by value. Contrast figures belong in prose as token names.
 
 ## 6. Open points outside the code
 
