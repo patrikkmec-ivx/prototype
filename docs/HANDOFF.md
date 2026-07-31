@@ -4,7 +4,7 @@
 > binding; `CLAUDE.md` governs how to behave in the repository; `README.md` says what
 > is what. **Updated at the end of every session.**
 
-Updated: 2026-07-27 · Prototype version: **v170**
+Updated: 2026-07-27 · Prototype version: **v171**
 
 ---
 
@@ -316,6 +316,39 @@ a duplicate object key, a block rendered in one surface out of three, an upload 
 could see, a register left untranslated. The gates verify structure; none of them can see
 whether a thing is reachable, visible or in the right place. `§10` already says most of
 the UI is visually unverified since v126 — these three are the evidence.
+
+## 5j. v171 — care plans as embedded applications
+
+The Care plans dropdown showed a toast and did nothing. Each entry now resolves through
+`CP_APPS` to a URL and opens in a pane in the centre column, reusing the `body[data-tab]`
+mechanism the communication pane already uses.
+
+**`CP_APPS` is the seam.** The cockpit embeds a plan, it does not reimplement one. Today
+the register points at published Lovable prototypes; in production it points at the Care
+Plans microservice and nothing else changes. Three plans are published — Care Plan Studio,
+SM Care Plan, Fabry. Dementia and Colorectal are not, and show a placeholder that says so
+instead of an empty frame.
+
+**An unverifiable dependency made visible.** Whether these URLs permit embedding could not
+be checked from the build environment — the network blocks `lovable.app`, so the
+`X-Frame-Options` and CSP `frame-ancestors` headers are unknown. If a service refuses
+embedding the frame simply stays blank, and cross-origin that is not reliably detectable
+from script. Every frame therefore carries a visible *open in a new window* link and a
+line explaining what a blank frame means. The dependency is still unverified; it is just
+no longer a dead end.
+
+**Patient context is deliberately not passed.** In production the identifier **must not
+travel in the URL**: a query string reaches gateway logs, the `Referer` header of every
+outbound request the embedded app makes, and browser history. This is the most common way
+PHI escapes an otherwise correct integration. Hand the context over with an origin-checked
+`postMessage` after the service signals readiness, or with a short-lived token exchanged
+server-side. The prototypes carry demo data only, so nothing is exposed today.
+
+**For Marek, when this stops being a prototype:** an embedded third-party surface inside a
+clinical cockpit is a data-flow boundary. It needs a CSP `frame-src` allowlist at the
+gateway, a decision on whether the plan service is a processor or a separate controller,
+and a view on whether embedding a service hosted outside the EU environment is acceptable
+at all under the regional isolation the platform claims.
 
 ## 6. Open points outside the code
 
