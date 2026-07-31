@@ -4,7 +4,7 @@
 > binding; `CLAUDE.md` governs how to behave in the repository; `README.md` says what
 > is what. **Updated at the end of every session.**
 
-Updated: 2026-07-27 · Prototype version: **v175**
+Updated: 2026-07-27 · Prototype version: **v176**
 
 ---
 
@@ -433,6 +433,28 @@ with the strip. Scoped to `.tabs .cpdrop`, so the format dropdown elsewhere is u
 checking *every* descendant that escapes its box, not the first one that comes to mind. No
 gate can see a clipped element — this was found by a person opening the page, like every
 other defect since v167.
+
+### v176 — mobile care plans and sliding chips
+
+**Care plans could not be opened on a phone.** v175 closed the tab dropdowns on any
+scroll, and a scroll-snap strip fires scroll as it settles after a tap — the menu was shut
+by the same gesture that opened it. It is now **re-anchored** on scroll and closes only
+once its trigger has left the viewport. Closing on scroll was the wrong instinct: on touch,
+scroll is a normal consequence of tapping, not a signal to dismiss.
+
+**Hero chips are one sliding row on mobile.** The markup keeps two `.row` groups for the
+desktop layout, so `display:contents` dissolves them there and every chip becomes a direct
+child of one scrolling track. No markup change, desktop untouched.
+
+**Third thing the mobile block was quietly hiding.** It hid `.tabs .tab .chev`, and that
+chevron is the *only* trigger for the Patient pathway menu — so that dropdown was
+unreachable on a phone, and had been for some time. Care plans survived only because its
+handler sits on the whole tab. After the tab labels in v174, it is worth reading the
+`max-width:744px` block in full rather than trusting that it only adjusts spacing.
+
+**Testing note that cost time:** jsdom with `runScripts:'outside-only'` does **not**
+evaluate inline `onclick` attributes. A check that fired `.click()` on a tab reported the
+menu never opening — an artefact of the harness, not a defect. Call handlers directly.
 
 ## 6. Open points outside the code
 
