@@ -4,7 +4,7 @@
 > binding; `CLAUDE.md` governs how to behave in the repository; `README.md` says what
 > is what. **Updated at the end of every session.**
 
-Updated: 2026-07-27 · Prototype version: **v177**
+Updated: 2026-07-27 · Prototype version: **v178**
 
 ---
 
@@ -475,6 +475,29 @@ and a frame around it reads as a second container competing with it.
 
 **Gate 6 earned its keep** — it caught hex literals in the *comment* above the rule, where
 both colours had been quoted by value. Contrast figures belong in prose as token names.
+
+### v178 — whose background is it
+
+Two surfaces, two owners, established by reading both sides rather than guessing.
+
+**The plan owns the inner one.** `src/index.css` in the Lovable project declares
+`--background: 210 20% 98%` — `#F9FAFB` — applied to `body` through `bg-background`. That
+is inside the iframe; the cockpit cannot reach it and should not try.
+
+**The pale border around it was ours.** `.scroll` contributes 24px at the sides and 110px
+at the bottom, `.cppane` another 2px, all of it showing `.center` white. v178 removed the
+frame's border and background but left that padding, so the plan still sat in a white
+mount. The plan now fills the workspace edge to edge while `body[data-tab="cp"]` is set;
+the timeline keeps its padding.
+
+**Deliberately not changed:** the app's own `#F9FAFB`. It also runs standalone at
+`sm-careplans.lovable.app`, so repainting it to match the cockpit is a decision about that
+product, not about this frame. If the two surfaces must match exactly, either the app
+moves to white or `.center` takes `#F9FAFB` while a plan is open.
+
+**Method worth reusing:** the Lovable MCP can read project source directly
+(`Lovable:read_file`), which settles 'is it them or us' questions in one call instead of
+an argument from a screenshot.
 
 ## 6. Open points outside the code
 
