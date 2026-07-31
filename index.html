@@ -4,8 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v174 (hero and tab strip responsiveness)</title>
+<title>Hilbi Cockpit — v175 (tab dropdowns restored)</title>
 <!-- CHANGELOG
+v175 (2026-07-27): Regression from v174, reported immediately: the Care plans dropdown
+  disappeared. Making .tabs a scroll container turned it into a clipping ancestor, and
+  overflow-y:hidden erased anything hanging below the strip. The active-tab underline was
+  spotted and protected with padding-bottom; the two dropdowns hanging 220px below it
+  were not. Same defect, one instance caught and one missed.
+  Dropdowns inside the strip are now position:fixed and anchored from the trigger button
+  on open, clamped to the viewport. A fixed element does not travel with the strip, so
+  scroll and resize close it rather than leave it stranded beside the wrong tab.
+  Scoped to .tabs .cpdrop — the format dropdown elsewhere keeps absolute positioning.
+  Verified in jsdom: both dropdowns open, receive coordinates, close on second click and
+  on scroll; picking a plan still opens the pane and closes the menu.
+  Lesson for the gates: none of them can see a clipped element. A scroll container added
+  to a strip that holds overlays needs every descendant that escapes its box checked, not
+  just the one that came to mind.
+
 v174 (2026-07-27): Patient hero and tab strip stop clipping at narrow widths.
   Measured first, not guessed. At a 1280 viewport the centre column is 732px, which
   leaves the hero row 650px inside its padding. .phead .who was flex:none with every
@@ -358,6 +373,10 @@ button{font-family:inherit}
 .tabdd{position:relative;display:inline-flex}
 .tabdd .chev svg{transition:transform .18s}
 .tabdd.open .chev svg{transform:rotate(180deg)}
+/* A dropdown inside .tabs cannot be position:absolute: the strip scrolls, so it is a
+   clipping ancestor and overflow-y:hidden erases anything hanging below it. Fixed
+   positioning escapes that; the coordinates are set from the button on open. */
+.tabs .cpdrop{position:fixed;left:auto;top:auto}
 .cpdrop{display:none;position:absolute;left:0;top:calc(100% + 4px);min-width:220px;background:var(--surface-white);border:1px solid var(--border-default);border-radius:12px;box-shadow:0 14px 34px rgba(27,35,64,.16);z-index:60;padding:6px;flex-direction:column;gap:1px}
 .tabdd.open .cpdrop{display:flex}
 .cpdrop button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:none;border-radius:8px;padding:9px 11px;font-size:13.5px;font-weight:600;color:var(--text-heading);cursor:pointer;white-space:nowrap}
@@ -2720,7 +2739,23 @@ function cpClose(){
   document.querySelectorAll('.center>.tabs .tab').forEach(x=>x.classList.remove('active'));
   const first=document.querySelector('.center>.tabs .tab'); if(first)first.classList.add('active');
 }
-function cpMenu(ev){ev.stopPropagation();const w=ev.currentTarget.closest('.tabdd');w.classList.toggle('open');}
+/* Anchor a fixed-position dropdown under its trigger, kept inside the viewport. */
+function ddPlace(wrap){
+  const drop=wrap.querySelector('.cpdrop'); if(!drop||!wrap.classList.contains('open'))return;
+  const r=wrap.getBoundingClientRect();
+  drop.style.top=(r.bottom+4)+'px';
+  drop.style.left=Math.max(8,Math.min(r.left,window.innerWidth-drop.offsetWidth-8))+'px';
+}
+function ddToggle(wrap){
+  wrap.classList.toggle('open');
+  if(wrap.classList.contains('open'))ddPlace(wrap);
+}
+/* A fixed dropdown does not travel with the strip, so close it rather than let it
+   float away from the tab it belongs to. */
+['scroll','resize'].forEach(function(evt){
+  window.addEventListener(evt,function(){document.querySelectorAll('.tabs .tabdd.open').forEach(function(w){w.classList.remove('open')});},true);
+});
+function cpMenu(ev){ev.stopPropagation();ddToggle(ev.currentTarget.closest('.tabdd'));}
 /* Any centre tab other than the Care plans dropdown closes the plan, so the pane
    cannot linger behind another workspace. Delegated, so no tab markup changes. */
 document.addEventListener('click',function(e){
@@ -5257,7 +5292,7 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='Backspace'){PIN=PIN.slice(0,-1);pinDraw();e.preventDefault();}
   else if(e.key==='Escape'){pinCancel();}
 });
-function pwMenu(ev){ev.stopPropagation();ev.preventDefault();document.getElementById('pwdd').classList.toggle('open');}
+function pwMenu(ev){ev.stopPropagation();ev.preventDefault();ddToggle(document.getElementById('pwdd'));}
 function axMode(m){const ms=m==='ms';document.body.dataset.ax=ms?'ms':'';document.getElementById('axFull').classList.toggle('on',!ms);document.getElementById('axMs').classList.toggle('on',ms);document.getElementById('pwdd').classList.remove('open');}
 function msJump(e){e.stopPropagation();const row=e.currentTarget.closest('.trow');const card=row&&row.querySelector('.card');if(card)card.click();}
 function msJumpCase(e){e.stopPropagation();openCase(0);}
