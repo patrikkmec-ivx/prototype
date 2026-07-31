@@ -4,8 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v177 (active tab indicator, bare plan frame)</title>
+<title>Hilbi Cockpit — v178 (plan fills the workspace)</title>
 <!-- CHANGELOG
+v178 (2026-07-27): Traced where the background around the embedded plan comes from,
+  rather than guessing. Two different surfaces, two different owners.
+  THE PLAN OWNS ITS OWN. src/index.css in the Lovable project declares
+  --background: 210 20% 98%, which is #F9FAFB, applied to body via bg-background. That
+  is inside the iframe and the cockpit cannot and should not repaint it. Read from the
+  project source over MCP, not inferred from the screenshot.
+  THE PALE BORDER AROUND IT WAS OURS. .scroll adds 24px at the sides and 110px at the
+  bottom, .cppane another 2px, all of it showing .center white. v177 removed the frame's
+  border and background but left that padding, so the plan still sat in a white mount.
+  The plan now fills the workspace edge to edge: no padding on the pane or the scroll
+  container while a plan is open, frame flexes to the available height, iframe at 100%
+  instead of a fixed 78vh. Scoped to body[data-tab="cp"], so the timeline keeps its
+  padding.
+  NOT changed: the app's own #F9FAFB. It runs standalone at sm-careplans.lovable.app as
+  well, so repainting it to match the cockpit would be a decision about that product,
+  not about this frame. If the two surfaces should match exactly, either the app moves
+  to white or .center takes #F9FAFB while a plan is open — worth deciding deliberately.
+
 v177 (2026-07-27): The active-tab underline never moved to Care plans, and it was the
   wrong colour.
   cpOpen() marked document.querySelector(".tabdd .tab") — a bare selector that returns
@@ -1040,13 +1058,18 @@ body[data-tab="comm"] .timeline{display:none}
 /* Care plan pane — an embedded plan service. The plan runs as its own app; the cockpit
    gives it a frame and a header, nothing more. This is the seam where a Lovable
    prototype today becomes a Care Plans microservice later. */
-.cppane{display:none;flex-direction:column;gap:10px;padding:6px 2px}
+/* The plan fills the workspace edge to edge. The cockpit contributed the pale border
+   seen around it — .scroll adds 24px at the sides and .cppane another 2 — while the
+   #F9FAFB surface inside the frame belongs to the plan itself. */
+.cppane{display:none;flex-direction:column;padding:0;flex:1;min-height:0}
 body[data-tab="cp"] .cppane{display:flex}
 body[data-tab="cp"] .timeline{display:none}
+body[data-tab="cp"] .scroll{padding:0;overflow:hidden;display:flex;flex-direction:column}
+body[data-tab="cp"] .filterbar{display:none}
 /* No border, no background: the embedded plan supplies its own surface and a frame
    around it only reads as a second, competing container. */
-.cpframe{position:relative;overflow:hidden;min-height:560px}
-.cpframe iframe{display:block;width:100%;height:78vh;min-height:560px;border:0}
+.cpframe{position:relative;overflow:hidden;flex:1;min-height:420px}
+.cpframe iframe{display:block;width:100%;height:100%;min-height:420px;border:0}
 .cpmiss{padding:28px 22px;text-align:center;color:var(--text-muted);font-size:13px;line-height:20px}
 .cpmiss b{display:block;font-size:15px;color:var(--text-heading);margin-bottom:6px}
 .cbub{max-width:78%;padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:19px;color:var(--text-body)}
