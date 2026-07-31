@@ -4,8 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v176 (mobile care plans, sliding chips)</title>
+<title>Hilbi Cockpit — v177 (active tab indicator, bare plan frame)</title>
 <!-- CHANGELOG
+v177 (2026-07-27): The active-tab underline never moved to Care plans, and it was the
+  wrong colour.
+  cpOpen() marked document.querySelector(".tabdd .tab") — a bare selector that returns
+  the FIRST dropdown tab in the strip, which is Patient pathway. So opening a plan lit
+  the wrong tab and left the indicator where it was. It now anchors on the dropdown the
+  pane belongs to, resolved from #cpdrop.
+  Colour: azure as asked, but --brand-teal rather than --brand-cyan. The underline is a
+  state indicator, so WCAG 1.4.11 asks 3:1 against its background; measured on white,
+  brand-cyan is 1.71:1 and brand-teal is 3.61:1. Both read as azure, only one is
+  reliably visible. The navy it replaces was off-system anyway — navy is reserved for
+  navigation and the "current" status, not for tab state.
+  The embedded plan frame loses its border and background. The plan supplies its own
+  surface; a frame around it only reads as a second container competing with it.
+  Gate 6 earned its keep: it caught the hex literals in the comment above the rule,
+  where both colours were quoted by value. Rewritten to name the tokens instead.
+
 v176 (2026-07-27): Three mobile faults, two of them mine from v174-175.
   (1) Care plans could not be opened on a phone. v175 closed the tab dropdowns on any
   scroll, and a scroll-snap strip fires scroll as it settles after a tap — the menu was
@@ -636,7 +652,11 @@ body[data-phr="min"] .phrmin{display:flex}
 .tabs .tab.tabphr{margin-left:auto}
 @media (min-width:745px){.tabs .tab.tabphr{display:none}}
 .tabs .tab.active{color:var(--text-heading);font-weight:700}
-.tabs .tab.active::after{content:'';position:absolute;left:50%;transform:translateX(-50%);bottom:-1px;width:40px;height:3px;border-radius:2px;background:var(--text-heading)}
+/* Azure, but --brand-teal rather than --brand-cyan: the underline carries state, and
+   brand-cyan on white measures 1.71:1, under the 3:1 WCAG 1.4.11 asks of non-text
+   indicators. brand-teal is 3.61:1 and still reads as azure. Navy was off-system here
+   anyway — it is reserved for navigation and the "current" status. */
+.tabs .tab.active::after{content:'';position:absolute;left:50%;transform:translateX(-50%);bottom:-1px;width:40px;height:3px;border-radius:2px;background:var(--brand-teal)}
 .tabs .chev{font-size:11px;color:var(--text-subtle);margin-left:4px;display:inline-flex!important;align-items:center}
 .tabs .ticons{margin-left:auto;display:flex;gap:8px;align-items:center}
 .tabs .ticons button{min-width:30px;height:28px;border:1px solid var(--border-strong);border-radius:7px;background:var(--surface-1);color:var(--text-muted);cursor:pointer;font-size:13px;padding:0 8px}
@@ -1023,8 +1043,9 @@ body[data-tab="comm"] .timeline{display:none}
 .cppane{display:none;flex-direction:column;gap:10px;padding:6px 2px}
 body[data-tab="cp"] .cppane{display:flex}
 body[data-tab="cp"] .timeline{display:none}
-.cpframe{position:relative;border:1px solid var(--border-default);border-radius:12px;
-  overflow:hidden;background:var(--surface-white);min-height:560px}
+/* No border, no background: the embedded plan supplies its own surface and a frame
+   around it only reads as a second, competing container. */
+.cpframe{position:relative;overflow:hidden;min-height:560px}
 .cpframe iframe{display:block;width:100%;height:78vh;min-height:560px;border:0}
 .cpmiss{padding:28px 22px;text-align:center;color:var(--text-muted);font-size:13px;line-height:20px}
 .cpmiss b{display:block;font-size:15px;color:var(--text-heading);margin-bottom:6px}
@@ -2761,7 +2782,10 @@ function cpOpen(id){
     : `<div class="cpframe"><div class="cpmiss"><b>${tt('Not published yet')}</b>
          ${tt('This plan has no public address. Publish it in the builder, then add its URL to the plan register.')}</div></div>`;
   document.querySelectorAll('.center>.tabs .tab').forEach(x=>x.classList.remove('active'));
-  const tab=document.querySelector('.tabdd .tab'); if(tab)tab.classList.add('active');
+  /* Anchor on the dropdown this pane belongs to. A bare '.tabdd .tab' returns the
+     first one in the strip — Patient pathway — so the underline never moved. */
+  const tab=document.getElementById('cpdrop').closest('.tabdd').querySelector('.tab');
+  if(tab)tab.classList.add('active');
   document.body.dataset.tab='cp';
   logAudit('read','Care plan '+a.id);
 }
