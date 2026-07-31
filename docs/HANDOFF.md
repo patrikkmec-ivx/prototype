@@ -4,7 +4,7 @@
 > binding; `CLAUDE.md` governs how to behave in the repository; `README.md` says what
 > is what. **Updated at the end of every session.**
 
-Updated: 2026-07-27 · Prototype version: **v172**
+Updated: 2026-07-27 · Prototype version: **v173**
 
 ---
 
@@ -369,6 +369,28 @@ column hands an embedded plan:
 A plan built in a builder is a full-width page; **Column is the case that will hurt** and
 the one the plan should be designed against. `cpClose()` restores any rail the switcher
 collapsed, so closing a plan cannot leave the cockpit in a state nobody chose.
+
+### v173 — the frame carries no chrome
+
+The header from v171-172 is gone: title, badge, width switcher, px readout,
+open-in-new-window, Close. **A plan is a workspace, not a panel inside one** — any header
+the cockpit adds duplicates the plan's own and eats the height it needs. The pane is one
+element, the frame; the iframe took the freed height (72vh → 78vh).
+
+The harness had already answered its question (892 px at 1440 with both rails open) and
+the cockpit has its own controls for collapsing the rails, so the switcher was a shortcut
+rather than a feature.
+
+**Exits, since there is no Close button:** Esc, or switching to any other centre tab via a
+delegated listener — no tab markup changed, and the Care plans dropdown itself does not
+close it. Esc reads the modal state *before* closing anything so one Esc dismisses one
+layer; checking afterwards always found no modal and closed the plan underneath it.
+
+**Also dropped:** the fallback link explaining a blank frame. Embedding is confirmed
+working against Lovable, so it described a case that no longer applies. If a plan service
+ever refuses embedding, the frame will just be blank with nothing explaining why — an
+accepted trade for a clean surface, worth revisiting when the register points at the real
+microservice.
 
 ## 6. Open points outside the code
 
