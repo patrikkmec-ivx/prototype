@@ -4,8 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v171 (care plans embedded)</title>
+<title>Hilbi Cockpit — v172 (care plan width harness)</title>
 <!-- CHANGELOG
+v172 (2026-07-27): A measuring harness for the embedded plan, because the question is
+  how much room it actually gets and that should be a number, not an impression.
+  The frame header carries a width switcher — Column / Wide / Full — and a live readout
+  of the frame in px, driven by ResizeObserver. Column is the cockpit as a clinician
+  normally has it; Wide collapses the PHR rail; Full collapses navigation as well.
+  Computed from the grid (navw 208, phrw 280, gap 14, padding 16), the centre column
+  gives an embedded plan 732 px at a 1280 viewport and 892 px at 1440, both rails open.
+  Collapsing both yields 1110 and 1270. A Lovable plan is built as a full-width page, so
+  Column is the case that will hurt and the one worth designing against.
+  cpClose() restores any rail the switcher collapsed — otherwise closing a plan would
+  leave the cockpit in a state the clinician never chose. Verified in jsdom along with
+  the three switcher states; unpublished plans get no switcher, since there is nothing
+  to measure.
+
 v171 (2026-07-27): Care plans open as embedded applications. The dropdown previously
   showed a toast and did nothing; each entry now resolves through CP_APPS to a URL and
   opens in a pane in the centre column, using the same body[data-tab] mechanism as the
@@ -919,6 +933,12 @@ body[data-tab="cp"] .timeline{display:none}
 .cpmiss b{display:block;font-size:15px;color:var(--text-heading);margin-bottom:6px}
 .cpnote{font-size:11.5px;line-height:17px;color:var(--text-muted)}
 .cpnote a{color:var(--brand-teal-text)}
+.cpw{display:inline-flex;border:1px solid var(--border-strong);border-radius:8px;overflow:hidden}
+.cpw button{border:0;background:var(--surface-white);padding:5px 10px;font:inherit;font-size:11.5px;
+  color:var(--text-muted);cursor:pointer;border-right:1px solid var(--border-default)}
+.cpw button:last-child{border-right:0}
+.cpw button.on{background:var(--brand-cyan-soft);color:var(--brand-teal-text);font-weight:700}
+.cpwpx{font-size:11.5px;color:var(--text-subtle);font-variant-numeric:tabular-nums;min-width:96px}
 .cbub{max-width:78%;padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:19px;color:var(--text-body)}
 .cbub.pt{align-self:flex-start;background:var(--surface-white);border:1px solid var(--border-default);border-bottom-left-radius:4px}
 .cbub.dr{align-self:flex-end;background:var(--brand-cyan-soft);border-bottom-right-radius:4px}
@@ -2641,15 +2661,43 @@ function cpOpen(id){
       <b>${escT(tt(a.label))}</b>
       <span class="tag ${a.url?'st-plan':'st-wait'}">${a.url?tt('embedded'):tt('not published')}</span>
       <span class="cpsp">
+        ${a.url?`<span class="cpw">
+          <button data-w="col"  onclick="cpWidth('col',this)" class="on">${tt('Column')}</button>
+          <button data-w="wide" onclick="cpWidth('wide',this)">${tt('Wide')}</button>
+          <button data-w="full" onclick="cpWidth('full',this)">${tt('Full')}</button>
+        </span><span class="cpwpx" id="cpwpx">—</span>`:''}
         ${a.url?`<a class="btn" href="${a.url}" target="_blank" rel="noopener noreferrer">${tt('Open in new window')}</a>`:''}
         <button class="btn" onclick="cpClose()">${tt('Close')}</button>
       </span></div>${body}`;
   document.querySelectorAll('.center>.tabs .tab').forEach(x=>x.classList.remove('active'));
   const tab=document.querySelector('.tabdd .tab'); if(tab)tab.classList.add('active');
   document.body.dataset.tab='cp';
+  if(a.url)cpMeasure();
   logAudit('read','Care plan '+a.id);
 }
+/* The embedded plan only ever gets what the cockpit columns leave it. The readout
+   reports that number live so a width problem is a measurement, not an impression. */
+function cpMeasure(){
+  const f=document.querySelector('.cpframe'), o=document.getElementById('cpwpx');
+  if(!f||!o)return;
+  const show=()=>{o.textContent=Math.round(f.getBoundingClientRect().width)+' × '+Math.round(f.getBoundingClientRect().height)+' px';};
+  show();
+  if(window.ResizeObserver){if(CP_RO)CP_RO.disconnect();CP_RO=new ResizeObserver(show);CP_RO.observe(f);}
+  else window.addEventListener('resize',show);
+}
+let CP_RO=null;
+/* Column = the cockpit as a clinician normally has it. Wide collapses the PHR rail,
+   Full collapses navigation as well — the three states worth comparing. */
+function cpWidth(mode,btn){
+  const b=document.body;
+  b.dataset.phr = (mode==='col') ? '' : 'min';
+  b.dataset.nav = (mode==='full') ? 'min' : '';
+  if(btn)btn.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===btn));
+  requestAnimationFrame(cpMeasure);
+}
 function cpClose(){
+  if(CP_RO){CP_RO.disconnect();CP_RO=null;}
+  document.body.dataset.nav='';document.body.dataset.phr='';   /* restore collapsed rails */
   document.body.dataset.tab='';
   document.getElementById('cppane').innerHTML='';
   document.querySelectorAll('.center>.tabs .tab').forEach(x=>x.classList.remove('active'));
@@ -4291,6 +4339,9 @@ const I18N=[
  ["Select a template on the left or create a new one.","Vyberte šablónu vľavo alebo vytvorte novú."],
  ["Short follow-up (mine)","Krátka kontrola (moja)"],
  ["Preview","Náhľad"],
+ ["Column","Stĺpec"],
+ ["Wide","Široké"],
+ ["Full","Celé"],
  ["Embedded from","Vložené z"],
  ["If the frame stays blank the service refuses embedding — open it in a new window instead.","Ak rámec zostane prázdny, služba vloženie odmieta — otvorte ju v novom okne."],
  ["Not published yet","Zatiaľ nepublikované"],
