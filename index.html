@@ -4,8 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v178 (plan fills the workspace)</title>
+<title>Hilbi Cockpit — v179 (plan aligned to the hero)</title>
 <!-- CHANGELOG
+v179 (2026-07-27): The embedded plan gets the same left and right offset as the patient
+  hero above it. v178 removed the cockpit padding entirely, which took the plan to the
+  very edge of .center while .phead keeps a margin of 8px — so the two blocks did not
+  line up. body[data-tab="cp"] .scroll now carries 8px at the sides, matching .phead
+  rather than .scroll's own 24px gutter. Vertical fill is unchanged: the frame still
+  takes the full available height.
+
 v178 (2026-07-27): Traced where the background around the embedded plan comes from,
   rather than guessing. Two different surfaces, two different owners.
   THE PLAN OWNS ITS OWN. src/index.css in the Lovable project declares
@@ -1064,7 +1071,9 @@ body[data-tab="comm"] .timeline{display:none}
 .cppane{display:none;flex-direction:column;padding:0;flex:1;min-height:0}
 body[data-tab="cp"] .cppane{display:flex}
 body[data-tab="cp"] .timeline{display:none}
-body[data-tab="cp"] .scroll{padding:0;overflow:hidden;display:flex;flex-direction:column}
+/* 8px each side, matching .phead's own margin, so the plan lines up with the patient
+   hero above it rather than with .scroll's 24px gutter. */
+body[data-tab="cp"] .scroll{padding:0 8px 8px;overflow:hidden;display:flex;flex-direction:column}
 body[data-tab="cp"] .filterbar{display:none}
 /* No border, no background: the embedded plan supplies its own surface and a frame
    around it only reads as a second, competing container. */
