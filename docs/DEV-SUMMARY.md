@@ -86,6 +86,7 @@ configuration.
 | Template preview, side and A4 | `TPL-16` | `tplPrevBodyHTML()` (one body) · `tplPreviewHTML()` · `tplPrevOpen()` |
 | Stamp and signature marks | `SIG-08`, `SIG-09` | `sigMarksHTML()` · `sigMarkUpload()` · `STAMP_SAMPLE` / `SIGN_SAMPLE` · `snapSigHTML()` |
 | Document footer surface | `TPL-07`, `TPL-19` | `tplFootHTML()` — bottom of the editor, mirrors `orgCard` at the top |
+| Embedded care plan apps | — | `CP_APPS` (register = the seam) · `cpOpen()` · `cpClose()` |
 
 The snapshot carries two different `doc` concepts and they must never share a key.
 `snap.doc` is the **document identity** (`master`, `humanId`, `created`);
