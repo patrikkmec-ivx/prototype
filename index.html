@@ -4,8 +4,30 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v175 (tab dropdowns restored)</title>
+<title>Hilbi Cockpit — v176 (mobile care plans, sliding chips)</title>
 <!-- CHANGELOG
+v176 (2026-07-27): Three mobile faults, two of them mine from v174-175.
+  (1) Care plans could not be opened on a phone. v175 closed the tab dropdowns on any
+  scroll, and a scroll-snap strip fires scroll as it settles after a tap — the menu was
+  shut by the same gesture that opened it. It is now RE-ANCHORED on scroll instead, and
+  closes only once its trigger has actually left the viewport. Closing on scroll was the
+  wrong instinct: on touch, scroll is a normal consequence of tapping.
+  (2) Hero chips are one sliding row on mobile, as asked. The markup keeps two .row
+  groups for the desktop layout, so display:contents dissolves them here and every chip
+  becomes a direct child of a single scrolling track — no markup change, no second line,
+  desktop untouched.
+  (3) Found while fixing (1): the mobile block hid .tabs .tab .chev, and that chevron is
+  the ONLY trigger for the Patient pathway menu — so that dropdown was unreachable on a
+  phone. Care plans survived only because its handler sits on the whole tab. Restored;
+  the strip scrolls now, so there is room. This is the third thing the mobile block was
+  hiding, after the tab labels in v174.
+  Verified in jsdom: chips form one nowrap scrolling row with the groups dissolved; the
+  dropdown survives a scroll, is re-anchored, and still closes when its trigger goes off
+  screen; the pathway menu opens.
+  Note on testing: jsdom with runScripts:outside-only does NOT evaluate inline onclick
+  attributes. A check that fired .click() on a tab reported the menu never opening, which
+  was an artefact of the harness. Call the handler directly, or the test lies.
+
 v175 (2026-07-27): Regression from v174, reported immediately: the Care plans dropdown
   disappeared. Making .tabs a scroll container turned it into a clipping ancestor, and
   overflow-y:hidden erased anything hanging below the strip. The active-tab underline was
@@ -1511,8 +1533,15 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
   /* phead — všetko viditeľné */
   .ident .idsep{display:none}
   .ident .idnum{display:block}
-  .chips .row{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-  .chips .row::-webkit-scrollbar{display:none}
+  /* One sliding row on mobile. The markup keeps two .row groups for the desktop
+     layout, so display:contents dissolves them here and every chip becomes a direct
+     child of the single scrolling track — no markup change, no second line. */
+  .chips{flex-direction:row;flex-wrap:nowrap;gap:6px;overflow-x:auto;scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;overscroll-behavior-x:contain;
+    padding-bottom:2px}
+  .chips::-webkit-scrollbar{display:none}
+  .chips .row{display:contents}
+  .chips .chip{flex:none;scroll-snap-align:start}
   /* taby — iba ikony */
   /* Labels stay on mobile now that the strip scrolls: six unlabelled icons ask a
    clinician to guess which workspace is which. padding-bottom:1px keeps the active
@@ -1522,7 +1551,11 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
   .tabs .tab{padding:12px 0}
   .tabs .tab .tlb{display:inline}
   .tabs .tab .tic,.tabs .tab .ico{width:19px;height:19px}
-  .tabs .tab .chev{display:none}
+  /* The chevron carries the Patient pathway menu's only trigger, so hiding it on
+     mobile made that dropdown unreachable — the same complaint as Care plans, which
+     survived only because its handler sits on the whole tab. The strip scrolls now,
+     so there is room for it. */
+  .tabs .tab .chev{display:inline-flex}
   .tabs .tab.tabphr{display:inline-flex;padding:12px 12px}
   .tabs .tab.tabphr .tlb{display:inline;font-weight:700}
   .tabs .tabsmenu{display:none}
@@ -2750,10 +2783,18 @@ function ddToggle(wrap){
   wrap.classList.toggle('open');
   if(wrap.classList.contains('open'))ddPlace(wrap);
 }
-/* A fixed dropdown does not travel with the strip, so close it rather than let it
-   float away from the tab it belongs to. */
+/* A fixed dropdown does not travel with the strip, so it is re-anchored on scroll
+   rather than closed. Closing was wrong on touch: a scroll-snap strip fires scroll
+   as it settles after a tap, which shut the menu the same gesture had just opened.
+   It closes only when its trigger has actually left the viewport. */
 ['scroll','resize'].forEach(function(evt){
-  window.addEventListener(evt,function(){document.querySelectorAll('.tabs .tabdd.open').forEach(function(w){w.classList.remove('open')});},true);
+  window.addEventListener(evt,function(){
+    document.querySelectorAll('.tabs .tabdd.open').forEach(function(w){
+      const r=w.getBoundingClientRect();
+      if(r.bottom<0||r.top>window.innerHeight||r.right<0||r.left>window.innerWidth)w.classList.remove('open');
+      else ddPlace(w);
+    });
+  },true);
 });
 function cpMenu(ev){ev.stopPropagation();ddToggle(ev.currentTarget.closest('.tabdd'));}
 /* Any centre tab other than the Care plans dropdown closes the plan, so the pane
