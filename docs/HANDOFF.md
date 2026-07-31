@@ -4,7 +4,7 @@
 > binding; `CLAUDE.md` governs how to behave in the repository; `README.md` says what
 > is what. **Updated at the end of every session.**
 
-Updated: 2026-07-27 · Prototype version: **v174**
+Updated: 2026-07-27 · Prototype version: **v175**
 
 ---
 
@@ -417,6 +417,22 @@ underline, which sits at `bottom:-1px`. The strip now carries `padding-bottom:1p
 What it also did was hide every tab label, leaving six unlabelled icons for a clinician to
 guess between. Labels restored. Worth checking the mobile block before assuming a
 responsive gap is unaddressed; `.chips .row` already scrolls there too.
+
+### v175 — the dropdowns v174 clipped
+
+Making `.tabs` a scroll container turned it into a **clipping ancestor**. `overflow-y:hidden`
+erased everything hanging below the strip — including the Care plans and Patient pathway
+dropdowns. The active-tab underline, 1px below the box, was spotted and protected. The two
+menus hanging 220px below it were not. **Same defect, one instance caught and one missed.**
+
+Dropdowns inside the strip are now `position:fixed`, anchored from the trigger on open and
+clamped to the viewport; scroll and resize close them, since a fixed element does not travel
+with the strip. Scoped to `.tabs .cpdrop`, so the format dropdown elsewhere is untouched.
+
+**Rule worth keeping:** adding `overflow` to a container that holds overlays requires
+checking *every* descendant that escapes its box, not the first one that comes to mind. No
+gate can see a clipped element — this was found by a person opening the page, like every
+other defect since v167.
 
 ## 6. Open points outside the code
 
