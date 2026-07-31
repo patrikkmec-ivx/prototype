@@ -4,7 +4,7 @@
 > binding; `CLAUDE.md` governs how to behave in the repository; `README.md` says what
 > is what. **Updated at the end of every session.**
 
-Updated: 2026-07-27 · Prototype version: **v171**
+Updated: 2026-07-27 · Prototype version: **v172**
 
 ---
 
@@ -349,6 +349,26 @@ clinical cockpit is a data-flow boundary. It needs a CSP `frame-src` allowlist a
 gateway, a decision on whether the plan service is a processor or a separate controller,
 and a view on whether embedding a service hosted outside the EU environment is acceptable
 at all under the regional isolation the platform claims.
+
+### v172 — how much room the plan actually gets
+
+The frame header carries a width switcher (Column / Wide / Full) and a live px readout.
+Computed from the grid — `--navw` 208, `--phrw` 280, gap 14, padding 16 — the centre
+column hands an embedded plan:
+
+| viewport | both rails open | PHR collapsed | both collapsed |
+|---|---|---|---|
+| 1280 | **732 px** | 876 | 1110 |
+| 1440 | **892 px** | 1036 | 1270 |
+| 1680 | 1132 | 1276 | 1510 |
+| 1920 | 1372 | 1516 | 1750 |
+
+`.center` has a floor of `minmax(640px,1fr)` and the body sets `min-width:1100px` above
+744 px, so below roughly 1100 px the whole page scrolls horizontally rather than reflowing.
+
+A plan built in a builder is a full-width page; **Column is the case that will hurt** and
+the one the plan should be designed against. `cpClose()` restores any rail the switcher
+collapsed, so closing a plan cannot leave the cockpit in a state nobody chose.
 
 ## 6. Open points outside the code
 
