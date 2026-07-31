@@ -4,8 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v172 (care plan width harness)</title>
+<title>Hilbi Cockpit — v173 (bare care plan frame)</title>
 <!-- CHANGELOG
+v173 (2026-07-27): The care plan frame carries no chrome. The header added in v171-172 —
+  title, embedded badge, Column/Wide/Full switcher, px readout, open-in-new-window, Close
+  — is gone. A plan is a workspace, not a panel inside one: any header the cockpit adds
+  duplicates the plan's own and eats the height it needs. The pane is now one element,
+  the frame, and the iframe took the freed height (72vh to 78vh).
+  The harness had done its job — it established that a 1440 viewport leaves the plan
+  892 px with both rails open — and the cockpit already has its own controls for
+  collapsing navigation and the PHR rail, so the switcher was a shortcut, not a feature.
+  With no Close button there must be a way out: Esc, or switching to any other centre
+  tab (delegated listener, no tab markup changed; the Care plans dropdown itself does not
+  close it). Esc now reads the modal state BEFORE closing anything, so one Esc dismisses
+  one layer — checking afterwards always found no modal and closed the plan underneath
+  it, which the jsdom check caught.
+  Dropped with the header: the fallback link explaining a blank frame. Embedding is
+  confirmed working against Lovable, so the note was describing a case that no longer
+  applies; if a plan service ever refuses embedding the frame will simply be blank.
+
 v172 (2026-07-27): A measuring harness for the embedded plan, because the question is
   how much room it actually gets and that should be a number, not an impression.
   The frame header carries a width switcher — Column / Wide / Full — and a live readout
@@ -923,22 +940,11 @@ body[data-tab="comm"] .timeline{display:none}
 .cppane{display:none;flex-direction:column;gap:10px;padding:6px 2px}
 body[data-tab="cp"] .cppane{display:flex}
 body[data-tab="cp"] .timeline{display:none}
-.cphd{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.cphd b{font-size:15px;color:var(--text-heading)}
-.cphd .cpsp{margin-left:auto;display:flex;gap:6px;align-items:center}
 .cpframe{position:relative;border:1px solid var(--border-default);border-radius:12px;
   overflow:hidden;background:var(--surface-white);min-height:560px}
-.cpframe iframe{display:block;width:100%;height:72vh;min-height:560px;border:0}
+.cpframe iframe{display:block;width:100%;height:78vh;min-height:560px;border:0}
 .cpmiss{padding:28px 22px;text-align:center;color:var(--text-muted);font-size:13px;line-height:20px}
 .cpmiss b{display:block;font-size:15px;color:var(--text-heading);margin-bottom:6px}
-.cpnote{font-size:11.5px;line-height:17px;color:var(--text-muted)}
-.cpnote a{color:var(--brand-teal-text)}
-.cpw{display:inline-flex;border:1px solid var(--border-strong);border-radius:8px;overflow:hidden}
-.cpw button{border:0;background:var(--surface-white);padding:5px 10px;font:inherit;font-size:11.5px;
-  color:var(--text-muted);cursor:pointer;border-right:1px solid var(--border-default)}
-.cpw button:last-child{border-right:0}
-.cpw button.on{background:var(--brand-cyan-soft);color:var(--brand-teal-text);font-weight:700}
-.cpwpx{font-size:11.5px;color:var(--text-subtle);font-variant-numeric:tabular-nums;min-width:96px}
 .cbub{max-width:78%;padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:19px;color:var(--text-body)}
 .cbub.pt{align-self:flex-start;background:var(--surface-white);border:1px solid var(--border-default);border-bottom-left-radius:4px}
 .cbub.dr{align-self:flex-end;background:var(--brand-cyan-soft);border-bottom-right-radius:4px}
@@ -2648,62 +2654,34 @@ const CP_APPS=[
 function cpApp(id){return CP_APPS.find(a=>a.id===id)||null;}
 function cpOpen(id){
   const a=cpApp(id); if(!a)return;
-  const p=document.getElementById('cppane');
-  const body=a.url
+  /* The frame carries no chrome. A plan is a workspace, not a panel inside one: any
+     header the cockpit adds duplicates the plan's own and eats the height it needs.
+     Closing is Esc, or switching to another tab. */
+  document.getElementById('cppane').innerHTML = a.url
     ? `<div class="cpframe"><iframe src="${a.url}" title="${escT(tt(a.label))}"
          sandbox="allow-scripts allow-forms allow-popups allow-same-origin"
-         referrerpolicy="no-referrer" loading="lazy"></iframe></div>
-       <div class="cpnote">${tt('Embedded from')} <a href="${a.url}" target="_blank" rel="noopener noreferrer">${escT(a.url.replace('https://',''))}</a>.
-         ${tt('If the frame stays blank the service refuses embedding — open it in a new window instead.')}</div>`
+         referrerpolicy="no-referrer" loading="lazy"></iframe></div>`
     : `<div class="cpframe"><div class="cpmiss"><b>${tt('Not published yet')}</b>
          ${tt('This plan has no public address. Publish it in the builder, then add its URL to the plan register.')}</div></div>`;
-  p.innerHTML=`<div class="cphd"><svg class="ico s18" aria-hidden="true"><use href="#i-cliplist"/></svg>
-      <b>${escT(tt(a.label))}</b>
-      <span class="tag ${a.url?'st-plan':'st-wait'}">${a.url?tt('embedded'):tt('not published')}</span>
-      <span class="cpsp">
-        ${a.url?`<span class="cpw">
-          <button data-w="col"  onclick="cpWidth('col',this)" class="on">${tt('Column')}</button>
-          <button data-w="wide" onclick="cpWidth('wide',this)">${tt('Wide')}</button>
-          <button data-w="full" onclick="cpWidth('full',this)">${tt('Full')}</button>
-        </span><span class="cpwpx" id="cpwpx">—</span>`:''}
-        ${a.url?`<a class="btn" href="${a.url}" target="_blank" rel="noopener noreferrer">${tt('Open in new window')}</a>`:''}
-        <button class="btn" onclick="cpClose()">${tt('Close')}</button>
-      </span></div>${body}`;
   document.querySelectorAll('.center>.tabs .tab').forEach(x=>x.classList.remove('active'));
   const tab=document.querySelector('.tabdd .tab'); if(tab)tab.classList.add('active');
   document.body.dataset.tab='cp';
-  if(a.url)cpMeasure();
   logAudit('read','Care plan '+a.id);
 }
-/* The embedded plan only ever gets what the cockpit columns leave it. The readout
-   reports that number live so a width problem is a measurement, not an impression. */
-function cpMeasure(){
-  const f=document.querySelector('.cpframe'), o=document.getElementById('cpwpx');
-  if(!f||!o)return;
-  const show=()=>{o.textContent=Math.round(f.getBoundingClientRect().width)+' × '+Math.round(f.getBoundingClientRect().height)+' px';};
-  show();
-  if(window.ResizeObserver){if(CP_RO)CP_RO.disconnect();CP_RO=new ResizeObserver(show);CP_RO.observe(f);}
-  else window.addEventListener('resize',show);
-}
-let CP_RO=null;
-/* Column = the cockpit as a clinician normally has it. Wide collapses the PHR rail,
-   Full collapses navigation as well — the three states worth comparing. */
-function cpWidth(mode,btn){
-  const b=document.body;
-  b.dataset.phr = (mode==='col') ? '' : 'min';
-  b.dataset.nav = (mode==='full') ? 'min' : '';
-  if(btn)btn.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===btn));
-  requestAnimationFrame(cpMeasure);
-}
 function cpClose(){
-  if(CP_RO){CP_RO.disconnect();CP_RO=null;}
-  document.body.dataset.nav='';document.body.dataset.phr='';   /* restore collapsed rails */
+  if(document.body.dataset.tab!=='cp')return;
   document.body.dataset.tab='';
   document.getElementById('cppane').innerHTML='';
   document.querySelectorAll('.center>.tabs .tab').forEach(x=>x.classList.remove('active'));
   const first=document.querySelector('.center>.tabs .tab'); if(first)first.classList.add('active');
 }
 function cpMenu(ev){ev.stopPropagation();const w=ev.currentTarget.closest('.tabdd');w.classList.toggle('open');}
+/* Any centre tab other than the Care plans dropdown closes the plan, so the pane
+   cannot linger behind another workspace. Delegated, so no tab markup changes. */
+document.addEventListener('click',function(e){
+  const t=e.target.closest&&e.target.closest('.center>.tabs .tab');
+  if(t&&!t.closest('.tabdd'))cpClose();
+});
 function cpPick(btn){btn.closest('.tabdd').classList.remove('open');cpOpen(btn.dataset.cp);}
 /* Profilové menu v ľavej lište (.me → gear) */
 function umToggle(e){
@@ -4186,7 +4164,13 @@ function finalizeSign(){
 }
 document.addEventListener('keydown',e=>{
   const open=id=>document.getElementById(id).classList.contains('open');
-  if(e.key==='Escape'){['recwrap','nswrap','fotwrap','tplprevwrap','dkwrap','casewrap','evdwrap'].forEach(id=>{if(open(id))mClose(id)});}
+  if(e.key==='Escape'){
+    /* Read the modal state BEFORE closing anything: one Esc should dismiss one layer.
+       Checking afterwards would always find no modal and close the plan underneath it. */
+    const hadModal=!!document.querySelector('.sheetwrap.open');
+    ['recwrap','nswrap','fotwrap','tplprevwrap','dkwrap','casewrap','evdwrap'].forEach(id=>{if(open(id))mClose(id)});
+    if(!hadModal)cpClose();   /* the frame has no chrome, so Esc is the way out */
+  }
   if(e.key==='Enter'&&!e.target.matches('textarea')){
     if(open('recwrap')){saveRec();e.preventDefault()}
     else if(open('nswrap')){nsSave();e.preventDefault()}
@@ -4339,16 +4323,8 @@ const I18N=[
  ["Select a template on the left or create a new one.","Vyberte šablónu vľavo alebo vytvorte novú."],
  ["Short follow-up (mine)","Krátka kontrola (moja)"],
  ["Preview","Náhľad"],
- ["Column","Stĺpec"],
- ["Wide","Široké"],
- ["Full","Celé"],
- ["Embedded from","Vložené z"],
- ["If the frame stays blank the service refuses embedding — open it in a new window instead.","Ak rámec zostane prázdny, služba vloženie odmieta — otvorte ju v novom okne."],
  ["Not published yet","Zatiaľ nepublikované"],
  ["This plan has no public address. Publish it in the builder, then add its URL to the plan register.","Tento plán nemá verejnú adresu. Publikujte ho v nástroji a doplňte URL do registra plánov."],
- ["Open in new window","Otvoriť v novom okne"],
- ["embedded","vložené"],
- ["not published","nepublikované"],
  ["Document footer — stamp and signature","Pätička dokumentu — pečiatka a podpis"],
  ["No signatory selected on this template.","Na tejto šablóne nie je vybraný žiadny podpisovateľ."],
  ["Stamp and signature marks are set in the document footer, on the template page.","Pečiatku a podpis nastavíte v pätičke dokumentu na stránke šablón."],
