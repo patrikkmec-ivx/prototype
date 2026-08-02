@@ -4,7 +4,7 @@
 > binding; `CLAUDE.md` governs how to behave in the repository; `README.md` says what
 > is what. **Updated at the end of every session.**
 
-Updated: 2026-07-27 · Prototype version: **v181**
+Updated: 2026-07-27 · Prototype version: **v182**
 
 ---
 
@@ -475,6 +475,32 @@ and a frame around it reads as a second container competing with it.
 
 **Gate 6 earned its keep** — it caught hex literals in the *comment* above the rule, where
 both colours had been quoted by value. Contrast figures belong in prose as token names.
+
+### v182 — dismissal at size S, and gate 6 was half blind
+
+Modal-footer dismissals drop from the M default (40 px) to **size S (32 px)**. No new
+component was needed — `.btn.sm` already existed and simply was not being used. The scale
+`L 48 · M 40 · S 32` is written beside the definition. Seven footers changed; the bridge
+applies S to any action with `dismiss:true`.
+
+**Gate 6 compared hex strings**, so `#fff` and `#FFFFFF` read as different colours — and
+**62 literal `#fff` sat outside `:root`**, unreported, because the token is spelled
+`#FFFFFF`. Shorthand is now normalised before comparison and all 62 became
+`var(--surface-white)`. Second time a gate has passed while the thing it exists to prevent
+was happening — gate 10 was the first (v169). **When a gate has never fired, that is a
+reason to test it, not to trust it.**
+
+**Colour left alone, deliberately.** White-with-border is the established secondary
+treatment and cyan the committing one — *Zrušiť / Dokončiť* in the prescription modal is
+the pattern. Making a dismissal cyan would give it the same weight as Save and teach the
+eye that cyan means *the button to press*, which is exactly wrong the day it sits beside a
+destructive action. Measured too: brand-cyan on a white sheet is 1.71:1, so a cyan fill
+would have no reliable boundary either.
+
+**Noted, not changed:** `--border-default` on white is 1.29:1. The outline button is still
+identifiable by its label (10.37:1), so this is defensible — but if the DS ever wants
+buttons identifiable by shape alone, that token is the blocker. A DS-wide decision, not a
+local fix.
 
 ### v181 — the bridge must reuse cockpit components, not rebuild them
 
