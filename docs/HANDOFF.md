@@ -4,7 +4,7 @@
 > binding; `CLAUDE.md` governs how to behave in the repository; `README.md` says what
 > is what. **Updated at the end of every session.**
 
-Updated: 2026-07-27 · Prototype version: **v180**
+Updated: 2026-07-27 · Prototype version: **v181**
 
 ---
 
@@ -475,6 +475,38 @@ and a frame around it reads as a second container competing with it.
 
 **Gate 6 earned its keep** — it caught hex literals in the *comment* above the rule, where
 both colours had been quoted by value. Contrast figures belong in prose as token names.
+
+### v181 — the bridge must reuse cockpit components, not rebuild them
+
+v180 built its own inputs and chips. That defeats the design system: **change one button
+and every button should change.** A parallel definition silently opts out.
+
+The prototype already states the field rule, written beside `.tpledit`:
+
+> no border at rest, surface/1 fill, value in text/heading, focus = white plus a 2px cyan
+> ring, size S 40 px at radius 8 — never a border at rest
+
+The bridge did the opposite: 1px border at rest, white fill, 34 px tall. Corrected.
+
+Selectable options are now `class="chip brgchip"` — they **are** the cockpit chip;
+`.brgchip` adds only interactive state. Geometry stays with `.chip`.
+
+**New gate 11 — component duplication.** It compares a new class against the base class it
+should extend and fails if geometry is restated. Proven against the defect it was written
+for. No existing gate could see this: gates 5 and 6 check *tokens*, not whether a component
+was reinvented using correct tokens — which is exactly how v180 passed.
+
+**Rule for anything new:** if a cockpit class already exists for the shape, apply it and
+add only state. Restating geometry is the defect, even when every value is a valid token.
+
+Separately, the DS '26 variable set was read over the Figma API: naming already aligns
+one-to-one (`border/strong` → `--border-strong`). The vocabulary was never the problem.
+Note that DS '26 carries **colours only** — no radius or spacing variables — so those
+scales are a prototype convention and cannot be verified against Figma.
+
+**Still missing from DS '26:** `scale` (slider) and `result` (four-state finding). Neither
+exists as a Figma atom; both were invented here and every plan will use them. They belong
+in the design system before a second team invents them differently.
 
 ### v180 — Care Plan UI Bridge (cp-20)
 
