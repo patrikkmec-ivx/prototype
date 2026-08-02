@@ -4,8 +4,44 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v179 (plan aligned to the hero)</title>
+<title>Hilbi Cockpit — v180 (care plan UI bridge)</title>
 <!-- CHANGELOG
+v180 (2026-07-27): Care Plan UI Bridge, cp-20 protocol v1. A plan runs in an iframe and
+  cannot paint outside it — z-index does not help and position:fixed resolves against the
+  iframe viewport. On a phone the frame is most of the screen, so a dialog inside it has
+  nowhere to go, and duplicating each plan's dialogs here would mean a cockpit release per
+  plan. So the plan DESCRIBES what it needs over postMessage and the cockpit renders it.
+  Ten field primitives — text, textarea, number, date, select, multiselect, checkbox,
+  scale, result, display — plus repeatable groups. They carry constraints, never clinical
+  meaning: the cockpit sees a number with a range, not an EDSS score. That is the property
+  that scales; a Fabry or dementia plan needs NO cockpit change.
+  Designed against sm-plus.contract.ts read from the Lovable project, not from a guess,
+  and four things in it would have broken a naive eight-type schema: nested structures
+  (EDSS functional systems), units and reference ranges (Vitamin D nmol/L, CRP, ALT),
+  computed fields (calculatedEdss, bmi, fsSummary — output, not input), and repeatable
+  rows (customTests). `result` is a first-class type because tri-state findings are the
+  most repeated shape in SM — OCB, AQP4, MOG, ANA, ANCA, HIV, syphilis, JCV, TBC, HBV,
+  VZV — and "negative" must stay distinguishable from "not tested".
+  CLINICAL SAFETY FINDING, caught by the test suite: a scale field defaulted to its
+  minimum, so a required EDSS sub-score could never fail validation and the cockpit would
+  assert a normal finding the clinician never made. A scale with no explicit default now
+  starts UNSET and returns null until moved.
+  Boundaries held on purpose: the cockpit validates STRUCTURE only — required, range,
+  date parse, option membership. Clinical rules stay in the plan, because a cockpit that
+  ruled on clinical values would take on medical-device weight the orchestrator posture
+  (cp-17 REP-01) exists to avoid. The cockpit never calculates: computed values arrive as
+  display fields. Patient context is never in the URL (BR-11) and every grant is audited;
+  field KEYS are audited, values are not.
+  Security: origin allowlist derived from CP_APPS in both directions, no reply at all to
+  an unlisted origin (a reply confirms a listener), 256 KB cap, all payload strings
+  escaped, passthrough restricted to the plan's own origin.
+  Also fixed while building: JSON in data- attributes was HTML-escaped by escT(), so
+  JSON.parse could not read it back — now URI-encoded through brgJSON().
+  Verified in jsdom, 26 protocol checks against real SM fields. A demo surface sits in the
+  Care plans dropdown so the bridge can be exercised before any plan implements it.
+  Ships with docs/cp-20 (normative), docs/hilbi-sdk.ts and docs/HILBI-SDK-README.md.
+  NOT done: SM plan integration. Two unknowns at once is how you debug neither.
+
 v179 (2026-07-27): The embedded plan gets the same left and right offset as the patient
   hero above it. v178 removed the cockpit padding entirely, which took the plan to the
   very edge of .center while .phead keeps a margin of 8px — so the two blocks did not
@@ -1081,6 +1117,57 @@ body[data-tab="cp"] .filterbar{display:none}
 .cpframe iframe{display:block;width:100%;height:100%;min-height:420px;border:0}
 .cpmiss{padding:28px 22px;text-align:center;color:var(--text-muted);font-size:13px;line-height:20px}
 .cpmiss b{display:block;font-size:15px;color:var(--text-heading);margin-bottom:6px}
+/* ── care plan bridge surface (cp-20) ── */
+.btn.danger{border-color:var(--danger);color:var(--danger)}
+.btn.danger:hover{background:var(--danger-soft)}
+.brgsub{font-size:12px;color:var(--text-muted);margin-left:8px}
+.sheet.brgsheet{width:920px;max-width:94vw;height:88vh;max-height:88vh}
+.sheet.brgconfirm{width:420px}
+.brgbody{flex:1;min-height:0;overflow-y:auto;padding:14px 20px;display:flex;flex-direction:column;gap:12px}
+.brgacts{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;border-top:1px solid var(--border-default)}
+.brgsec{display:flex;flex-direction:column;gap:12px;padding-bottom:6px}
+.brgst{font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--text-subtle)}
+.brgf{display:flex;flex-direction:column;gap:4px}
+.brgf.hid{display:none}
+.brgl{font-size:12px;font-weight:600;color:var(--text-body)}
+.brgreq{color:var(--danger)}
+.brghelp{font-size:11px;color:var(--text-muted);line-height:15px}
+.brgfe{font-size:11px;color:var(--danger)}
+.brgin{width:100%;padding:8px 10px;border:1px solid var(--border-strong);border-radius:8px;
+  font:inherit;font-size:13.5px;background:var(--surface-white);color:var(--text-body)}
+.brgin:focus{outline:2px solid var(--brand-cyan);outline-offset:-1px}
+.brgin:disabled{background:var(--surface-1);color:var(--text-muted)}
+.brgnum{display:flex;align-items:center;gap:8px}
+.brgnum .brgin{flex:1}
+.brgunit{font-size:12px;color:var(--text-muted);white-space:nowrap}
+.brgref{font-size:11px;color:var(--text-subtle);white-space:nowrap}
+.brgdisp{padding:8px 10px;border-radius:8px;background:var(--surface-1);font-size:13.5px;
+  font-weight:700;color:var(--text-heading)}
+.brgrow{display:flex;align-items:center;gap:8px;cursor:pointer}
+.brgchk input{width:16px;height:16px;accent-color:var(--brand-teal)}
+.brgchips{display:flex;flex-wrap:wrap;gap:6px}
+.brgchip{border:1px solid var(--border-strong);background:var(--surface-white);border-radius:999px;
+  padding:5px 12px;font:inherit;font-size:12px;color:var(--text-body);cursor:pointer}
+.brgchip.on{background:var(--brand-cyan-soft);border-color:var(--brand-cyan);color:var(--brand-teal-text);font-weight:700}
+.brgscale{display:flex;align-items:center;gap:10px}
+.brgscale .brgin{flex:1;padding:0}
+.brgsv{font-size:14px;font-weight:800;color:var(--text-heading);min-width:34px;text-align:right;
+  font-variant-numeric:tabular-nums}
+.brgends{font-size:10.5px;color:var(--text-muted);white-space:nowrap}
+/* Four states, not three: "negative" and "not tested" are clinically different
+   and must stay distinguishable in the UI as well as in transport. */
+.brgres{display:flex;gap:6px;flex-wrap:wrap}
+.brgrb{border:1px solid var(--border-strong);background:var(--surface-white);border-radius:8px;
+  padding:6px 12px;font:inherit;font-size:12px;color:var(--text-body);cursor:pointer}
+.brgrb.on.r-pos{background:var(--danger-soft);border-color:var(--danger);color:var(--danger);font-weight:700}
+.brgrb.on.r-neg{background:var(--success-soft);border-color:var(--success);color:var(--success);font-weight:700}
+.brgrb.on.r-pending,.brgrb.on.r-na{background:var(--surface-2);border-color:var(--border-strong);font-weight:700}
+.brggrp{display:flex;flex-direction:column;gap:8px}
+.brgrowitem{display:flex;gap:8px;align-items:flex-end;padding:8px;border:1px solid var(--border-default);border-radius:8px}
+.brgrowitem .brgf{flex:1}
+.brgadd{align-self:flex-start;font-size:12px}
+.brgpt{flex:1;min-height:0}
+.brgpt iframe{display:block;width:100%;height:100%;min-height:420px;border:0}
 .cbub{max-width:78%;padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:19px;color:var(--text-body)}
 .cbub.pt{align-self:flex-start;background:var(--surface-white);border:1px solid var(--border-default);border-bottom-left-radius:4px}
 .cbub.dr{align-self:flex-end;background:var(--brand-cyan-soft);border-bottom-right-radius:4px}
@@ -1939,6 +2026,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
         <button data-cp="dem" onclick="cpPick(this)">Dementia Care plan</button>
         <button data-cp="fab" onclick="cpPick(this)">Fabry Care plan</button>
         <button data-cp="crc" onclick="cpPick(this)">Colorectal Care plan</button>
+        <button class="brgdemobtn" onclick="this.closest('.tabdd').classList.remove('open');brgDemo()">UI bridge demo</button>
       </div>
       </div>
       <button class="tab"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-folder2"/></svg><span class="tlb">Records</span></button>
@@ -2311,6 +2399,16 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
       <span class="tag st-plan" style="margin-left:4px" id="tplprevFmt">A4 · 210 &times; 297 mm</span>
       <button class="x" onclick="mClose('tplprevwrap')" title="Close">&times;</button></div>
     <div class="a4frame"><div class="a4" id="tplprevA4"></div></div>
+  </div>
+</div>
+
+<!-- Care plan bridge surface (cp-20). The plan describes, the cockpit renders. -->
+<div class="sheetwrap" id="brgwrap"><div class="scrim" onclick="brgClose()"></div>
+  <div class="sheet brgmodal">
+    <div class="sh-h"><b id="brgTitle"></b><span class="brgsub" id="brgSub"></span>
+      <button class="x" onclick="brgClose()" title="Close">&times;</button></div>
+    <div class="brgbody" id="brgbody"></div>
+    <div class="brgacts" id="brgActs"></div>
   </div>
 </div>
 
@@ -2852,6 +2950,342 @@ function ddToggle(wrap){
     });
   },true);
 });
+/* ── CARE PLAN UI BRIDGE (cp-20 v1) ───────────────────────────────────────────
+   A plan runs in an iframe and cannot paint outside it — no z-index or
+   position:fixed changes that, since fixed resolves against the iframe's own
+   viewport. On a phone the frame is most of the screen, so a dialog inside it
+   has nowhere to go. Rather than rebuild every plan's dialogs here, the plan
+   DESCRIBES what it needs and the cockpit renders it.
+
+   The cockpit never learns clinical domain: it sees a number with a range, not
+   an EDSS score. That is what lets a new plan arrive without a cockpit change. */
+const BRG_V=1;
+const BRG_SURFACES=['modal','sheet','confirm','toast','passthrough'];
+const BRG_FIELDS=['text','textarea','number','date','select','multiselect',
+                  'checkbox','scale','result','display','group'];
+/* Allowlist derived from the plan register — one source, no second list to drift. */
+function brgOrigins(){
+  const o={};
+  CP_APPS.forEach(function(a){ if(a.url){ try{ o[new URL(a.url).origin]=a.id; }catch(e){} } });
+  return o;
+}
+let BRG_OPEN=null;          /* {id, plan, surface, fields} while a surface is up */
+
+function brgJSON(s){ try{ return JSON.parse(decodeURIComponent(s||'')); }catch(e){ return []; } }
+function brgPost(win,origin,msg){ try{ win.postMessage(msg,origin); }catch(e){} }
+function brgErr(win,origin,id,plan,code,detail){
+  logAudit('reject','Bridge '+(plan||'?')+' '+code);
+  brgPost(win,origin,{v:BRG_V,id:id,plan:plan,type:'ui.error',code:code,detail:detail||''});
+}
+/* Flatten sections into one field list; sections are presentation only. */
+function brgFieldList(m){
+  let f=(m.fields||[]).slice();
+  (m.sections||[]).forEach(function(s){ f=f.concat(s.fields||[]); });
+  return f;
+}
+function brgSurfaceClass(sf){
+  return sf==='sheet' ? 'sheet lsize brgsheet' : sf==='confirm' ? 'sheet brgconfirm' : 'sheet brgmodal';
+}
+
+/* ── rendering ─────────────────────────────────────────────────────────────── */
+function brgOpt(o){ return typeof o==='string'?{value:o,label:o}:o; }
+function brgFieldHTML(f){
+  const k=escT(f.key), lbl=escT(f.label||''), req=f.required?' <span class="brgreq">*</span>':'';
+  const help=f.help?'<div class="brghelp">'+escT(f.help)+'</div>':'';
+  const ro=f.readOnly?' disabled':'';
+  /* JSON in an attribute is URI-encoded, not HTML-escaped: escT turns quotes into
+     &quot; and JSON.parse cannot read that back. Round-trips through brgJSON(). */
+  const dep=f.dependsOn?' data-dep="'+encodeURIComponent(JSON.stringify(f.dependsOn))+'"':'';
+  let ctl='';
+  switch(f.type){
+    case 'display':
+      ctl='<div class="brgdisp'+(f.tone?' t-'+escT(f.tone):'')+'">'+escT(String(f.value==null?'—':f.value))+'</div>';
+      break;
+    case 'textarea':
+      ctl='<textarea class="brgin" data-k="'+k+'" rows="'+(f.rows||3)+'"'+ro+'>'+escT(f.default||'')+'</textarea>';
+      break;
+    case 'number': {
+      const unit=f.unit?'<span class="brgunit">'+escT(f.unit)+'</span>':'';
+      const rr=f.refRange?'<span class="brgref">'+escT(f.refRange.low+'–'+f.refRange.high)+'</span>':'';
+      ctl='<span class="brgnum"><input class="brgin" type="number" data-k="'+k+'"'
+         +(f.min!=null?' min="'+f.min+'"':'')+(f.max!=null?' max="'+f.max+'"':'')
+         +(f.step!=null?' step="'+f.step+'"':'')
+         +(f.default!=null?' value="'+f.default+'"':'')+ro+'>'+unit+rr+'</span>';
+      break; }
+    case 'date':
+      ctl='<input class="brgin" type="date" data-k="'+k+'"'+(f.default?' value="'+escT(f.default)+'"':'')+ro+'>';
+      break;
+    case 'checkbox':
+      ctl='<label class="brgchk"><input type="checkbox" data-k="'+k+'"'+(f.default?' checked':'')+ro+'><span></span></label>';
+      break;
+    case 'select':
+      ctl='<select class="brgin" data-k="'+k+'"'+ro+'><option value="">—</option>'
+         +(f.options||[]).map(function(o){o=brgOpt(o);
+             return '<option value="'+escT(o.value)+'"'+(f.default===o.value?' selected':'')+'>'+escT(o.label)+'</option>';}).join('')
+         +'</select>';
+      break;
+    case 'multiselect':
+      ctl='<div class="brgchips" data-k="'+k+'">'
+         +(f.options||[]).map(function(o){o=brgOpt(o);
+             const on=(f.default||[]).indexOf(o.value)>=0;
+             return '<button type="button" class="brgchip'+(on?' on':'')+'" data-v="'+escT(o.value)+'"'
+                   +' onclick="brgChip(this)"'+(f.readOnly?' disabled':'')+'>'+escT(o.label)+'</button>';}).join('')
+         +'</div>';
+      break;
+    case 'scale': {
+      const mn=f.min!=null?f.min:0, mx=f.max!=null?f.max:10, st=f.step||1;
+      const lo=f.labels&&f.labels[mn]?escT(f.labels[mn]):String(mn);
+      const hi=f.labels&&f.labels[mx]?escT(f.labels[mx]):String(mx);
+      /* A scale with no default starts UNSET, not at its minimum. On a clinical
+         scale the minimum is a real reading — EDSS 0 means "normal" — so parking
+         the slider there would have the cockpit assert a finding the clinician
+         never made, and would make `required` impossible to fail. */
+      const uns=f.default==null;
+      ctl='<span class="brgscale"><input class="brgin" type="range" data-k="'+k+'" min="'+mn+'" max="'+mx+'" step="'+st+'"'
+         +' value="'+(uns?mn:f.default)+'"'+(uns?' data-unset="1"':'')
+         +' oninput="brgScale(this)"'+ro+'>'
+         +'<b class="brgsv">'+(uns?'—':escT(String(f.default)))+'</b>'
+         +'<span class="brgends">'+lo+' · '+hi+'</span></span>';
+      break; }
+    case 'result': {
+      /* The most repeated shape in the SM contract. As a first-class type the
+         difference between "negative" and "not tested" cannot be lost. */
+      const opts=[['pos',f.posLabel||tt('positive')],['neg',f.negLabel||tt('negative')],
+                  ['pending',tt('pending')],['na',tt('not tested')]];
+      ctl='<div class="brgres" data-k="'+k+'">'+opts.map(function(o){
+            return '<button type="button" class="brgrb r-'+o[0]+(f.default===o[0]?' on':'')+'" data-v="'+o[0]+'"'
+                  +' onclick="brgRes(this)"'+(f.readOnly?' disabled':'')+'>'+escT(o[1])+'</button>';}).join('')+'</div>';
+      break; }
+    case 'group': {
+      const rep=f.repeatable||{};
+      ctl='<div class="brggrp" data-k="'+k+'" data-sub="'+encodeURIComponent(JSON.stringify(f.fields||[]))+'">'
+         +'<div class="brgrows"></div>'
+         +'<button type="button" class="btn ghost brgadd" onclick="brgAddRow(this)">'
+         +escT(rep.addLabel||tt('Add'))+'</button></div>';
+      break; }
+    default:
+      ctl='<input class="brgin" type="text" data-k="'+k+'"'+(f.maxLength?' maxlength="'+f.maxLength+'"':'')
+         +(f.default?' value="'+escT(f.default)+'"':'')
+         +(f.placeholder?' placeholder="'+escT(f.placeholder)+'"':'')+ro+'>';
+  }
+  return '<div class="brgf" data-fk="'+k+'" data-ft="'+escT(f.type||'text')+'"'+dep+'>'
+        +(f.type==='checkbox'
+            ? '<label class="brgrow">'+ctl+'<span class="brgl">'+lbl+req+'</span></label>'
+            : '<label class="brgl" for="">'+lbl+req+'</label>'+ctl)
+        +help+'<div class="brgfe"></div></div>';
+}
+function brgScale(el){ delete el.dataset.unset; el.nextElementSibling.textContent=el.value; brgDeps(); }
+function brgChip(b){ if(b.disabled)return; b.classList.toggle('on'); brgDeps(); }
+function brgRes(b){ if(b.disabled)return;
+  b.parentNode.querySelectorAll('.brgrb').forEach(function(x){x.classList.remove('on')});
+  b.classList.add('on'); brgDeps(); }
+function brgAddRow(btn){
+  const g=btn.closest('.brggrp'), subs=brgJSON(g.dataset.sub);
+  const row=document.createElement('div'); row.className='brgrowitem';
+  row.innerHTML=subs.map(brgFieldHTML).join('')
+    +'<button type="button" class="btn icob ghost" onclick="this.closest(\'.brgrowitem\').remove()">&times;</button>';
+  g.querySelector('.brgrows').appendChild(row);
+}
+/* Conditional visibility. Siblings only — a condition that reached across
+   surfaces would need a dependency graph nobody wants to debug. */
+function brgDeps(){
+  const root=document.getElementById('brgbody'); if(!root)return;
+  root.querySelectorAll('.brgf[data-dep]').forEach(function(el){
+    const d=brgJSON(el.dataset.dep), v=brgVal(root.querySelector('.brgf[data-fk="'+d.key+'"]'));
+    let ok=false;
+    switch(d.op){
+      case 'eq': ok=v===d.value; break;
+      case 'ne': ok=v!==d.value; break;
+      case 'includes': ok=Array.isArray(v)&&v.indexOf(d.value)>=0; break;
+      case 'gt': ok=Number(v)>Number(d.value); break;
+      case 'lt': ok=Number(v)<Number(d.value); break;
+      default: ok=!!v;
+    }
+    el.classList.toggle('hid',!ok);
+  });
+}
+/* ── reading values back ───────────────────────────────────────────────────── */
+function brgVal(fe){
+  if(!fe)return null;
+  const t=fe.dataset.ft;
+  if(t==='display')return undefined;
+  if(t==='multiselect')return Array.prototype.map.call(fe.querySelectorAll('.brgchip.on'),function(b){return b.dataset.v;});
+  if(t==='result'){const on=fe.querySelector('.brgrb.on');return on?on.dataset.v:null;}
+  if(t==='group'){
+    const subs=brgJSON(fe.querySelector('.brggrp').dataset.sub);
+    return Array.prototype.map.call(fe.querySelectorAll('.brgrowitem'),function(r){
+      const o={}; subs.forEach(function(sf){ o[sf.key]=brgVal(r.querySelector('.brgf[data-fk="'+sf.key+'"]')); });
+      return o;});
+  }
+  const el=fe.querySelector('.brgin,input[type=checkbox]'); if(!el)return null;
+  if(t==='checkbox')return el.checked;
+  if(t==='scale')return el.dataset.unset?null:Number(el.value);
+  if(t==='number')return el.value===''?null:Number(el.value);
+  return el.value===''?null:el.value;
+}
+/* Structure only. Whether an EDSS of 6.5 fits the recorded ambulation is the
+   plan's judgement — a cockpit that ruled on that would be making clinical
+   decisions, which is not what an orchestrator is (cp-17 REP-01). */
+function brgValidate(fields){
+  const root=document.getElementById('brgbody'); let bad=null;
+  root.querySelectorAll('.brgfe').forEach(function(e){e.textContent='';});
+  fields.forEach(function(f){
+    const fe=root.querySelector('.brgf[data-fk="'+f.key+'"]');
+    if(!fe||fe.classList.contains('hid')||f.type==='display')return;
+    const v=brgVal(fe); let msg='';
+    if(f.required&&(v===null||v===''||(Array.isArray(v)&&!v.length)))msg=tt('Required');
+    else if(f.type==='number'&&v!=null){
+      if(f.min!=null&&v<f.min)msg=tt('Below minimum');
+      if(f.max!=null&&v>f.max)msg=tt('Above maximum');
+    }
+    if(msg){fe.querySelector('.brgfe').textContent=msg; if(!bad)bad=fe;}
+  });
+  if(bad&&bad.scrollIntoView)bad.scrollIntoView({block:'center'});
+  return !bad;
+}
+/* ── open / close ──────────────────────────────────────────────────────────── */
+function brgOpenSurface(m,win,origin){
+  const fields=brgFieldList(m);
+  const w=document.getElementById('brgwrap');
+  w.querySelector('.sheet').className=brgSurfaceClass(m.surface);
+  document.getElementById('brgTitle').textContent=m.title||'';
+  const sub=document.getElementById('brgSub');
+  sub.textContent=m.subtitle||''; sub.style.display=m.subtitle?'':'none';
+  let body='';
+  if(m.surface==='passthrough'){
+    body='<div class="brgpt"><iframe src="'+escT(m.url)+'" sandbox="allow-scripts allow-forms allow-same-origin"'
+        +' referrerpolicy="no-referrer"></iframe></div>';
+  }else if(m.sections&&m.sections.length){
+    body=m.sections.map(function(s){
+      return '<div class="brgsec"><div class="brgst">'+escT(s.title||'')+'</div>'
+            +(s.fields||[]).map(brgFieldHTML).join('')+'</div>';}).join('')
+        +(m.fields||[]).map(brgFieldHTML).join('');
+  }else{
+    body=(m.fields||[]).map(brgFieldHTML).join('');
+  }
+  document.getElementById('brgbody').innerHTML=body;
+  const acts=(m.actions||[]).slice();
+  if(!acts.some(function(a){return a.dismiss;}))acts.push({key:'cancel',label:tt('Cancel'),tone:'ghost',dismiss:true});
+  document.getElementById('brgActs').innerHTML=acts.map(function(a){
+    return '<button class="btn'+(a.tone==='primary'?' primary':a.tone==='danger'?' danger':a.tone==='ghost'?' ghost':'')
+          +'" onclick="brgAct(\''+escT(a.key)+'\','+(a.dismiss?'true':'false')+')">'+escT(a.label)+'</button>';}).join('');
+  BRG_OPEN={id:m.id,plan:m.plan,surface:m.surface,fields:fields,win:win,origin:origin,
+            actions:acts.reduce(function(o,a){o[a.key]=a;return o;},{})};
+  document.body.dataset.brg=m.surface;
+  mOpen('brgwrap');
+  brgDeps();
+  /* Field KEYS are audited; values are not — they are clinical content owned by
+     the plan, and this audit trail is not their store (cp-20 AU-02). */
+  logAudit('read','Bridge '+m.plan+' '+m.surface+' ['+fields.map(function(f){return f.key;}).join(',')+']');
+}
+function brgAct(key,dismiss){
+  if(!BRG_OPEN)return;
+  const o=BRG_OPEN;
+  if(!dismiss&&!brgValidate(o.fields))return;
+  const values={};
+  if(!dismiss)o.fields.forEach(function(f){
+    if(f.type==='display')return;
+    const fe=document.getElementById('brgbody').querySelector('.brgf[data-fk="'+f.key+'"]');
+    values[f.key]=fe&&fe.classList.contains('hid')?null:brgVal(fe);
+  });
+  brgPost(o.win,o.origin,{v:BRG_V,id:o.id,plan:o.plan,type:'ui.result',action:key,
+                          dismissed:!!dismiss,values:dismiss?null:values});
+  brgClose(true);
+}
+function brgClose(silent){
+  if(!BRG_OPEN)return;
+  const o=BRG_OPEN; BRG_OPEN=null;
+  document.body.dataset.brg='';
+  mClose('brgwrap');
+  document.getElementById('brgbody').innerHTML='';
+  if(!silent)brgPost(o.win,o.origin,{v:BRG_V,id:o.id,plan:o.plan,type:'ui.result',action:null,dismissed:true,values:null});
+}
+/* ── receive ───────────────────────────────────────────────────────────────── */
+function brgToast(m){ showToast(m.title||'', m.tone==='danger'?'bad':'ok'); }
+window.addEventListener('message',function(ev){
+  const allow=brgOrigins(), plan=allow[ev.origin];
+  /* An unlisted origin gets NO reply — a reply confirms a listener exists. */
+  if(!plan)return;
+  const m=ev.data;
+  if(!m||typeof m!=='object'||typeof m.type!=='string')return;
+  const win=ev.source, org=ev.origin;
+  if(m.v!==BRG_V){ brgErr(win,org,m.id,plan,'unsupported_version','cockpit speaks v'+BRG_V); return; }
+  let size=0; try{ size=JSON.stringify(m).length; }catch(e){ return; }
+  if(size>262144){ brgErr(win,org,m.id,plan,'payload_too_large',size+' bytes'); return; }
+
+  switch(m.type){
+    case 'ready':
+      brgPost(win,org,{v:BRG_V,id:m.id,plan:plan,type:'ready',cockpit:'v180',
+        supports:{surfaces:BRG_SURFACES,fields:BRG_FIELDS},locale:LANG,theme:'ds26'});
+      break;
+    case 'ui.open':
+      if(BRG_OPEN){ brgErr(win,org,m.id,plan,'surface_busy'); return; }
+      if(BRG_SURFACES.indexOf(m.surface)<0){ brgErr(win,org,m.id,plan,'unsupported_surface',m.surface); return; }
+      if(m.surface==='passthrough'){
+        let u=null; try{ u=new URL(m.url); }catch(e){}
+        if(!u||u.origin!==org){ brgErr(win,org,m.id,plan,'origin_mismatch'); return; }
+      }
+      if(m.surface==='toast'){
+        brgToast(m);
+        brgPost(win,org,{v:BRG_V,id:m.id,plan:plan,type:'ui.result',action:null,dismissed:false,values:{}});
+        return;
+      }
+      brgOpenSurface(Object.assign({},m,{plan:plan}),win,org);
+      break;
+    case 'ui.close':
+      if(BRG_OPEN&&BRG_OPEN.id===m.id)brgClose(true);
+      break;
+    case 'ctx.request': {
+      /* Coarse scopes only, and every grant is audited: this is a disclosure of
+         patient data to a separate application (cp-20 CX-03). */
+      const want=Array.isArray(m.scope)?m.scope:[], granted=[], ctx={};
+      if(want.indexOf('patient.demographics')>=0){
+        granted.push('patient.demographics');
+        ctx.patient={id:RPT_ID.pid,displayName:RPT_ID.patient,birthDate:null,sex:null};
+      }
+      if(want.indexOf('practitioner.current')>=0){
+        granted.push('practitioner.current');
+        ctx.practitioner={displayName:RPT_ID.clinician};
+      }
+      logAudit('disclose','Bridge '+plan+' ctx ['+granted.join(',')+']',{pou:'TREAT'});
+      brgPost(win,org,{v:BRG_V,id:m.id,plan:plan,type:'ctx.provide',granted:granted,context:ctx});
+      break; }
+    default:
+      brgErr(win,org,m.id,plan,'unsupported_verb',m.type);
+  }
+},false);
+
+/* Demo surface — lets the bridge be exercised before any plan implements it.
+   Built from real SM fields (sm-plus.contract.ts) so it is a conformance sample,
+   not decoration. Bypasses postMessage; the render path below is identical. */
+function brgDemo(){
+  if(BRG_OPEN){showToast('A surface is already open');return;}
+  const fake={postMessage:function(m){
+    showToast(m.dismissed?'Dismissed':('Returned '+Object.keys(m.values||{}).length+' values'),
+              m.dismissed?'':'ok');
+    if(!m.dismissed)console.log('[bridge demo] ui.result',m);}};
+  brgOpenSurface({id:'demo',plan:'sm',surface:'sheet',title:tt('EDSS assessment'),
+    subtitle:tt('Bridge demo — cp-20'),
+    sections:[{key:'fs',title:tt('Functional systems'),fields:[
+        {key:'pyramidal', type:'scale',label:tt('Pyramidal'), min:0,max:6,step:1,required:true},
+        {key:'cerebellar',type:'scale',label:tt('Cerebellar'),min:0,max:6,step:1},
+        {key:'calcEdss',  type:'display',label:tt('Calculated EDSS'),value:'—'}]},
+      {key:'lab',title:tt('Laboratory'),fields:[
+        {key:'ocb',      type:'result',label:tt('Oligoclonal bands')},
+        {key:'vitaminD', type:'number',label:tt('Vitamin D'),unit:'nmol/L',min:0,max:400,
+         refRange:{low:75,high:250}}]}],
+    fields:[
+      {key:'comorbidities',type:'multiselect',label:tt('Comorbidities'),
+       options:[{value:'dm',label:tt('Diabetes')},{value:'htn',label:tt('Hypertension')},
+                {value:'other',label:tt('Other')}]},
+      {key:'comorbiditiesOther',type:'textarea',label:tt('Describe'),rows:2,
+       dependsOn:{key:'comorbidities',op:'includes',value:'other'}},
+      {key:'customTests',type:'group',label:tt('Additional tests'),
+       repeatable:{max:20,addLabel:tt('Add test')},
+       fields:[{key:'name',type:'text',label:tt('Test')},
+               {key:'value',type:'text',label:tt('Result')}]}],
+    actions:[{key:'save',label:tt('Save'),tone:'primary'}]},fake,location.origin);
+}
 function cpMenu(ev){ev.stopPropagation();ddToggle(ev.currentTarget.closest('.tabdd'));}
 /* Any centre tab other than the Care plans dropdown closes the plan, so the pane
    cannot linger behind another workspace. Delegated, so no tab markup changes. */
@@ -4500,6 +4934,34 @@ const I18N=[
  ["Select a template on the left or create a new one.","Vyberte šablónu vľavo alebo vytvorte novú."],
  ["Short follow-up (mine)","Krátka kontrola (moja)"],
  ["Preview","Náhľad"],
+ ["EDSS assessment","Vyšetrenie EDSS"],
+ ["Bridge demo — cp-20","Ukážka mosta — cp-20"],
+ ["Functional systems","Funkčné systémy"],
+ ["Pyramidal","Pyramídový systém"],
+ ["Cerebellar","Mozočkový systém"],
+ ["Calculated EDSS","Vypočítané EDSS"],
+ ["Laboratory","Laboratórium"],
+ ["Oligoclonal bands","Oligoklonálne pásy"],
+ ["Vitamin D","Vitamín D"],
+ ["Comorbidities","Komorbidity"],
+ ["Diabetes","Diabetes"],
+ ["Hypertension","Hypertenzia"],
+ ["Other","Iné"],
+ ["Describe","Popis"],
+ ["Additional tests","Ďalšie vyšetrenia"],
+ ["Add test","Pridať vyšetrenie"],
+ ["Test","Vyšetrenie"],
+ ["Result","Výsledok"],
+ ["A surface is already open","Plocha je už otvorená"],
+ ["Dismissed","Zrušené"],
+ ["positive","pozitívne"],
+ ["negative","negatívne"],
+ ["pending","prebieha"],
+ ["not tested","nevyšetrené"],
+ ["Required","Povinné"],
+ ["Below minimum","Pod minimom"],
+ ["Above maximum","Nad maximom"],
+ ["Add","Pridať"],
  ["Not published yet","Zatiaľ nepublikované"],
  ["This plan has no public address. Publish it in the builder, then add its URL to the plan register.","Tento plán nemá verejnú adresu. Publikujte ho v nástroji a doplňte URL do registra plánov."],
  ["Document footer — stamp and signature","Pätička dokumentu — pečiatka a podpis"],
