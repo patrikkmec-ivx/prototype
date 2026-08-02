@@ -4,8 +4,29 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v180 (care plan UI bridge)</title>
+<title>Hilbi Cockpit — v181 (bridge reuses cockpit components)</title>
 <!-- CHANGELOG
+v181 (2026-07-27): The bridge was building its own components instead of reusing the
+  cockpit's. That defeats the point of a design system: change one button and every
+  button should change.
+  The prototype already carries an explicit field rule, written next to .tpledit — "no
+  border at rest, surface/1 fill, value in text/heading, focus = white plus a 2px cyan
+  ring, size S 40 px at radius 8, never a border at rest". The bridge did the opposite:
+  a 1px border at rest, white fill and 34 px height. Corrected to the stated rule.
+  Selectable options are now class="chip brgchip" — they ARE the cockpit chip, and
+  .brgchip adds only interactive state. Geometry (padding, radius, size, weight) stays
+  with .chip, so a change there reaches the bridge automatically. Result buttons follow
+  the same rest/hover/selected language instead of a third visual idiom. Labels reuse the
+  shape of .tpledit label.fl.
+  NEW GATE 11 — component duplication. It compares a new class against the base class it
+  should be extending and fails if geometry is restated. Proven against the defect it was
+  written for: reverting .brgchip reports "restates [border-radius, font-size, padding]
+  from .chip". No existing gate could see this — they check tokens, not whether a
+  component was reinvented, which is why it slipped through in v180.
+  Checked separately against the real DS '26 variable set over the Figma API: naming
+  already aligns one-to-one (border/strong is --border-strong, text/subtle is
+  --text-subtle), so the vocabulary was never the problem — the components were.
+
 v180 (2026-07-27): Care Plan UI Bridge, cp-20 protocol v1. A plan runs in an iframe and
   cannot paint outside it — z-index does not help and position:fixed resolves against the
   iframe viewport. On a phone the frame is most of the screen, so a dialog inside it has
@@ -1129,16 +1150,23 @@ body[data-tab="cp"] .filterbar{display:none}
 .brgst{font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--text-subtle)}
 .brgf{display:flex;flex-direction:column;gap:4px}
 .brgf.hid{display:none}
-.brgl{font-size:12px;font-weight:600;color:var(--text-body)}
+/* Same shape as .tpledit label.fl — the established field-label style. */
+.brgl{display:block;font-size:12px;line-height:16px;font-weight:700;color:var(--text-muted)}
 .brgreq{color:var(--danger)}
 .brghelp{font-size:11px;color:var(--text-muted);line-height:15px}
 .brgfe{font-size:11px;color:var(--danger)}
-.brgin{width:100%;padding:8px 10px;border:1px solid var(--border-strong);border-radius:8px;
-  font:inherit;font-size:13.5px;background:var(--surface-white);color:var(--text-body)}
-.brgin:focus{outline:2px solid var(--brand-cyan);outline-offset:-1px}
-/* DS '26 carries a distinct text/disabled variable — muted is for de-emphasised
-   live text, not for an unavailable control. */
+/* Fields follow the design-system rule already written for .tpledit: no border at
+   rest, surface/1 fill, value in text/heading, focus = white + 2px cyan ring.
+   Size S is 40 px at radius 8. Bridge surfaces are dense forms, so S applies.
+   Restating those values here rather than reusing them would mean a DS change
+   lands in one place and not the other. */
+.brgin{width:100%;font:inherit;font-size:14px;line-height:20px;padding:10px 14px;min-height:40px;
+  border:none;border-radius:8px;background:var(--surface-1);color:var(--text-heading)}
+.brgin:hover{background:var(--surface-2)}
+.brgin:focus{outline:none;background:var(--surface-white);box-shadow:0 0 0 2px var(--brand-cyan)}
+.brgin::placeholder{color:var(--text-subtle)}
 .brgin:disabled{background:var(--surface-1);color:var(--text-disabled)}
+.brgin[type=range]{min-height:0;padding:0;background:none}
 .brgnum{display:flex;align-items:center;gap:8px}
 .brgnum .brgin{flex:1}
 .brgunit{font-size:12px;color:var(--text-muted);white-space:nowrap}
@@ -1148,9 +1176,12 @@ body[data-tab="cp"] .filterbar{display:none}
 .brgrow{display:flex;align-items:center;gap:8px;cursor:pointer}
 .brgchk input{width:16px;height:16px;accent-color:var(--brand-teal)}
 .brgchips{display:flex;flex-wrap:wrap;gap:6px}
-.brgchip{border:1px solid var(--border-strong);background:var(--surface-white);border-radius:999px;
-  padding:5px 12px;font:inherit;font-size:12px;color:var(--text-body);cursor:pointer}
-.brgchip.on{background:var(--brand-cyan-soft);border-color:var(--brand-cyan);color:var(--brand-teal-text);font-weight:700}
+/* Selectable chips ARE .chip — the class is applied in markup, so only the
+   interactive states live here. A change to .chip reaches these too. */
+.brgchip{border:none;background:var(--surface-1);color:var(--text-muted);cursor:pointer;
+  font-family:inherit;min-height:32px}
+.brgchip:hover{background:var(--surface-2)}
+.brgchip.on{background:var(--brand-cyan-soft);color:var(--brand-teal-text)}
 .brgscale{display:flex;align-items:center;gap:10px}
 .brgscale .brgin{flex:1;padding:0}
 .brgsv{font-size:14px;font-weight:800;color:var(--text-heading);min-width:34px;text-align:right;
@@ -1159,11 +1190,12 @@ body[data-tab="cp"] .filterbar{display:none}
 /* Four states, not three: "negative" and "not tested" are clinically different
    and must stay distinguishable in the UI as well as in transport. */
 .brgres{display:flex;gap:6px;flex-wrap:wrap}
-.brgrb{border:1px solid var(--border-strong);background:var(--surface-white);border-radius:8px;
-  padding:6px 12px;font:inherit;font-size:12px;color:var(--text-body);cursor:pointer}
-.brgrb.on.r-pos{background:var(--danger-soft);border-color:var(--danger);color:var(--danger);font-weight:700}
-.brgrb.on.r-neg{background:var(--success-soft);border-color:var(--success);color:var(--success);font-weight:700}
-.brgrb.on.r-pending,.brgrb.on.r-na{background:var(--surface-2);border-color:var(--border-strong);font-weight:700}
+.brgrb{border:none;border-radius:8px;background:var(--surface-1);color:var(--text-muted);
+  padding:8px 14px;min-height:40px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.brgrb:hover{background:var(--surface-2)}
+.brgrb.on.r-pos{background:var(--danger-soft);color:var(--danger)}
+.brgrb.on.r-neg{background:var(--success-soft);color:var(--success)}
+.brgrb.on.r-pending,.brgrb.on.r-na{background:var(--brand-cyan-soft);color:var(--brand-teal-text)}
 .brggrp{display:flex;flex-direction:column;gap:8px}
 .brgrowitem{display:flex;gap:8px;align-items:flex-end;padding:8px;border:1px solid var(--border-default);border-radius:8px}
 .brgrowitem .brgf{flex:1}
@@ -3030,7 +3062,9 @@ function brgFieldHTML(f){
       ctl='<div class="brgchips" data-k="'+k+'">'
          +(f.options||[]).map(function(o){o=brgOpt(o);
              const on=(f.default||[]).indexOf(o.value)>=0;
-             return '<button type="button" class="brgchip'+(on?' on':'')+'" data-v="'+escT(o.value)+'"'
+             /* class="chip brgchip": it IS the cockpit chip, plus interactive state.
+                A change to .chip geometry reaches the bridge automatically. */
+             return '<button type="button" class="chip brgchip'+(on?' on':'')+'" data-v="'+escT(o.value)+'"'
                    +' onclick="brgChip(this)"'+(f.readOnly?' disabled':'')+'>'+escT(o.label)+'</button>';}).join('')
          +'</div>';
       break;
