@@ -1136,7 +1136,9 @@ body[data-tab="cp"] .filterbar{display:none}
 .brgin{width:100%;padding:8px 10px;border:1px solid var(--border-strong);border-radius:8px;
   font:inherit;font-size:13.5px;background:var(--surface-white);color:var(--text-body)}
 .brgin:focus{outline:2px solid var(--brand-cyan);outline-offset:-1px}
-.brgin:disabled{background:var(--surface-1);color:var(--text-muted)}
+/* DS '26 carries a distinct text/disabled variable — muted is for de-emphasised
+   live text, not for an unavailable control. */
+.brgin:disabled{background:var(--surface-1);color:var(--text-disabled)}
 .brgnum{display:flex;align-items:center;gap:8px}
 .brgnum .brgin{flex:1}
 .brgunit{font-size:12px;color:var(--text-muted);white-space:nowrap}
