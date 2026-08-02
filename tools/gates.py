@@ -73,8 +73,15 @@ gate(5, "undefined tokens", not undef, str(undef) if undef else f"{len(used)} us
 
 # 6 token drift
 root = re.search(r":root\s*\{(.*?)\}", css, re.S)
-tokvals = {v.lower() for v in re.findall(r"#[0-9A-Fa-f]{3,8}", root.group(1))}
-outside = {h.lower() for h in re.findall(r"#[0-9A-Fa-f]{3,8}", css.replace(root.group(0), ""))}
+# Normalise shorthand: #fff and #FFFFFF are the same colour, but a string compare
+# treated them as different — which hid 62 literal #fff outside :root.
+def norm(h):
+    h = h.lower().lstrip("#")
+    if len(h) in (3, 4):
+        h = "".join(c * 2 for c in h)
+    return "#" + h[:6]
+tokvals = {norm(v) for v in re.findall(r"#[0-9A-Fa-f]{3,8}", root.group(1))}
+outside = {norm(h) for h in re.findall(r"#[0-9A-Fa-f]{3,8}", css.replace(root.group(0), ""))}
 drift = sorted(outside & tokvals)
 gate(6, "token drift", not drift, str(drift) if drift else "")
 
