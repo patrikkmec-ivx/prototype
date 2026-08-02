@@ -4,7 +4,7 @@
 > binding; `CLAUDE.md` governs how to behave in the repository; `README.md` says what
 > is what. **Updated at the end of every session.**
 
-Updated: 2026-07-27 · Prototype version: **v179**
+Updated: 2026-07-27 · Prototype version: **v180**
 
 ---
 
@@ -475,6 +475,56 @@ and a frame around it reads as a second container competing with it.
 
 **Gate 6 earned its keep** — it caught hex literals in the *comment* above the rule, where
 both colours had been quoted by value. Contrast figures belong in prose as token names.
+
+### v180 — Care Plan UI Bridge (cp-20)
+
+A plan cannot paint outside its iframe, and on a phone that makes an in-frame dialog
+unusable. Rebuilding each plan's dialogs in the cockpit would mean a cockpit release per
+plan. So the plan **describes**, the cockpit **renders**, over `postMessage`.
+
+**Ten field primitives carry constraints, never clinical meaning.** The cockpit sees a
+number with a range, not an EDSS score. This is the property that scales: a Fabry,
+dementia or colorectal plan needs **no cockpit change**.
+
+**Designed against `sm-plus.contract.ts`, read from the Lovable project rather than
+guessed.** Four things in it would have broken a naive eight-type schema:
+
+| Found in SM | Would have broken |
+|---|---|
+| `functionalSystems` — EDSS has 8 sub-scores | flat field list cannot nest |
+| `vitaminDLevel` nmol/L, CRP, ALT with LOINC | a number without unit or reference range is clinically useless |
+| `calculatedEdss`, `vitalsBmi`, `fsSummary` | computed values are output, not input |
+| `customTests` | repeatable rows |
+
+`result` became a first-class type because tri-state findings are the most repeated shape
+in SM — OCB, AQP4, MOG, ANA, ANCA, HIV, syphilis, JCV, TBC, HBV, VZV — and *negative* must
+stay distinguishable from *not tested*.
+
+**Clinical safety finding, caught by the test suite.** A `scale` defaulted to its minimum,
+so a required EDSS sub-score could never fail validation — the cockpit would have asserted
+a normal finding the clinician never made. EDSS 0 is a real reading, not an empty one. A
+scale with no explicit default now starts unset and returns `null` until moved. **Worth
+generalising: on any clinical scale, the minimum is a value, not an absence.**
+
+**Boundaries held deliberately.** The cockpit validates structure only — required, range,
+date parse, option membership. Clinical rules stay in the plan: a cockpit that ruled on
+clinical values would take on medical-device weight the orchestrator posture (`cp-17`
+REP-01) exists to avoid. The cockpit never calculates. Patient context never travels in
+the URL (`BR-11`); every grant is audited; field **keys** are audited, values are not.
+
+**Distribution:** `hilbi-sdk.ts` is copied into each plan, not installed. Plans are static
+Vite builds and a shared package would mean publishing and rebuilding every plan for any
+change. Copies drift — the handshake is what makes drift survivable, which is why `HS-03`
+(degrade, never fail) is normative rather than advisory.
+
+**Not done, deliberately:** SM plan integration. Debugging the cockpit side and the plan
+side at once means debugging neither. The demo surface in the Care plans dropdown exists
+so the bridge can be exercised first.
+
+**Open for Marek (`cp-20` SE-06):** an embedded plan is a distinct data-flow boundary.
+Processor or separate controller? Is a plan hosted outside the EU environment acceptable
+under the regional isolation the platform claims? The protocol makes the flow easy, and
+the flow is the risk.
 
 ### v179 — plan aligned to the hero
 
