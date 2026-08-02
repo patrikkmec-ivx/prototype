@@ -119,6 +119,24 @@ scope = {"SRC_COVERS": ENC, "TERM_BIND": ENC, "SRC_STYLE": ALL, "SRC_DISP": ALL}
 gaps = {r: sorted(scope[r] - found[r]) for r in scope if scope[r] - found[r]}
 gate(9, "source keys", not gaps, str(gaps)[:110] if gaps else f"{len(ALL)} sources, {len(ENC)} encounter-scoped")
 
+# 11 component duplication — a new class must not restate geometry that an existing
+#    cockpit class already owns. The point of a design system is that changing one
+#    button changes every button; a parallel definition silently opts out of that.
+PAIRS = [(".brgchip", ".chip"), (".brgin", ".tpledit input[type=text]")]
+def props(sel):
+    m = re.search(r"\n" + re.escape(sel) + r"\{([^}]*)\}", css, re.S)
+    if not m:
+        return set()
+    return {p.split(":")[0].strip() for p in m.group(1).replace("\n", "").split(";") if ":" in p}
+GEOM = {"padding", "border-radius", "font-size", "line-height", "font-weight", "display",
+        "gap", "white-space", "align-items", "min-height"}
+dups = []
+for new_sel, base_sel in PAIRS:
+    shared = props(new_sel) & props(base_sel) & GEOM
+    if shared:
+        dups.append(f"{new_sel} restates {sorted(shared)} from {base_sel}")
+gate(11, "component duplication", not dups, "; ".join(dups))
+
 # 10 Slovak leak
 SK = re.compile("[ľĺŕôäťďňČčŠšŽžŤŇĎĽŔÔÄ]")
 # I was matched against `js`, so its offsets are relative to the script block. Masking
