@@ -4,8 +4,30 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v182 (dismissal size S, hex drift)</title>
+<title>Hilbi Cockpit — v183 (bridge: toolbar, ui.update, templates)</title>
 <!-- CHANGELOG
+v183 (2026-08-03): Three additions so step 1 of the SM plan can move onto cockpit
+  surfaces. All three came from reading the real intake modal, and all three are generic
+  rather than SM-specific.
+  toolbar — actions that FILL a form (Nahrat / Odfotit / Vlozit z NIS). Rendered above
+  the fields, not in the footer: they are inputs to the form, and beside Save they would
+  read as four equal commits. The cockpit does not interpret them; it reports ui.toolbar
+  and the plan answers.
+  ui.update — write values into an OPEN surface. This was the blocker: SM is OCR-driven
+  end to end, so without it an upload would force the surface closed and reopened,
+  discarding anything already typed. Only the keys sent are written; a field the plan
+  does not mention keeps exactly what the clinician left there. Verified with a typed
+  narrative surviving an OCR fill of three other fields. Refused with no_open_surface if
+  no surface is up.
+  templates on textarea — the per-field "Standardna" picker. Selecting one replaces the
+  text, so the cockpit asks first unless the field is empty or still holds an unmodified
+  template. Silently overwriting a dictated paragraph would be the worst possible
+  behaviour here.
+  brgSet() is the inverse of brgVal() and handles every field type including repeatable
+  groups and the unset scale state.
+  Cosmetic gaps accepted rather than added: section icons and the specialty badge. They
+  carry no information the surface does not already have.
+
 v182 (2026-07-27): Dismissal buttons in modal footers drop from the M default (40 px) to
   size S (32 px). No new component — .btn.sm already existed and was simply not being
   used; the DS scale L 48 · M 40 · S 32 is written next to the definition. Seven modal
@@ -1163,6 +1185,10 @@ body[data-tab="cp"] .filterbar{display:none}
 .sheet.brgconfirm{width:420px}
 .brgbody{flex:1;min-height:0;overflow-y:auto;padding:14px 20px;display:flex;flex-direction:column;gap:12px}
 .brgacts{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;border-top:1px solid var(--border-default)}
+.brgtools{display:flex;gap:8px;flex-wrap:wrap;padding:0 20px 10px}
+.brgtpl{float:right;margin:-22px 0 0;border:none;background:none;font:inherit;font-size:12px;
+  font-weight:700;color:var(--text-muted);cursor:pointer;max-width:45%}
+.sheetwrap.busy .brgbody{opacity:.55;pointer-events:none}
 .brgsec{display:flex;flex-direction:column;gap:12px;padding-bottom:6px}
 .brgst{font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--text-subtle)}
 .brgf{display:flex;flex-direction:column;gap:4px}
@@ -2458,6 +2484,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
   <div class="sheet brgmodal">
     <div class="sh-h"><b id="brgTitle"></b><span class="brgsub" id="brgSub"></span>
       <button class="x" onclick="brgClose()" title="Close">&times;</button></div>
+    <div class="brgtools" id="brgTools"></div>
     <div class="brgbody" id="brgbody"></div>
     <div class="brgacts" id="brgActs"></div>
   </div>
@@ -3053,7 +3080,20 @@ function brgFieldHTML(f){
       ctl='<div class="brgdisp'+(f.tone?' t-'+escT(f.tone):'')+'">'+escT(String(f.value==null?'—':f.value))+'</div>';
       break;
     case 'textarea':
-      ctl='<textarea class="brgin" data-k="'+k+'" rows="'+(f.rows||3)+'"'+ro+'>'+escT(f.default||'')+'</textarea>';
+      /* Templates are boilerplate the clinician picks and then edits. Selecting one
+         replaces the text, so it is offered only while the field is untouched or
+         still equals a template — otherwise a stray tap would erase dictation. */
+      if(f.templates&&f.templates.length){
+        ctl='<select class="brgtpl" data-for="'+k+'" onchange="brgTpl(this)">'
+           +'<option value="">'+tt('Template')+'…</option>'
+           +f.templates.map(function(t,i){return '<option value="'+i+'">'+escT(t.label)+'</option>';}).join('')
+           +'</select>'
+           +'<textarea class="brgin" data-k="'+k+'" rows="'+(f.rows||3)+'"'
+           +' data-tpl="'+encodeURIComponent(JSON.stringify(f.templates.map(function(t){return t.value;})))+'"'
+           +ro+'>'+escT(f.default||'')+'</textarea>';
+      }else{
+        ctl='<textarea class="brgin" data-k="'+k+'" rows="'+(f.rows||3)+'"'+ro+'>'+escT(f.default||'')+'</textarea>';
+      }
       break;
     case 'number': {
       const unit=f.unit?'<span class="brgunit">'+escT(f.unit)+'</span>':'';
@@ -3127,6 +3167,14 @@ function brgFieldHTML(f){
             : '<label class="brgl" for="">'+lbl+req+'</label>'+ctl)
         +help+'<div class="brgfe"></div></div>';
 }
+function brgTpl(sel){
+  const ta=sel.parentNode.querySelector('textarea'); if(!ta||sel.value==='')return;
+  const bodies=brgJSON(ta.dataset.tpl), next=bodies[Number(sel.value)]||'';
+  const cur=ta.value.trim();
+  /* Only overwrite empty text or text that is still an unedited template. */
+  if(cur&&bodies.indexOf(ta.value)<0&&!confirm(tt('Replace the text with this template?'))){sel.value='';return;}
+  ta.value=next; brgDeps();
+}
 function brgScale(el){ delete el.dataset.unset; el.nextElementSibling.textContent=el.value; brgDeps(); }
 function brgChip(b){ if(b.disabled)return; b.classList.toggle('on'); brgDeps(); }
 function brgRes(b){ if(b.disabled)return;
@@ -3176,6 +3224,29 @@ function brgVal(fe){
   if(t==='number')return el.value===''?null:Number(el.value);
   return el.value===''?null:el.value;
 }
+/* Inverse of brgVal — used by ui.update. A field the plan does not mention is
+   left exactly as the clinician left it. */
+function brgSet(root,key,v){
+  const fe=root.querySelector('.brgf[data-fk="'+key+'"]'); if(!fe)return;
+  const t=fe.dataset.ft;
+  if(t==='display'){const d=fe.querySelector('.brgdisp');if(d)d.textContent=(v==null?'—':String(v));return;}
+  if(t==='multiselect'){const a=Array.isArray(v)?v:[];
+    fe.querySelectorAll('.brgchip').forEach(function(b){b.classList.toggle('on',a.indexOf(b.dataset.v)>=0);});return;}
+  if(t==='result'){fe.querySelectorAll('.brgrb').forEach(function(b){b.classList.toggle('on',b.dataset.v===v);});return;}
+  if(t==='group'){
+    const g=fe.querySelector('.brggrp'); g.querySelector('.brgrows').innerHTML='';
+    (Array.isArray(v)?v:[]).forEach(function(row){
+      brgAddRow(g.querySelector('.brgadd'));
+      const last=g.querySelectorAll('.brgrowitem'), r=last[last.length-1];
+      Object.keys(row||{}).forEach(function(sk){ brgSet(r,sk,row[sk]); });
+    });
+    return;}
+  const el=fe.querySelector('.brgin,input[type=checkbox]'); if(!el)return;
+  if(t==='checkbox'){el.checked=!!v;return;}
+  if(t==='scale'){ if(v==null){el.dataset.unset='1';fe.querySelector('.brgsv').textContent='—';}
+                   else {delete el.dataset.unset;el.value=v;fe.querySelector('.brgsv').textContent=String(v);} return;}
+  el.value=(v==null?'':v);
+}
 /* Structure only. Whether an EDSS of 6.5 fits the recorded ambulation is the
    plan's judgement — a cockpit that ruled on that would be making clinical
    decisions, which is not what an orchestrator is (cp-17 REP-01). */
@@ -3217,6 +3288,16 @@ function brgOpenSurface(m,win,origin){
     body=(m.fields||[]).map(brgFieldHTML).join('');
   }
   document.getElementById('brgbody').innerHTML=body;
+  /* Toolbar — actions that FILL the form from elsewhere (upload, camera, EHR
+     import). They sit above the fields because they are inputs to the form, not
+     conclusions of it; putting them in the footer next to Save would read as
+     four equal commits. */
+  const tb=(m.toolbar||[]).map(function(a){
+    return '<button class="btn sm" onclick="brgTool(\''+escT(a.key)+'\')">'
+      +(a.icon?'<svg class="ico s14" aria-hidden="true"><use href="#i-'+escT(a.icon)+'"/></svg>':'')
+      +escT(a.label)+'</button>';}).join('');
+  document.getElementById('brgTools').innerHTML=tb;
+  document.getElementById('brgTools').style.display=tb?'':'none';
   const acts=(m.actions||[]).slice();
   if(!acts.some(function(a){return a.dismiss;}))acts.push({key:'cancel',label:tt('Cancel'),tone:'ghost',dismiss:true});
   document.getElementById('brgActs').innerHTML=acts.map(function(a){
@@ -3232,6 +3313,13 @@ function brgOpenSurface(m,win,origin){
   /* Field KEYS are audited; values are not — they are clinical content owned by
      the plan, and this audit trail is not their store (cp-20 AU-02). */
   logAudit('read','Bridge '+m.plan+' '+m.surface+' ['+fields.map(function(f){return f.key;}).join(',')+']');
+}
+/* The cockpit does not know what "import from NIS" does. It reports the press and
+   the plan answers with ui.update. */
+function brgTool(key){
+  if(!BRG_OPEN)return;
+  brgPost(BRG_OPEN.win,BRG_OPEN.origin,
+    {v:BRG_V,id:BRG_OPEN.id,plan:BRG_OPEN.plan,type:'ui.toolbar',action:key});
 }
 function brgAct(key,dismiss){
   if(!BRG_OPEN)return;
@@ -3287,6 +3375,15 @@ window.addEventListener('message',function(ev){
       }
       brgOpenSurface(Object.assign({},m,{plan:plan}),win,org);
       break;
+    case 'ui.update': {
+      /* Fill an OPEN surface — the OCR path. Without this a plan would have to
+         close and reopen after an upload, discarding everything already typed. */
+      if(!BRG_OPEN||BRG_OPEN.id!==m.id){ brgErr(win,org,m.id,plan,'no_open_surface'); return; }
+      const vals=m.values||{}, root=document.getElementById('brgbody');
+      Object.keys(vals).forEach(function(k){ brgSet(root,k,vals[k]); });
+      if(m.busy!==undefined)document.getElementById('brgwrap').classList.toggle('busy',!!m.busy);
+      brgDeps();
+      break; }
     case 'ui.close':
       if(BRG_OPEN&&BRG_OPEN.id===m.id)brgClose(true);
       break;
@@ -4989,6 +5086,8 @@ const I18N=[
  ["Select a template on the left or create a new one.","Vyberte šablónu vľavo alebo vytvorte novú."],
  ["Short follow-up (mine)","Krátka kontrola (moja)"],
  ["Preview","Náhľad"],
+ ["Template","Šablóna"],
+ ["Replace the text with this template?","Nahradiť text touto šablónou?"],
  ["EDSS assessment","Vyšetrenie EDSS"],
  ["Bridge demo — cp-20","Ukážka mosta — cp-20"],
  ["Functional systems","Funkčné systémy"],
