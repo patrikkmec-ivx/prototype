@@ -27,6 +27,8 @@ export interface Condition {
   value?: unknown;
 }
 
+export interface Template { label: string; value: string }
+
 export interface Field {
   key: string;
   type: FieldType;
@@ -40,6 +42,9 @@ export interface Field {
   maxLength?: number;
   placeholder?: string;
   rows?: number;
+  /** textarea only — boilerplate the clinician picks and then edits. The cockpit
+   *  asks before replacing text that is not an unmodified template. */
+  templates?: Template[];
   /* number / scale */
   min?: number;
   max?: number;
@@ -70,8 +75,18 @@ export interface Action {
   dismiss?: boolean;
 }
 
+export interface ToolbarAction {
+  key: string;
+  label: string;
+  /** cockpit icon id: file, cam, scan, bldg, flask, tube, steth, pill, clip, user, cal, pen, search */
+  icon?: string;
+}
+
 export interface OpenRequest {
   surface: Surface;
+  /** Actions that FILL the form (upload, camera, EHR import). Rendered above the
+   *  fields, because they are inputs to the form rather than conclusions of it. */
+  toolbar?: ToolbarAction[];
   title?: string;
   subtitle?: string;
   sections?: Section[];
@@ -108,6 +123,7 @@ const HANDSHAKE_TIMEOUT_MS = 2000;
 let connected = false;
 let caps: Caps | null = null;
 let seq = 0;
+let openId: string | null = null;   /* the surface currently up, for update() */
 const pending = new Map<string, { resolve: (v: any) => void; reject: (e: any) => void }>();
 
 const nextId = () => `p${Date.now().toString(36)}${(seq++).toString(36)}`;
@@ -122,6 +138,7 @@ function post(msg: Record<string, unknown>) {
 function onMessage(ev: MessageEvent) {
   const m = ev.data;
   if (!m || typeof m !== 'object' || typeof m.type !== 'string') return;
+  if (m.type === 'ui.toolbar') { toolbarHandler?.({ action: m.action }); return; }
   const p = pending.get(m.id);
   if (!p) return;
   pending.delete(m.id);
@@ -129,8 +146,8 @@ function onMessage(ev: MessageEvent) {
   else p.resolve(m);
 }
 
-function request<T>(msg: Record<string, unknown>, timeoutMs?: number): Promise<T> {
-  const id = nextId();
+function request<T>(msg: Record<string, unknown>, timeoutMs?: number, fixedId?: string): Promise<T> {
+  const id = fixedId ?? nextId();
   return new Promise<T>((resolve, reject) => {
     pending.set(id, { resolve, reject });
     if (timeoutMs) {
@@ -205,8 +222,14 @@ export async function open(req: OpenRequest): Promise<OpenResult> {
     fields: req.fields?.map(coerce),
     sections: req.sections?.map((s) => ({ ...s, fields: s.fields.map(coerce) })),
   };
-  const r = await request<any>({ type: 'ui.open', ...body });
-  return { action: r.action, dismissed: r.dismissed, values: r.values };
+  const id = nextId();
+  openId = id;
+  try {
+    const r = await request<any>({ type: 'ui.open', ...body }, undefined, id);
+    return { action: r.action, dismissed: r.dismissed, values: r.values };
+  } finally {
+    openId = null;
+  }
 }
 
 export function confirm(title: string, opts: {
@@ -242,5 +265,27 @@ export async function context(scope: Scope[]): Promise<{ granted: Scope[]; conte
   return { granted: r.granted ?? [], context: r.context ?? {} };
 }
 
-export const hilbi = { connect, available, capabilities, open, confirm, toast, context };
+/**
+ * Fill an OPEN surface — the OCR path.
+ *
+ * Send ONLY the keys extraction actually found. A key you omit keeps whatever the
+ * clinician typed; sending null would erase it. `busy` dims the form while you work.
+ *
+ * Without this, an upload would have to close and reopen the surface, discarding
+ * everything already entered.
+ */
+export function update(patch: { values?: Record<string, unknown>; busy?: boolean }): void {
+  if (!connected || !openId) return;
+  post({ v: V, id: openId, type: 'ui.update', ...patch });
+}
+
+type ToolbarHandler = (e: { action: string }) => void;
+let toolbarHandler: ToolbarHandler | null = null;
+
+/** Called when the clinician presses a toolbar button. The cockpit does not know
+ *  what "import from NIS" means — it reports the press and you answer with update(). */
+export function onToolbar(fn: ToolbarHandler) { toolbarHandler = fn; }
+
+export const hilbi = { connect, available, capabilities, open, confirm, toast, context,
+                       update, onToolbar };
 export default hilbi;
