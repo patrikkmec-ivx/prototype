@@ -4,7 +4,7 @@
 > binding; `CLAUDE.md` governs how to behave in the repository; `README.md` says what
 > is what. **Updated at the end of every session.**
 
-Updated: 2026-08-03 · Prototype version: **v183**
+Updated: 2026-08-03 · Prototype version: **v184**
 
 ---
 
