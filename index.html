@@ -4,8 +4,28 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v187 (bridge surface: carded sections adopting the care-plan body)</title>
+<title>Hilbi Cockpit — v188 (cp-20 DRAFT primitives: toggle, columns, collapsible)</title>
 <!-- CHANGELOG
+v188 (2026-08-03): cp-20 v0.9 DRAFT primitives, so the care plan's MRI body can be built on
+  cockpit surfaces and JUDGED before ratification. Marked DRAFT everywhere — renderer
+  comments, CSS banner, docs/cp-20 §6.0 — because §12 says the contract must not reach v1.0
+  by accretion; these await Roman (architecture) + Marek (compliance) sign-off.
+  toggle — a boolean rendered as a switch in a bordered box, not a checkbox row. Value shape
+  is identical to checkbox; brgVal/brgSet read and write aria-checked, so transport stays a
+  plain true/false. Open question in the doc: second boolean type, or a render hint on
+  checkbox.
+  columns — a section option (integer). The section becomes an n-column grid; a field with
+  wide:true, and every textarea/group/multiselect, spans all columns. Presentational only.
+  collapsible / collapsed — a section renders as an expandable group (the "Voliteľné polia"
+  pattern). Validation still blocks Save on a required field inside a closed section but does
+  not yet auto-expand it — flagged for Marek; the MRI demo keeps its optional fields there so
+  the gap is not reachable.
+  Demo added — Care plans → "Step 1 — MRI (cp-20 draft)" — a full MRI surface exercising all
+  three, Slovak labels fenced in DEMO-CONTENT. Verified by rendering: grid is two equal
+  columns, switches hold state through brgVal, the optional group opens and closes.
+  Gate 11 clean (no new class restates cockpit geometry). Gate 10 unchanged by this commit.
+
+
 v187 (2026-08-03): Bridge surface body adopts the care plan's carded look, header and
   footer deliberately left as the cockpit's (per the review: "prebrať všetko okrem
   hlavičky a buttons"). Purely cosmetic — no cp-20 field-primitive changed.
@@ -1319,6 +1339,25 @@ body[data-tab="cp"] .filterbar{display:none}
 .brgrowitem{display:flex;gap:8px;align-items:flex-end;padding:8px;border:1px solid var(--border-default);border-radius:8px}
 .brgrowitem .brgf{flex:1}
 .brgadd{align-self:flex-start;font-size:12px}
+/* ── cp-20 v0.9 DRAFT primitives — awaiting Roman+Marek sign-off (see docs/cp-20). ──
+   toggle (switch), columns:2 (grid section), collapsible section. Cosmetic-complete but
+   NOT yet part of the ratified contract; do not build plans against these until signed. */
+.brgsec.brggrid{display:grid;gap:12px 16px;align-items:start}
+.brgsec.brggrid>.brgsthead{grid-column:1/-1}
+.brgsec.brggrid>.brgf.wide,.brgsec.brggrid>.brgf[data-ft="textarea"],.brgsec.brggrid>.brgf[data-ft="group"],.brgsec.brggrid>.brgf[data-ft="multiselect"]{grid-column:1/-1}
+.brgtgl{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 12px;border:1px solid var(--border-default);border-radius:8px}
+.brgtgllbl{font-size:13px;font-weight:700;color:var(--text-heading)}
+.brgsw{position:relative;width:40px;height:22px;flex:none;border:none;border-radius:999px;background:var(--surface-2);cursor:pointer;padding:0;transition:background .15s}
+.brgsw::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--surface-white);box-shadow:0 1px 2px rgba(27,35,64,.25);transition:transform .15s}
+.brgsw[aria-checked="true"]{background:var(--brand-teal)}
+.brgsw[aria-checked="true"]::after{transform:translateX(18px)}
+.brgsw:focus-visible{outline:none;box-shadow:0 0 0 2px var(--brand-cyan)}
+.brgsw:disabled{opacity:.5;cursor:default}
+.brgsec.brgcoll>.brgsthead{cursor:pointer;user-select:none;align-items:center}
+.brgcollchev{margin-left:auto;color:var(--text-muted);transition:transform .15s;flex:none}
+.brgsec.brgcoll.closed>.brgsthead .brgstsub{display:none}
+.brgsec.brgcoll.closed .brgcollchev{transform:rotate(-90deg)}
+.brgsec.brgcoll.closed>.brgf{display:none}
 .brgpt{flex:1;min-height:0}
 .brgpt iframe{display:block;width:100%;height:100%;min-height:420px;border:0}
 .cbub{max-width:78%;padding:10px 14px;border-radius:14px;font-size:13.5px;line-height:19px;color:var(--text-body)}
@@ -2181,6 +2220,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
         <button data-cp="crc" onclick="cpPick(this)">Colorectal Care plan</button>
         <button class="brgdemobtn" onclick="this.closest('.tabdd').classList.remove('open');brgDemo()">UI bridge demo</button>
         <button class="brgdemobtn" onclick="this.closest('.tabdd').classList.remove('open');brgDemoIntake()">Step 1 — Vstupné vyšetrenie</button>
+        <button class="brgdemobtn" onclick="this.closest('.tabdd').classList.remove('open');brgDemoMRI()">Step 1 — MRI (cp-20 draft)</button>
       </div>
       </div>
       <button class="tab"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-folder2"/></svg><span class="tlb">Records</span></button>
@@ -3156,6 +3196,10 @@ function brgFieldHTML(f){
     case 'display':
       ctl='<div class="brgdisp'+(f.tone?' t-'+escT(f.tone):'')+'">'+escT(String(f.value==null?'—':f.value))+'</div>';
       break;
+    case 'toggle': /* cp-20 v0.9 DRAFT — awaiting Roman+Marek sign-off */
+      ctl='<button type="button" role="switch" class="brgsw" data-k="'+k+'"'
+         +' aria-checked="'+(f.default?'true':'false')+'" onclick="brgToggle(this)"'+ro+'></button>';
+      break;
     case 'textarea':
       /* Templates are boilerplate the clinician picks and then edits. Selecting one
          replaces the text, so it is offered only while the field is untouched or
@@ -3238,9 +3282,11 @@ function brgFieldHTML(f){
          +(f.default?' value="'+escT(f.default)+'"':'')
          +(f.placeholder?' placeholder="'+escT(f.placeholder)+'"':'')+ro+'>';
   }
-  return '<div class="brgf" data-fk="'+k+'" data-ft="'+escT(f.type||'text')+'"'+dep+'>'
+  return '<div class="brgf'+(f.wide?' wide':'')+'" data-fk="'+k+'" data-ft="'+escT(f.type||'text')+'"'+dep+'>'
         +(f.type==='checkbox'
             ? '<label class="brgrow">'+ctl+'<span class="brgl">'+lbl+req+'</span></label>'
+            : f.type==='toggle'  /* label sits inline with the switch, in a bordered box */
+            ? '<div class="brgtgl"><span class="brgtgllbl">'+lbl+req+'</span>'+ctl+'</div>'
             : '<label class="brgl" for="">'+lbl+req+'</label>'+ctl)
         +help+'<div class="brgfe"></div></div>';
 }
@@ -3254,6 +3300,12 @@ function brgTpl(sel){
 }
 function brgScale(el){ delete el.dataset.unset; el.nextElementSibling.textContent=el.value; brgDeps(); }
 function brgChip(b){ if(b.disabled)return; b.classList.toggle('on'); brgDeps(); }
+/* cp-20 v0.9 DRAFT — awaiting Roman+Marek sign-off. A switch is a boolean; brgVal/brgSet
+   read/write aria-checked so transport stays a plain true/false. */
+function brgToggle(b){ if(b.disabled)return;
+  b.setAttribute('aria-checked', b.getAttribute('aria-checked')==='true'?'false':'true'); brgDeps(); }
+/* Collapsible section (the "Optional fields" group). Header click toggles .closed. */
+function brgSecToggle(h){ const s=h.closest('.brgsec'); if(s)s.classList.toggle('closed'); }
 function brgRes(b){ if(b.disabled)return;
   b.parentNode.querySelectorAll('.brgrb').forEach(function(x){x.classList.remove('on')});
   b.classList.add('on'); brgDeps(); }
@@ -3295,6 +3347,7 @@ function brgVal(fe){
       const o={}; subs.forEach(function(sf){ o[sf.key]=brgVal(r.querySelector('.brgf[data-fk="'+sf.key+'"]')); });
       return o;});
   }
+  if(t==='toggle'){const sw=fe.querySelector('.brgsw');return sw?sw.getAttribute('aria-checked')==='true':false;}
   const el=fe.querySelector('.brgin,input[type=checkbox]'); if(!el)return null;
   if(t==='checkbox')return el.checked;
   if(t==='scale')return el.dataset.unset?null:Number(el.value);
@@ -3318,6 +3371,7 @@ function brgSet(root,key,v){
       Object.keys(row||{}).forEach(function(sk){ brgSet(r,sk,row[sk]); });
     });
     return;}
+  if(t==='toggle'){const sw=fe.querySelector('.brgsw');if(sw)sw.setAttribute('aria-checked',v?'true':'false');return;}
   const el=fe.querySelector('.brgin,input[type=checkbox]'); if(!el)return;
   if(t==='checkbox'){el.checked=!!v;return;}
   if(t==='scale'){ if(v==null){el.dataset.unset='1';fe.querySelector('.brgsv').textContent='—';}
@@ -3365,8 +3419,15 @@ function brgOpenSurface(m,win,origin){
       const hasReq=(s.fields||[]).some(function(f){return f.required;});
       const ic=s.icon?'<span class="brgsecic"><svg class="ico s14" aria-hidden="true"><use href="#i-'+escT(s.icon)+'"/></svg></span>':'';
       const sub=s.subtitle?escT(s.subtitle):(hasReq?tt('Required fields marked')+' <span class="brgreq">*</span>':'');
-      return '<div class="brgsec"><div class="brgsthead">'+ic+'<div><div class="brgst">'+escT(s.title||'')+'</div>'
-            +(sub?'<div class="brgstsub">'+sub+'</div>':'')+'</div></div>'
+      /* cp-20 v0.9 DRAFT — awaiting sign-off: columns:2 lays the section out as a grid,
+         collapsible/collapsed makes it an expandable group (the "Optional fields"). */
+      const grid=s.columns>1;
+      const cls='brgsec'+(grid?' brggrid':'')+(s.collapsible?' brgcoll'+(s.collapsed?' closed':''):'');
+      const gstyle=grid?' style="grid-template-columns:repeat('+(s.columns|0)+',1fr)"':'';
+      const chev=s.collapsible?'<svg class="brgcollchev" width="14" height="8" viewBox="0 0 14 8" fill="none" aria-hidden="true"><path d="M1 1L7 7L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>':'';
+      const headOpen=s.collapsible?'<div class="brgsthead" onclick="brgSecToggle(this)">':'<div class="brgsthead">';
+      return '<div class="'+cls+'"'+gstyle+'>'+headOpen+ic+'<div><div class="brgst">'+escT(s.title||'')+'</div>'
+            +(sub?'<div class="brgstsub">'+sub+'</div>':'')+'</div>'+chev+'</div>'
             +(s.fields||[]).map(brgFieldHTML).join('')+'</div>';}).join('')
         +(m.fields||[]).map(brgFieldHTML).join('');
   }else{
@@ -3590,6 +3651,53 @@ function brgDemoIntake(){
         {key:'vitalsBmi',type:'display',label:'BMI',value:'—'},
         {key:'vitaminDLevel',type:'number',label:'Vitamín D',unit:'nmol/L',min:0,max:400,
          refRange:{low:75,high:250}}]}],
+    actions:[{key:'cancel',label:'Zrušiť',tone:'ghost',dismiss:true},
+             {key:'delete',label:'Zmazať',tone:'danger'},
+             {key:'save',label:'Uložiť'},
+             {key:'next',label:'Pokračovať',tone:'primary'}]},fake,location.origin);
+}
+/* MRI surface — exercises the cp-20 v0.9 DRAFT primitives (toggle · columns · collapsible)
+   against the STEP1 MRI modal. Not yet implemented by any plan; shown so the primitives
+   can be judged before they are ratified. */
+function brgDemoMRI(){
+  if(BRG_OPEN){showToast('A surface is already open');return;}
+  const fake={postMessage:function(m){
+    if(m.type==='ui.toolbar'){
+      showToast(tt('Reading document')+'…');
+      setTimeout(function(){
+        if(!BRG_OPEN)return;
+        const root=document.getElementById('brgbody');
+        brgSet(root,'mriRegion','brain'); brgSet(root,'performedDate','2026-08-03');
+        brgSet(root,'newT2',true); brgSet(root,'lesionLoc',['pv','jc']);
+        brgSet(root,'conclusion','Mnohopočetné T2 hyperintenzity, prevažne periventrikulárne.');
+        brgDeps(); showToast(tt('Fields filled from the document'),'ok');
+      },900);
+      return;
+    }
+  }};
+  brgOpenSurface({id:'demo-mri',plan:'sm',surface:'sheet',title:'MRI mozgu a miechy',
+    subtitle:'Rádiológ · Neurológ',
+    toolbar:[{key:'upload',label:'Nahrať',icon:'file'},{key:'photo',label:'Odfotiť',icon:'cam'},
+             {key:'nis',label:'Vložiť z NIS',icon:'bldg'}],
+    sections:[
+      {title:'Nálezy a lokalizácia lézií',icon:'scan',columns:2,fields:[
+        {key:'mriRegion',type:'select',label:'Oblasť MRI',required:true,
+         options:[{value:'brain',label:'Mozog'},{value:'cord',label:'Miecha'},
+                  {value:'both',label:'Mozog + C-chrbtica'}]},
+        {key:'performedDate',type:'date',label:'Dátum vykonania',required:true},
+        {key:'lesionLoc',type:'multiselect',label:'Lokalizácie lézií',wide:true,
+         options:[{value:'pv',label:'Periventrikulárne'},{value:'jc',label:'Juxtakortikálne'},
+                  {value:'cort',label:'Kortikálne'},{value:'inf',label:'Infratentoriálne'},
+                  {value:'spin',label:'Spinálne'}]},
+        {key:'newT2',type:'toggle',label:'Nové T2 lézie'},
+        {key:'enlargedT2',type:'toggle',label:'Zväčšené T2 lézie'},
+        {key:'gdEnh',type:'toggle',label:'Gd+ lézie'},
+        {key:'conclusion',type:'textarea',label:'Záver',required:true,rows:3,wide:true,
+         placeholder:'Stručný záver MRI nálezu (povinné)…'}]},
+      {title:'Voliteľné polia',collapsible:true,collapsed:true,columns:2,fields:[
+        {key:'scanner',type:'text',label:'Prístroj / Tesla'},
+        {key:'sequences',type:'text',label:'Sekvencie'},
+        {key:'technique',type:'textarea',label:'Technika a poznámky',rows:2,wide:true}]}],
     actions:[{key:'cancel',label:'Zrušiť',tone:'ghost',dismiss:true},
              {key:'delete',label:'Zmazať',tone:'danger'},
              {key:'save',label:'Uložiť'},

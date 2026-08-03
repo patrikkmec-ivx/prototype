@@ -166,6 +166,24 @@ the same ten types, and **the cockpit needs no change to support a new plan**.
 Common to all: `key` (required, unique), `label` (required), `help`, `required`, `default`,
 `readOnly`, `dependsOn`.
 
+### 6.0 DRAFT primitives — v0.9, awaiting sign-off (Roman + Marek)
+
+> **Status: not ratified.** These three were built into the cockpit renderer (v188) so they could
+> be *seen and judged* against the STEP-1 MRI modal, after the review asked to adopt the care plan's
+> carded body ("prebrať všetko okrem hlavičky a buttons"). They are visually complete and round-trip
+> through `brgVal`/`brgSet`, but they are **not part of the ratified contract**: no plan should build
+> against them until this section loses the DRAFT marker. They are recorded here rather than accreted
+> silently precisely because §12 warns the contract must not reach v1.0 by accretion. Demo:
+> *Care plans → Step 1 — MRI (cp-20 draft)*.
+
+| type / option | value shape | key options | notes |
+|---|---|---|---|
+| `toggle` *(field type)* | boolean | — | Same value shape as `checkbox`; rendered as a switch in a bordered box (label left, control right) rather than a checkbox+label row. Open question for sign-off: is a second boolean primitive justified, or should this be a *render hint* on `checkbox` (e.g. `style:"switch"`) so transport keeps one boolean type? |
+| `columns` *(section option)* | integer ≥ 1 | on a `section` | Lays the section out as an *n*-column grid. A field with `wide: true`, and every `textarea`/`group`/`multiselect`, spans all columns. Purely presentational; changes no value. |
+| `collapsible` / `collapsed` *(section options)* | boolean | on a `section` | Renders the section as an expandable group (the "Voliteľné polia" pattern); `collapsed: true` starts closed. Presentational. Open question: should a collapsed **required** field ever be hidden, or must validation force-expand its section? Current renderer keeps validation working (a required field still blocks Save) but does not yet auto-expand — flagged for Marek. |
+
+Field option added by this draft: `wide` (boolean) — span all grid columns; no effect outside a `columns` section.
+
 ### 6.1 Why `result` is its own type
 
 A tri-state clinical result is the single most repeated shape in the SM contract — oligoclonal
