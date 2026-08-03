@@ -4,8 +4,29 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v185 (PHR panel collapse control no longer clipped)</title>
+<title>Hilbi Cockpit — v186 (modal chrome unified: header, footer buttons, bridge logo)</title>
 <!-- CHANGELOG
+v186 (2026-08-03): Modal chrome cleanup and unification, driven by the first real look at
+  the step-1 intake surface now that the SM bridge is confirmed opening the DASh modal
+  rather than the plan's in-frame dialog.
+  header hairline — .sh-h::after (the 1px divider under every modal title) removed. It read
+  as a second container edge under the title; the padding already separates header from
+  body. Gone from all modals, not just the two reviewed, so the treatment stays uniform.
+  footer system buttons — all footer actions drop to size S (DS: L 48 · M 40 · S 32), not
+  only the dismissals v182 already shrank. A committing button (Save / Pokračovať / Dokončiť
+  / Create / Upload / Sign / Confirm) was still M, so it out-weighed the surface it sits
+  under. Applied the existing .btn.sm class to every footer commit button across nine
+  static footers, the Prescription/record dynamic footers, and the bridge (brgActs now
+  emits sm for every action). No new rule — gate 11 clean.
+  bridge modal logo — the bridge surface header carried a bare title; every other cockpit
+  modal opens with a .hic icon chip. Added a neutral clipboard chip (#i-cliplist, default
+  cyan) so an embedded surface reads as cockpit-rendered and matches Prescription/Record.
+  template picker overlap — .brgtpl used float:right + a −22px margin to sit top-right of a
+  textarea field, but .brgf is a flex column and flex items ignore float, so the "Template…"
+  select collapsed onto the field label and overlapped it. Pinned position:absolute against
+  a now-relative .brgf; label sits left, picker top-right, no overlap. Same class, no new
+  geometry. Verified by rendering the intake surface and the Prescription modal at 1440.
+
 v185 (2026-08-03): PHR panel — the collapse control was clipped at every width. .phr .tabs
   inherits the v174 horizontal scroll strip, and .ticons{margin-left:auto} placed the
   collapse chevron at the end of scrollWidth. The four tabs plus the chevron measure 328px
@@ -960,7 +981,6 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
 .sheet.wide{width:820px}
 .sheet{position:relative;width:520px;max-width:calc(100vw - 32px);height:auto;max-height:86vh;background:var(--surface-white);border-radius:16px;box-shadow:0 24px 60px rgba(27,35,64,.30);display:flex;flex-direction:column;overflow:hidden}
 .sh-h{display:flex;gap:12px;align-items:center;padding:18px 24px 14px;position:relative}
-.sh-h::after{content:'';position:absolute;left:24px;right:24px;bottom:0;height:1px;background:var(--border-default)}
 .sh-h .hic{width:34px;height:34px;border-radius:10px;background:var(--brand-cyan-soft);color:var(--brand-teal);display:flex;align-items:center;justify-content:center}
 .sh-h b{font-size:15px;font-weight:800;color:var(--text-heading)}
 .sh-h .x{margin-left:auto;background:none;border:none;color:var(--text-muted);font-size:15px;cursor:pointer;padding:6px}
@@ -1217,12 +1237,15 @@ body[data-tab="cp"] .filterbar{display:none}
 .brgbody{flex:1;min-height:0;overflow-y:auto;padding:14px 20px;display:flex;flex-direction:column;gap:12px}
 .brgacts{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;border-top:1px solid var(--border-default)}
 .brgtools{display:flex;gap:8px;flex-wrap:wrap;padding:0 20px 10px}
-.brgtpl{float:right;margin:-22px 0 0;border:none;background:none;font:inherit;font-size:12px;
-  font-weight:700;color:var(--text-muted);cursor:pointer;max-width:45%}
+/* Pinned to the field's top-right on the label row. float:right was ignored because
+   .brgf is a flex column (flex items ignore float), so the picker collapsed onto the
+   label and overlapped it; absolute against the relatively-positioned .brgf fixes it. */
+.brgtpl{position:absolute;top:0;right:0;border:none;background:none;font:inherit;font-size:12px;
+  font-weight:700;color:var(--text-muted);cursor:pointer;max-width:45%;text-align:right}
 .sheetwrap.busy .brgbody{opacity:.55;pointer-events:none}
 .brgsec{display:flex;flex-direction:column;gap:12px;padding-bottom:6px}
 .brgst{font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--text-subtle)}
-.brgf{display:flex;flex-direction:column;gap:4px}
+.brgf{display:flex;flex-direction:column;gap:4px;position:relative}
 .brgf.hid{display:none}
 /* Same shape as .tpledit label.fl — the established field-label style. */
 .brgl{display:block;font-size:12px;line-height:16px;font-weight:700;color:var(--text-muted)}
@@ -2496,7 +2519,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
       <div class="orgnote">The header and footer belong to the healthcare facility, not to the template. A change appears in every document at once.</div>
       <div class="tpledit" id="orgform"></div>
     </div>
-    <div class="sh-f"><button class="btn sm" onclick="mClose('orgwrap')">Cancel</button><button class="btn primary" onclick="orgSave()">Save</button></div>
+    <div class="sh-f"><button class="btn sm" onclick="mClose('orgwrap')">Cancel</button><button class="btn sm primary" onclick="orgSave()">Save</button></div>
   </div>
 </div>
 
@@ -2514,7 +2537,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
 <!-- Care plan bridge surface (cp-20). The plan describes, the cockpit renders. -->
 <div class="sheetwrap" id="brgwrap"><div class="scrim" onclick="brgClose()"></div>
   <div class="sheet brgmodal">
-    <div class="sh-h"><b id="brgTitle"></b><span class="brgsub" id="brgSub"></span>
+    <div class="sh-h"><span class="hic"><svg class="ico s14" aria-hidden="true"><use href="#i-cliplist"/></svg></span><b id="brgTitle"></b><span class="brgsub" id="brgSub"></span>
       <button class="x" onclick="brgClose()" title="Close">&times;</button></div>
     <div class="brgtools" id="brgTools"></div>
     <div class="brgbody" id="brgbody"></div>
@@ -2537,7 +2560,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
       </div>
       <div class="gaterow" style="background:var(--surface-1);color:var(--text-muted);margin-top:10px"><svg class="ico s14" style="flex:none"><use href="#i-pen"/></svg><span>Written to the progress note under the selected SOAP slot.</span></div>
     </div>
-    <div class="sh-f"><button class="btn sm" onclick="mClose('recwrap')">Cancel</button><button class="btn primary" onclick="saveRec()">Save</button></div>
+    <div class="sh-f"><button class="btn sm" onclick="mClose('recwrap')">Cancel</button><button class="btn sm primary" onclick="saveRec()">Save</button></div>
   </div>
 </div>
 
@@ -2643,7 +2666,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
       <input id="nsReason" class="recline" style="margin-top:12px" placeholder="Reason / indication (optional)…">
       <div class="gaterow" id="nsGate" style="background:var(--surface-1);color:var(--text-muted);margin-top:10px"><svg class="ico s14" style="flex:none"><use href="#i-cal"/></svg><span id="nsGateTxt">Appears in the PLANNED section of the pathway and in the patient app.</span></div>
     </div>
-    <div class="sh-f"><button class="btn sm" onclick="mClose('nswrap')">Cancel</button><button class="btn primary" id="nsSubmit" onclick="nsSave()">Create</button></div>
+    <div class="sh-f"><button class="btn sm" onclick="mClose('nswrap')">Cancel</button><button class="btn sm primary" id="nsSubmit" onclick="nsSave()">Create</button></div>
   </div>
 </div>
 
@@ -2654,7 +2677,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
       <div class="drop"><svg class="ico" style="width:22px;height:22px;stroke:var(--text-subtle)"><use href="#i-cam"/></svg><div style="margin-top:8px">Drag a file here or photograph the document</div><button class="btn">Choose file</button></div>
       <div class="gaterow" style="background:var(--warning-soft);color:#7a5416"><svg class="iqmk" aria-hidden="true"><use href="#i-iqmark"/></svg><span>Extracts the text and creates a 'To verify' event — it is excluded from synthesis until verified.</span></div>
     </div>
-    <div class="sh-f"><button class="btn sm" onclick="mClose('fotwrap')">Cancel</button><button class="btn primary" onclick="saveFot()">Upload</button></div>
+    <div class="sh-f"><button class="btn sm" onclick="mClose('fotwrap')">Cancel</button><button class="btn sm primary" onclick="saveFot()">Upload</button></div>
   </div>
 </div>
 
@@ -2715,7 +2738,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
         <div id="dsibill"></div>
         <div id="billrows"></div>
         <div class="emrow" id="emrow" style="display:none"></div>
-        <div class="billfoot"><button class="btn primary" onclick="finalizeSign()" id="billconfirm">Confirm charges & sign</button></div>
+        <div class="billfoot"><button class="btn sm primary" onclick="finalizeSign()" id="billconfirm">Confirm charges & sign</button></div>
       </div>
       <div class="genrow">
         <button class="btn primary" onclick="renderOut()"><svg class="ico s14" style="flex:none"><use href="#i-doc"/></svg><span>Generate preview</span></button>
@@ -2727,7 +2750,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
       <div class="genrow"><svg class="ico s14"><use href="#i-user"/></svg><span><b>Patient summary</b><small>plain language · app / print</small></span><button class="btn">Generate</button></div>
       <div class="genrow"><svg class="ico s14"><use href="#i-dash"/></svg><span><b>Insurance claim</b><small>projection of procedure events · fee schedule</small></span><button class="btn">Generate</button></div>
     </div>
-    <div class="sh-f"><button class="btn sm" onclick="mClose('dkwrap')">Close</button><button class="btn primary" onclick="signDay()">Sign the encounter</button></div>
+    <div class="sh-f"><button class="btn sm" onclick="mClose('dkwrap')">Close</button><button class="btn sm primary" onclick="signDay()">Sign the encounter</button></div>
   </div>
 </div>
 <div class="toast" id="toast"><svg class="ico s14" aria-hidden="true" style="stroke:var(--success)"><use href="#i-sok"/></svg><span>Saved to progress note</span></div>
@@ -2837,13 +2860,13 @@ function rxRender(){
  cnt.style.display=RX.cart.length&&!RX.done?'inline-flex':'none';cnt.textContent=rxT('Recept')+' ('+RX.cart.length+')';
  const f=document.getElementById('rxfoot');f.innerHTML='';
  const btn=(txt,cls,fn,kbd)=>{const b=document.createElement('button');b.className='btn '+cls;b.textContent=txt;if(kbd){const k=document.createElement('span');k.className='kb2';k.textContent='⏎';b.appendChild(k)}b.onclick=fn;f.appendChild(b);return b};
- if(RX.done){btn(rxT('Podpísať'),'primary',signFinal)}
+ if(RX.done){btn(rxT('Podpísať'),'sm primary',signFinal)}
  else{
    const note=document.createElement('span');
    note.style.cssText='margin-right:auto;font-size:10.5px;color:var(--text-subtle);align-self:center;max-width:200px;line-height:1.35';
    note.textContent=rxT('podpis: certifikát (PC) · biometria (mobil)');f.appendChild(note);
-   btn(rxT('Zrušiť'),'',closeRx);
-   const b=btn(rxT('Dokončiť')+(RX.cart.length?' ('+RX.cart.length+')':''),'primary',finishStep1);
+   btn(rxT('Zrušiť'),'sm',closeRx);
+   const b=btn(rxT('Dokončiť')+(RX.cart.length?' ('+RX.cart.length+')':''),'sm primary',finishStep1);
    if(!RX.cart.length){b.disabled=true;b.style.opacity=.45}
  }
  if(!RX.done){renderS1Cart();renderChips();renderRes()}
@@ -3333,9 +3356,10 @@ function brgOpenSurface(m,win,origin){
   const acts=(m.actions||[]).slice();
   if(!acts.some(function(a){return a.dismiss;}))acts.push({key:'cancel',label:tt('Cancel'),tone:'ghost',dismiss:true});
   document.getElementById('brgActs').innerHTML=acts.map(function(a){
-    /* Dismissal is size S; a committing action keeps the M default, so visual
-       weight tracks consequence rather than position in the row. */
-    return '<button class="btn'+(a.dismiss?' sm':'')+(a.tone==='primary'?' primary':a.tone==='danger'?' danger':a.tone==='ghost'?' ghost':'')
+    /* All footer actions are size S (DS: L 48 · M 40 · S 32). System buttons —
+       commit included, not only dismissal — carry S so the footer reads as one
+       uniform control row rather than a large primary competing with the surface. */
+    return '<button class="btn sm'+(a.tone==='primary'?' primary':a.tone==='danger'?' danger':a.tone==='ghost'?' ghost':'')
           +'" onclick="brgAct(\''+escT(a.key)+'\','+(a.dismiss?'true':'false')+')">'+escT(a.label)+'</button>';}).join('');
   BRG_OPEN={id:m.id,plan:m.plan,surface:m.surface,fields:fields,win:win,origin:origin,
             actions:acts.reduce(function(o,a){o[a.key]=a;return o;},{})};
@@ -6128,7 +6152,7 @@ function irOpen(){
   document.getElementById('irStopBtn').hidden=true;document.getElementById('irHint').hidden=false;
   document.getElementById('irClock').textContent='00:00';
   irFmt='SOAP';document.getElementById('irFmtVal').textContent='SOAP';
-  irFoot('<button class="btn" onclick="mClose(\'iqrec\')">Cancel</button>');
+  irFoot('<button class="btn sm" onclick="mClose(\'iqrec\')">Cancel</button>');
   mOpen('iqrec');
 }
 function irTick(){irSec++;const m=String(Math.floor(irSec/60)).padStart(2,'0'),s=String(irSec%60).padStart(2,'0');document.getElementById('irClock').textContent=m+':'+s;if(irSec>=1200)irStop();}
@@ -6162,7 +6186,7 @@ function irStop(){
   if(irTimer)clearInterval(irTimer);irTimer=null;irState='done';
   document.getElementById('irStep1').hidden=true;document.getElementById('irStep2').hidden=false;
   document.getElementById('irEdit').innerHTML=IR_SOAP.map(s=>'<div class="iqsec"><div class="iqsh"><svg class="ico" aria-hidden="true"><use href="#'+s.ic+'"/></svg>'+s.h+'</div><div class="iqtx" contenteditable="true" spellcheck="false">'+s.t+'</div></div>').join('');
-  irFoot('<button class="btn" onclick="irOpen()">Re-record</button><button class="btn primary" onclick="irSign()">Sign</button>');
+  irFoot('<button class="btn sm" onclick="irOpen()">Re-record</button><button class="btn sm primary" onclick="irSign()">Sign</button>');
 }
 function irSign(){pinSign('Sign — IQ session',irSignDo);}
 function irFmtMenu(ev){ev.stopPropagation();document.getElementById('irFmtDD').classList.toggle('open');}
