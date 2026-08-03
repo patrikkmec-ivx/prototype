@@ -4,7 +4,7 @@
 > binding; `CLAUDE.md` governs how to behave in the repository; `README.md` says what
 > is what. **Updated at the end of every session.**
 
-Updated: 2026-07-27 · Prototype version: **v182**
+Updated: 2026-08-03 · Prototype version: **v183**
 
 ---
 
@@ -475,6 +475,34 @@ and a frame around it reads as a second container competing with it.
 
 **Gate 6 earned its keep** — it caught hex literals in the *comment* above the rule, where
 both colours had been quoted by value. Contrast figures belong in prose as token names.
+
+### v183 — bridge additions for the SM step-1 modals
+
+Three capabilities, all found by reading the real intake modal rather than designing in
+the abstract, and all generic rather than SM-specific.
+
+**`toolbar`** — actions that *fill* a form (upload, camera, EHR import), rendered above the
+fields. In the footer beside Save they would read as four equal commits.
+
+**`ui.update`** — the one that mattered. SM is OCR-driven end to end, so without a way to
+write into an **open** surface, every upload would force a close and reopen, discarding
+whatever was already typed. Only the keys sent are written; an unmentioned field keeps its
+value. Plans must send only what extraction found — a `null` for a miss would erase
+hand-entered text.
+
+**`templates` on `textarea`** — the per-field picker. The cockpit asks before replacing
+text that is not an unmodified template; silently overwriting a dictated paragraph would
+be the worst thing this control could do.
+
+`brgSet()` is the inverse of `brgVal()` and covers every type including repeatable groups
+and the unset scale state.
+
+**Accepted gaps:** section icons and the specialty badge were not added. They carry no
+information the surface does not already have, and each one is a permanent addition to a
+protocol two other plans will implement.
+
+`docs/STEP1-MODALS-ON-DASH.md` maps all six step-1 modals to field schemas, keyed to
+`sm-plus.contract.ts`. Every key in it was checked against the contract.
 
 ### v182 — dismissal at size S, and gate 6 was half blind
 
