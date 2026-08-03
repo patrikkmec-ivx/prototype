@@ -4,8 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v183 (bridge: toolbar, ui.update, templates)</title>
+<title>Hilbi Cockpit — v184 (step-1 intake surface, testable)</title>
 <!-- CHANGELOG
+v184 (2026-08-03): The step-1 intake surface as STEP1-MODALS-ON-DASH specifies it, in the
+  Care plans dropdown, so it can be judged before the SM plan implements the bridge.
+  Nothing was broken before this: the plan still opens its own in-frame dialogs because it
+  does not call hilbi.open() yet. The cockpit half was finished in v183 and had no way to
+  be seen.
+  Four sections, 18 fields, three toolbar actions, four footer actions — the real contract
+  keys, not placeholders. Pressing a toolbar action runs a stand-in for the plan's OCR
+  pipeline: 900 ms later five fields fill through the same brgSet() path a real ui.update
+  uses, so what is exercised is the actual code, not a mock of it.
+  Slovak labels here are deliberate — they mirror the plan's own so the surface can be
+  compared with the screenshot it came from. Fenced in DEMO-CONTENT so gate 10 skips them;
+  every cockpit string still goes through tt().
+
 v183 (2026-08-03): Three additions so step 1 of the SM plan can move onto cockpit
   surfaces. All three came from reading the real intake modal, and all three are generic
   rather than SM-specific.
@@ -2104,6 +2117,7 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
         <button data-cp="fab" onclick="cpPick(this)">Fabry Care plan</button>
         <button data-cp="crc" onclick="cpPick(this)">Colorectal Care plan</button>
         <button class="brgdemobtn" onclick="this.closest('.tabdd').classList.remove('open');brgDemo()">UI bridge demo</button>
+        <button class="brgdemobtn" onclick="this.closest('.tabdd').classList.remove('open');brgDemoIntake()">Step 1 — Vstupné vyšetrenie</button>
       </div>
       </div>
       <button class="tab"><svg class="ico s14 tic" aria-hidden="true"><use href="#i-folder2"/></svg><span class="tlb">Records</span></button>
@@ -3438,6 +3452,78 @@ function brgDemo(){
                {key:'value',type:'text',label:tt('Result')}]}],
     actions:[{key:'save',label:tt('Save'),tone:'primary'}]},fake,location.origin);
 }
+/* Slovak below is deliberate: it mirrors the SM plan's own labels so the surface can be
+   judged against the real thing. It is demo content, not interface text — the cockpit's
+   own strings all go through tt(). Fenced so gate 10 skips it. */
+/* DEMO-CONTENT-START */
+/* Step-1 intake exactly as STEP1-MODALS-ON-DASH specifies it — so the surface can be
+   judged before the plan implements the bridge. Field keys are the SM contract's. */
+function brgDemoIntake(){
+  if(BRG_OPEN){showToast('A surface is already open');return;}
+  const fake={postMessage:function(m){
+    if(m.type==='ui.toolbar'){
+      /* stands in for the plan's OCR pipeline */
+      showToast(tt('Reading document')+'…');
+      setTimeout(function(){
+        if(!BRG_OPEN)return;
+        const root=document.getElementById('brgbody');
+        brgSet(root,'referralSource','gp');
+        brgSet(root,'performedDate','2026-08-03');
+        brgSet(root,'reasonForVisit','38 r pacientka, podozrenie na demyelinizačné ochorenie.');
+        brgSet(root,'vitalsBp','128/78'); brgSet(root,'vitalsPulse',72);
+        brgSet(root,'vitaminDLevel',42); brgDeps();
+        showToast(tt('Fields filled from the document'),'ok');
+      },900);
+      return;
+    }
+    showToast(m.dismissed?tt('Dismissed'):(tt('Returned')+' '+Object.keys(m.values||{}).length),m.dismissed?'':'ok');
+    if(!m.dismissed)console.log('[step1 intake] ui.result',m);}};
+  const std=[{label:'Štandardná',value:'[Vek] r pacient/ka, [stručný popis dôvodu návštevy].'}];
+  brgOpenSurface({id:'demo-intake',plan:'sm',surface:'sheet',title:'Vstupné vyšetrenie',
+    subtitle:'Neurológ',
+    toolbar:[{key:'upload',label:'Nahrať',icon:'file'},
+             {key:'photo',label:'Odfotiť',icon:'cam'},
+             {key:'nis',label:'Vložiť z NIS',icon:'bldg'}],
+    sections:[
+      {key:'meta',title:'Vyšetrenie',fields:[
+        {key:'referralSource',type:'select',label:'Odkiaľ bol pacient odoslaný',
+         options:[{value:'gp',label:'Všeobecný lekár'},{value:'neuro',label:'Neurológ'},
+                  {value:'er',label:'Urgentný príjem'},{value:'self',label:'Samodoprava'}]},
+        {key:'performedDate',type:'date',label:'Dátum vyšetrenia',required:true}]},
+      {key:'anam',title:'Anamnéza',fields:[
+        {key:'reasonForVisit',type:'textarea',label:'Úvod (vek, dôvod návštevy)',rows:2,templates:std},
+        {key:'presentIllness',type:'textarea',label:'TO — Terajšie ochorenie',rows:3,
+         templates:[{label:'Štandardná',value:'Začiatok ťažkostí:\nVývoj v čase:\nPredchádzajúce vyšetrenia / liečba:'}]},
+        {key:'personalHistory',type:'textarea',label:'OA — Osobná anamnéza',rows:3,
+         templates:[{label:'OA – šablóna',value:'Prekonané ochorenia:\nOperácie / úrazy:\nPrekonané infekcie (COVID, VZV, EBV):'}]},
+        {key:'onsetDate',type:'date',label:'Dátum začiatku ťažkostí'},
+        {key:'priorEpisodes',type:'checkbox',label:'Predchádzajúce epizódy'},
+        {key:'priorEpisodesNarrative',type:'textarea',label:'Popis predchádzajúcich epizód',rows:2,
+         dependsOn:{key:'priorEpisodes',op:'truthy'}}]},
+      {key:'com',title:'Komorbidity a alergie',fields:[
+        {key:'comorbidities',type:'multiselect',label:'Komorbidity',
+         options:[{value:'dm',label:'Diabetes'},{value:'htn',label:'Hypertenzia'},
+                  {value:'thy',label:'Štítna žľaza'},{value:'other',label:'Iné'}]},
+        {key:'comorbiditiesOther',type:'textarea',label:'Iné komorbidity',rows:2,
+         dependsOn:{key:'comorbidities',op:'includes',value:'other'}},
+        {key:'allergies',type:'multiselect',label:'AA — alergie',
+         options:[{value:'none',label:'Bez alergií'},{value:'pen',label:'Penicilín'},
+                  {value:'other',label:'Iné'}]}]},
+      {key:'obj',title:'Objektívne a vitály',fields:[
+        {key:'objectiveFinding',type:'textarea',label:'Objektívny nález',rows:2},
+        {key:'vitalsBp',type:'text',label:'TK',placeholder:'140/90'},
+        {key:'vitalsPulse',type:'number',label:'Pulz',unit:'/min',min:0,max:250},
+        {key:'vitalsHeight',type:'number',label:'Výška',unit:'cm',min:0,max:260},
+        {key:'vitalsWeight',type:'number',label:'Váha',unit:'kg',min:0,max:400},
+        {key:'vitalsBmi',type:'display',label:'BMI',value:'—'},
+        {key:'vitaminDLevel',type:'number',label:'Vitamín D',unit:'nmol/L',min:0,max:400,
+         refRange:{low:75,high:250}}]}],
+    actions:[{key:'cancel',label:'Zrušiť',tone:'ghost',dismiss:true},
+             {key:'delete',label:'Zmazať',tone:'danger'},
+             {key:'save',label:'Uložiť'},
+             {key:'next',label:'Pokračovať',tone:'primary'}]},fake,location.origin);
+}
+/* DEMO-CONTENT-END */
 function cpMenu(ev){ev.stopPropagation();ddToggle(ev.currentTarget.closest('.tabdd'));}
 /* Any centre tab other than the Care plans dropdown closes the plan, so the pane
    cannot linger behind another workspace. Delegated, so no tab markup changes. */
@@ -5086,6 +5172,9 @@ const I18N=[
  ["Select a template on the left or create a new one.","Vyberte šablónu vľavo alebo vytvorte novú."],
  ["Short follow-up (mine)","Krátka kontrola (moja)"],
  ["Preview","Náhľad"],
+ ["Reading document","Načítavam dokument"],
+ ["Fields filled from the document","Polia doplnené z dokumentu"],
+ ["Returned","Vrátené"],
  ["Template","Šablóna"],
  ["Replace the text with this template?","Nahradiť text touto šablónou?"],
  ["EDSS assessment","Vyšetrenie EDSS"],
