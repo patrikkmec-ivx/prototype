@@ -4,8 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v186 (modal chrome unified: header, footer buttons, bridge logo)</title>
+<title>Hilbi Cockpit — v187 (bridge surface: carded sections adopting the care-plan body)</title>
 <!-- CHANGELOG
+v187 (2026-08-03): Bridge surface body adopts the care plan's carded look, header and
+  footer deliberately left as the cockpit's (per the review: "prebrať všetko okrem
+  hlavičky a buttons"). Purely cosmetic — no cp-20 field-primitive changed.
+  section card — .brgsec was a flat flex column with an uppercase mini-title; it is now a
+  card (border-default, surface-white, radius 12, padded), the same tokens as .card/.pgcard
+  but NOT the .card class, which carries a click-to-expand handler that would fire on a
+  section. Sections read as the plan's own cards do.
+  section header — .brgsthead: an optional icon (rendered ONLY when the surface supplies
+  section.icon — v181 declined decorative icons that carry no information, and that holds),
+  a Title-case bold title, and a subtitle that defaults to "Required fields marked *" when
+  the section has any required field (surface.subtitle overrides). One tt() pair added.
+  Deferred to the cp-20 draft, NOT accreted silently: toggle switches, two-column rows and
+  the collapsible optional group are care-plan primitives the cockpit does not own; they
+  change the contract and belong behind the Roman+Marek sign-off (§8), not a cosmetic pass.
+
+
 v186 (2026-08-03): Modal chrome cleanup and unification, driven by the first real look at
   the step-1 intake surface now that the SM bridge is confirmed opening the DASh modal
   rather than the plan's in-frame dialog.
@@ -1243,8 +1259,14 @@ body[data-tab="cp"] .filterbar{display:none}
 .brgtpl{position:absolute;top:0;right:0;border:none;background:none;font:inherit;font-size:12px;
   font-weight:700;color:var(--text-muted);cursor:pointer;max-width:45%;text-align:right}
 .sheetwrap.busy .brgbody{opacity:.55;pointer-events:none}
-.brgsec{display:flex;flex-direction:column;gap:12px;padding-bottom:6px}
-.brgst{font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--text-subtle)}
+/* A section is a card — same tokens as .card/.pgcard (border-default, surface-white),
+   not the .card class itself, which carries a click-to-expand handler. Adopts the care
+   plan's carded body while the header and footer stay cockpit-owned. */
+.brgsec{display:flex;flex-direction:column;gap:12px;padding:16px 18px;border:1px solid var(--border-default);border-radius:12px;background:var(--surface-white)}
+.brgsthead{display:flex;align-items:flex-start;gap:10px}
+.brgsecic{width:28px;height:28px;flex:none;border-radius:8px;background:var(--brand-cyan-soft);color:var(--brand-teal);display:flex;align-items:center;justify-content:center}
+.brgst{font-size:14px;font-weight:800;color:var(--text-heading);line-height:18px}
+.brgstsub{font-size:11.5px;color:var(--text-muted);line-height:15px;margin-top:1px}
 .brgf{display:flex;flex-direction:column;gap:4px;position:relative}
 .brgf.hid{display:none}
 /* Same shape as .tpledit label.fl — the established field-label style. */
@@ -3336,7 +3358,15 @@ function brgOpenSurface(m,win,origin){
         +' referrerpolicy="no-referrer"></iframe></div>';
   }else if(m.sections&&m.sections.length){
     body=m.sections.map(function(s){
-      return '<div class="brgsec"><div class="brgst">'+escT(s.title||'')+'</div>'
+      /* Header mirrors the care plan's carded sections: optional icon (rendered only
+         when the surface supplies one — v181 declined decorative icons that carry no
+         information), title, and a subtitle that defaults to the required-fields note
+         when the section has any required field. */
+      const hasReq=(s.fields||[]).some(function(f){return f.required;});
+      const ic=s.icon?'<span class="brgsecic"><svg class="ico s14" aria-hidden="true"><use href="#i-'+escT(s.icon)+'"/></svg></span>':'';
+      const sub=s.subtitle?escT(s.subtitle):(hasReq?tt('Required fields marked')+' <span class="brgreq">*</span>':'');
+      return '<div class="brgsec"><div class="brgsthead">'+ic+'<div><div class="brgst">'+escT(s.title||'')+'</div>'
+            +(sub?'<div class="brgstsub">'+sub+'</div>':'')+'</div></div>'
             +(s.fields||[]).map(brgFieldHTML).join('')+'</div>';}).join('')
         +(m.fields||[]).map(brgFieldHTML).join('');
   }else{
@@ -5244,6 +5274,7 @@ const I18N=[
  ["pending","prebieha"],
  ["not tested","nevyšetrené"],
  ["Required","Povinné"],
+ ["Required fields marked","Povinné polia označené"],
  ["Below minimum","Pod minimom"],
  ["Above maximum","Nad maximom"],
  ["Add","Pridať"],
