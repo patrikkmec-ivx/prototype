@@ -4,8 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v184 (step-1 intake surface, testable)</title>
+<title>Hilbi Cockpit — v185 (PHR panel collapse control no longer clipped)</title>
 <!-- CHANGELOG
+v185 (2026-08-03): PHR panel — the collapse control was clipped at every width. .phr .tabs
+  inherits the v174 horizontal scroll strip, and .ticons{margin-left:auto} placed the
+  collapse chevron at the end of scrollWidth. The four tabs plus the chevron measure 328px
+  against a panel clamped to 260–~330px, so the chevron sat 8px past the visible right edge
+  at the 280px default and further out as the panel narrowed — reachable only by scrolling
+  the tab strip, which nobody would think to do. Gap tightened 20→10 and padding 20→12 so
+  the four fixed tabs fit at 280 without scrolling; .ticons pinned position:sticky;right:0
+  over the panel surface so the control stays visible even if the labels ever overflow.
+  Measured across the full 260–280 range: overflow 0 at the default, chevron reachable at
+  every width. No new class — the existing .phr .tabs override carries it (gate 11 clean).
+
 v184 (2026-08-03): The step-1 intake surface as STEP1-MODALS-ON-DASH specifies it, in the
   Care plans dropdown, so it can be judged before the SM plan implements the bridge.
   Nothing was broken before this: the plan still opens its own in-frame dialogs because it
@@ -928,7 +939,14 @@ body[data-state="offline"] .trow:nth-child(n+6) {opacity:.55}
 
 /* PHR */
 .phr{background:var(--surface-white);border-radius:16px;display:flex;flex-direction:column;overflow:hidden;position:relative}
-.phr .tabs{gap:20px;padding:0 20px}
+.phr .tabs{gap:10px;padding:0 12px}
+/* The panel is 260–~330px wide and holds four fixed tabs plus the collapse control.
+   .tabs is a horizontal scroll strip (v174), and .ticons{margin-left:auto} put the
+   collapse chevron at the end of scrollWidth — past the visible right edge, so it was
+   clipped at every allowed width. Pin the control group to the panel edge so it stays
+   reachable even if the labels ever overflow; the tighter gap makes the four fit at 280
+   without scrolling in the first place. */
+.phr .tabs .ticons{position:sticky;right:0;margin-left:auto;background:var(--surface-white);padding-left:6px}
 .phr .pbody{flex:1}
 
 /* Dock */
