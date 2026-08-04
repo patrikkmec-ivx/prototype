@@ -4,8 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v189 (intake surface finished to the MRI level)</title>
+<title>Hilbi Cockpit — v190 (bridge header: specialty badge, fill actions on the title row)</title>
 <!-- CHANGELOG
+v190 (2026-08-04): Bridge modal header reworked from the intake review, still on the
+  cockpit's own components (the ask was to keep our grid, not adopt the plan's controls).
+  specialty badge — the subtitle (Neurológ, Rádiológ · Neurológ …) is now a coloured pill
+  UNDER the title, not muted text beside it. Reuses .chip for geometry; .brgbadge adds only
+  colour, so gate 11 stays clean.
+  fill actions on the title row — the toolbar (Nahrať, Odfotiť) moves from its own strip
+  under the header to the right of the title, aligned to the title line. Removing that strip
+  gives the form a full row back — the review wanted maximum room for the anamnesis. "Vložiť
+  z NIS" removed from both demo toolbars as asked.
+  compact top section — with v189's columns:2 the referral + date already sit side by side;
+  losing the toolbar strip above them makes the whole top block as short as it can be while
+  staying carded. No contract change beyond the already-committed DRAFT primitives.
+  Verified by rendering: badge under the title, two fill actions right-aligned on the title
+  row, referral and date in one row.
+
+
 v189 (2026-08-04): The step-1 intake demo brought up to the MRI level, so the two surfaces
   read as one system. Uses the v188 DRAFT primitives — still DRAFT, still awaiting sign-off;
   this only exercises them in the surface the review was looking at.
@@ -1279,12 +1295,21 @@ body[data-tab="cp"] .filterbar{display:none}
 /* ── care plan bridge surface (cp-20) ── */
 .btn.danger{border-color:var(--danger);color:var(--danger)}
 .btn.danger:hover{background:var(--danger-soft)}
-.brgsub{font-size:12px;color:var(--text-muted);margin-left:8px}
+/* Header: icon + a title/badge stack on the left, fill actions right-aligned on the title
+   row (Nahrať / Odfotiť), then close. The specialty is a coloured badge under the title —
+   reuses .chip for geometry, adds only colour (gate 11). */
+.brghtitle{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0;margin-right:8px}
+.brgbadge{background:var(--brand-cyan-soft);color:var(--brand-teal-text)}
+.brgbadge:empty{display:none}
 .sheet.brgsheet{width:920px;max-width:94vw;height:88vh;max-height:88vh}
 .sheet.brgconfirm{width:420px}
 .brgbody{flex:1;min-height:0;overflow-y:auto;padding:14px 20px;display:flex;flex-direction:column;gap:12px}
 .brgacts{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;border-top:1px solid var(--border-default)}
-.brgtools{display:flex;gap:8px;flex-wrap:wrap;padding:0 20px 10px}
+.brgtools{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto;padding:0}
+.brgtools:empty{display:none}
+/* The bridge title is a two-line stack (title + badge); align the row to the top so the
+   fill actions and close sit on the title line rather than centred against the stack. */
+#brgwrap .sh-h{align-items:flex-start}
 /* Pinned to the field's top-right on the label row. float:right was ignored because
    .brgf is a flex column (flex items ignore float), so the picker collapsed onto the
    label and overlapped it; absolute against the relatively-positioned .brgf fixes it. */
@@ -2611,9 +2636,8 @@ body[data-page="tpl"] .center,body[data-page="tpl"] .phr{display:none}
 <!-- Care plan bridge surface (cp-20). The plan describes, the cockpit renders. -->
 <div class="sheetwrap" id="brgwrap"><div class="scrim" onclick="brgClose()"></div>
   <div class="sheet brgmodal">
-    <div class="sh-h"><span class="hic"><svg class="ico s14" aria-hidden="true"><use href="#i-cliplist"/></svg></span><b id="brgTitle"></b><span class="brgsub" id="brgSub"></span>
+    <div class="sh-h"><span class="hic"><svg class="ico s14" aria-hidden="true"><use href="#i-cliplist"/></svg></span><div class="brghtitle"><b id="brgTitle"></b><span class="chip brgbadge" id="brgSub"></span></div><div class="brgtools" id="brgTools"></div>
       <button class="x" onclick="brgClose()" title="Close">&times;</button></div>
-    <div class="brgtools" id="brgTools"></div>
     <div class="brgbody" id="brgbody"></div>
     <div class="brgacts" id="brgActs"></div>
   </div>
@@ -3627,8 +3651,7 @@ function brgDemoIntake(){
   brgOpenSurface({id:'demo-intake',plan:'sm',surface:'sheet',title:'Vstupné vyšetrenie',
     subtitle:'Neurológ',
     toolbar:[{key:'upload',label:'Nahrať',icon:'file'},
-             {key:'photo',label:'Odfotiť',icon:'cam'},
-             {key:'nis',label:'Vložiť z NIS',icon:'bldg'}],
+             {key:'photo',label:'Odfotiť',icon:'cam'}],
     sections:[
       {key:'meta',title:'Vyšetrenie',columns:2,fields:[
         {key:'referralSource',type:'select',label:'Odkiaľ bol pacient odoslaný',
@@ -3689,8 +3712,7 @@ function brgDemoMRI(){
   }};
   brgOpenSurface({id:'demo-mri',plan:'sm',surface:'sheet',title:'MRI mozgu a miechy',
     subtitle:'Rádiológ · Neurológ',
-    toolbar:[{key:'upload',label:'Nahrať',icon:'file'},{key:'photo',label:'Odfotiť',icon:'cam'},
-             {key:'nis',label:'Vložiť z NIS',icon:'bldg'}],
+    toolbar:[{key:'upload',label:'Nahrať',icon:'file'},{key:'photo',label:'Odfotiť',icon:'cam'}],
     sections:[
       {title:'Nálezy a lokalizácia lézií',icon:'scan',columns:2,fields:[
         {key:'mriRegion',type:'select',label:'Oblasť MRI',required:true,
