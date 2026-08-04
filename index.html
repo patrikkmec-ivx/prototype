@@ -4,8 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Hilbi Cockpit — v188 (cp-20 DRAFT primitives: toggle, columns, collapsible)</title>
+<title>Hilbi Cockpit — v189 (intake surface finished to the MRI level)</title>
 <!-- CHANGELOG
+v189 (2026-08-04): The step-1 intake demo brought up to the MRI level, so the two surfaces
+  read as one system. Uses the v188 DRAFT primitives — still DRAFT, still awaiting sign-off;
+  this only exercises them in the surface the review was looking at.
+  Vyšetrenie and Objektívne-a-vitály sections carry columns:2, so referral+date pair and the
+  vitals (TK, Pulz, Výška, Váha, BMI, Vitamín D) form a two-column grid instead of a tall
+  single stack; the textareas above them span both columns automatically.
+  Predchádzajúce epizódy is now a toggle rather than a checkbox — same boolean, and its
+  dependsOn:truthy narrative still reveals on true. Demo content only; no contract change
+  beyond the already-committed DRAFT primitives. Verified by rendering: header without the
+  hairline, logo chip, carded sections, two columns where declared, the switch holds state.
+
+
 v188 (2026-08-03): cp-20 v0.9 DRAFT primitives, so the care plan's MRI body can be built on
   cockpit surfaces and JUDGED before ratification. Marked DRAFT everywhere — renderer
   comments, CSS banner, docs/cp-20 §6.0 — because §12 says the contract must not reach v1.0
@@ -3618,7 +3630,7 @@ function brgDemoIntake(){
              {key:'photo',label:'Odfotiť',icon:'cam'},
              {key:'nis',label:'Vložiť z NIS',icon:'bldg'}],
     sections:[
-      {key:'meta',title:'Vyšetrenie',fields:[
+      {key:'meta',title:'Vyšetrenie',columns:2,fields:[
         {key:'referralSource',type:'select',label:'Odkiaľ bol pacient odoslaný',
          options:[{value:'gp',label:'Všeobecný lekár'},{value:'neuro',label:'Neurológ'},
                   {value:'er',label:'Urgentný príjem'},{value:'self',label:'Samodoprava'}]},
@@ -3630,7 +3642,7 @@ function brgDemoIntake(){
         {key:'personalHistory',type:'textarea',label:'OA — Osobná anamnéza',rows:3,
          templates:[{label:'OA – šablóna',value:'Prekonané ochorenia:\nOperácie / úrazy:\nPrekonané infekcie (COVID, VZV, EBV):'}]},
         {key:'onsetDate',type:'date',label:'Dátum začiatku ťažkostí'},
-        {key:'priorEpisodes',type:'checkbox',label:'Predchádzajúce epizódy'},
+        {key:'priorEpisodes',type:'toggle',label:'Predchádzajúce epizódy'},
         {key:'priorEpisodesNarrative',type:'textarea',label:'Popis predchádzajúcich epizód',rows:2,
          dependsOn:{key:'priorEpisodes',op:'truthy'}}]},
       {key:'com',title:'Komorbidity a alergie',fields:[
@@ -3642,7 +3654,7 @@ function brgDemoIntake(){
         {key:'allergies',type:'multiselect',label:'AA — alergie',
          options:[{value:'none',label:'Bez alergií'},{value:'pen',label:'Penicilín'},
                   {value:'other',label:'Iné'}]}]},
-      {key:'obj',title:'Objektívne a vitály',fields:[
+      {key:'obj',title:'Objektívne a vitály',columns:2,fields:[
         {key:'objectiveFinding',type:'textarea',label:'Objektívny nález',rows:2},
         {key:'vitalsBp',type:'text',label:'TK',placeholder:'140/90'},
         {key:'vitalsPulse',type:'number',label:'Pulz',unit:'/min',min:0,max:250},
